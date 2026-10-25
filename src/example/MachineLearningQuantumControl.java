@@ -14,8 +14,30 @@ import com.quantum.simulator.measurement.Observable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Runs three feedback experiments that use a small adaptive controller: state preparation, error
+ * mitigation, and parameter optimization.
+ *
+ * <p>The controller is a heuristic rather than a trained model. It keeps running averages and a
+ * sign-only gradient, explores randomly with a decaying exploration rate, and stores its history
+ * in memory. The state preparation experiment applies two RY rotations per iteration and scores
+ * them against a uniform target. The error mitigation experiment applies a fixed 5 percent
+ * over-rotation and reports an error estimate derived from the measurement expectation value. The
+ * optimization experiment maximizes a two-qubit concurrence approximation. Success is judged by
+ * the thresholds printed by each experiment, and no result is asserted.</p>
+ */
 public class MachineLearningQuantumControl {
     
+    /**
+     * Runs the three experiments and prints a summary of the controller history.
+     *
+     * <p>No command line arguments are read. The method prints per iteration values, best
+     * fidelities or entanglement values, learning curves, controller insights, and model
+     * parameters. Experiment failures are caught and printed with a stack trace.</p>
+     *
+     * @param args ignored
+     * @throws Exception declared by the experiment methods; failures are caught inside the method
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== MACHINE LEARNING QUANTUM CONTROL (FIXED) ===");
         

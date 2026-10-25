@@ -9,8 +9,30 @@ import com.quantum.simulator.state.Qubit;
 
 import example.EventBuilderHelper;
 
+/**
+ * Builds QAOA circuits for a MaxCut style cost Hamiltonian.
+ *
+ * <p>Each layer applies the problem unitary for every edge as a CNOT, an RZ rotation by
+ * {@code 2 * gamma}, and a second CNOT, then applies the transverse field mixer as an RX rotation
+ * by {@code 2 * beta} on every qubit. The angles are supplied by the caller; this class does not
+ * optimize them.</p>
+ */
 public class QAOAAlgorithm {
     
+    /**
+     * Builds a QAOA circuit with one layer per entry of {@code gamma}.
+     *
+     * <p>The circuit starts with a Hadamard on every qubit to prepare the plus state and then
+     * alternates problem and mixer unitaries. In the implementation {@code gamma} drives the
+     * problem unitary and {@code beta} drives the mixer.</p>
+     *
+     * @param qubits the qubits of the problem register, indexed by the edge endpoints
+     * @param gamma the problem angles, one per layer; its length sets the layer count
+     * @param beta the mixer angles, one per layer
+     * @param costHamiltonian the cost terms, whose edges are applied in order
+     * @return the events of the circuit, in the order they should be scheduled
+     * @throws ArrayIndexOutOfBoundsException if {@code beta} has fewer entries than {@code gamma}
+     */
     public static QuantumEvent[] createQAOACircuit(
         Qubit[] qubits,
         double[] gamma, // Mixing angles
@@ -79,22 +101,46 @@ public class QAOAAlgorithm {
         return events;
     }
     
+    /**
+     * Holds the edges of a MaxCut cost Hamiltonian.
+     */
     public static class CostHamiltonian {
         private List<Edge> edges;
         
+        /**
+         * Creates a cost Hamiltonian from the given edges.
+         *
+         * @param edges the graph edges, used in the order supplied
+         */
         public CostHamiltonian(List<Edge> edges) {
             this.edges = edges;
         }
         
+        /**
+         * Returns the edges of the cost Hamiltonian.
+         *
+         * @return the edge list
+         */
         public List<Edge> getEdges() {
             return edges;
         }
     }
     
+    /**
+     * An undirected edge between two qubit indices.
+     */
     public static class Edge {
+        /** The index of the first endpoint. */
         public final int from;
+        /** The index of the second endpoint. */
         public final int to;
         
+        /**
+         * Creates an edge.
+         *
+         * @param from the index of the first endpoint
+         * @param to the index of the second endpoint
+         */
         public Edge(int from, int to) {
             this.from = from;
             this.to = to;

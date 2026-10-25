@@ -13,8 +13,30 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * Demonstrates several simulations sharing a single {@link ResourceManager} from a fixed thread
+ * pool, with an allocation fallback for rejected requests.
+ *
+ * <p>Four tasks request CPU and memory derived from their qubit count; the first runs at high
+ * priority. If a request is rejected, a smaller request is made and the circuit is run with one
+ * fewer qubit. While the tasks run, the main thread polls utilization for a fixed monitoring
+ * period. Results are collected after monitoring, so the reported parallelism reflects this
+ * program's structure rather than an optimized distributed scheduler.</p>
+ */
 public class DistributedQuantumSimulation {
     
+    /**
+     * Starts four concurrent simulations, monitors resources, collects results, and prints a final
+     * resource report.
+     *
+     * <p>No command line arguments are read. Monitoring polls every two seconds for 30 seconds,
+     * which happens while the futures are still pending. The printed analysis includes per
+     * simulation runtime, a total and average runtime, an efficiency ratio, and the resource
+     * statistics. The method waits up to one minute for the executor to terminate.</p>
+     *
+     * @param args ignored
+     * @throws Exception if setup, monitoring, or awaiting termination fails
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== DISTRIBUTED QUANTUM SIMULATION ===");
         

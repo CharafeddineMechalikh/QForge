@@ -19,8 +19,30 @@ import java.time.Instant;
 import java.time.Duration;
 import java.util.*;
 
+/**
+ * Runs five end-to-end demonstrations of the simulator features: a noisy Bell state, quantum
+ * teleportation with classical feedback, a resource constrained QFT, a plugin monitored GHZ
+ * state, and a variational eigensolver loop.
+ *
+ * <p>Each demonstration builds its own {@link QuantumSimulator}, schedules events, runs the
+ * simulation, and prints reports. The first demonstration also writes visualization output to
+ * {@code ./output/vis_bell_state/} through {@link VisualizationEngine}. The teleportation example
+ * prints the probability of Bob's qubit and compares it with the prepared amplitudes; it does not
+ * print a formal fidelity.</p>
+ */
 public class ComprehensiveSimulationExample {
     
+    /**
+     * Runs all five demonstrations in sequence.
+     *
+     * <p>No command line arguments are read or validated. The method prints section headers and
+     * the reports of each demonstration, and a final completion line if none of them throws.
+     * Individual failures are not caught except for visualization generation, so an exception
+     * propagates to the caller.</p>
+     *
+     * @param args ignored
+     * @throws Exception if any demonstration fails
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== COMPREHENSIVE QUANTUM SIMULATION ===");
         

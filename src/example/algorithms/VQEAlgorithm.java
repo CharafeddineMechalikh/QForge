@@ -8,8 +8,28 @@ import com.quantum.simulator.operations.*;
 import com.quantum.simulator.events.QuantumEvent;
 import java.util.*;
 
+/**
+ * Builds variational ansatz circuits, basis rotation circuits, and small molecular Hamiltonians
+ * for variational eigensolver experiments.
+ *
+ * <p>Four ansatz names are recognized: {@code HardwareEfficient}, {@code UnitaryCoupledCluster},
+ * {@code Chemistry}, and any other value for a simple alternating layer ansatz. The coupled
+ * cluster and chemistry variants contain special cases for particular qubit counts and simplified
+ * excitation decompositions, which the method documentation describes.</p>
+ */
 public class VQEAlgorithm {
     
+    /**
+     * Builds an ansatz circuit.
+     *
+     * <p>Parameter keys depend on the selected ansatz and are read with a zero default, so a
+     * partial map produces a partly unparameterized circuit.</p>
+     *
+     * @param qubits the qubits of the ansatz
+     * @param parameters the parameter map
+     * @param ansatzType the ansatz name, matched exactly
+     * @return the events of the circuit, in the order they should be scheduled
+     */
     public static QuantumEvent[] createVQECircuit(
         Qubit[] qubits,
         Map<String, Double> parameters,
@@ -288,6 +308,20 @@ public class VQEAlgorithm {
     }
     
     // Helper method to create measurement circuits for different observables
+    /**
+     * Builds basis rotation gates for a list of Pauli strings.
+     *
+     * <p>For each string, an {@code X} position receives a Hadamard, a {@code Y} position receives
+     * a phase gate of {@code -PI/2} followed by a Hadamard, and {@code Z} or {@code I} positions
+     * receive nothing. The rotations for all observables are concatenated; measurement itself is
+     * left to the caller.</p>
+     *
+     * @param qubits the qubits corresponding to the characters of each string
+     * @param observables the Pauli strings to rotate into the computational basis
+     * @param parameters unused by the implementation
+     * @return the rotation events, in the order they should be scheduled
+     * @throws ArrayIndexOutOfBoundsException if a string is longer than the qubit array
+     */
     public static QuantumEvent[] createMeasurementCircuit(
         Qubit[] qubits, String[] observables, Map<String, Double> parameters) {
         // Creates circuits for measuring different Pauli terms in Hamiltonian
@@ -336,6 +370,16 @@ public class VQEAlgorithm {
     }
     
     // Energy estimation from measurement results
+    /**
+     * Computes a weighted sum of expectation values.
+     *
+     * <p>Terms present in the coefficients but absent from the expectation values contribute zero.
+     * Terms present only in the expectation values are ignored.</p>
+     *
+     * @param expectationValues the measured expectation value per Pauli string
+     * @param coefficients the coefficient per Pauli string
+     * @return the sum of coefficient times expectation value
+     */
     public static double estimateEnergy(
         Map<String, Double> expectationValues,
         Map<String, Double> coefficients) {
@@ -354,6 +398,16 @@ public class VQEAlgorithm {
     }
     
     // Example Hamiltonians for common molecules
+    /**
+     * Returns a simplified H2 Hamiltonian as Pauli coefficients.
+     *
+     * <p>For two qubits five terms are returned in the parity mapping. For four qubits seven terms
+     * of a Jordan-Wigner mapped Hamiltonian are returned, and the code notes that more terms would
+     * be needed. Other qubit counts return an empty map.</p>
+     *
+     * @param numQubits the number of qubits of the target simulation
+     * @return the coefficient map keyed by Pauli strings
+     */
     public static Map<String, Double> getH2Hamiltonian(int numQubits) {
         Map<String, Double> hamiltonian = new HashMap<>();
         
@@ -378,6 +432,13 @@ public class VQEAlgorithm {
         return hamiltonian;
     }
     
+    /**
+     * Returns a simplified LiH Hamiltonian with three Pauli terms on six qubits.
+     *
+     * <p>The code marks the map as simplified and incomplete.</p>
+     *
+     * @return the coefficient map keyed by Pauli strings
+     */
     public static Map<String, Double> getLiHHamiltonian() {
         Map<String, Double> hamiltonian = new HashMap<>();
         // LiH Hamiltonian terms (simplified)

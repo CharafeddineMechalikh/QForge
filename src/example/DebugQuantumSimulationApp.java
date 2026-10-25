@@ -11,7 +11,25 @@ import com.quantum.simulator.events.QuantumEvent;
 import com.quantum.simulator.math.Complex;
 import java.time.Instant;
 
+/**
+ * Diagnostic program that inspects {@link SimulationContext} through reflection and runs a single
+ * Hadamard gate both with {@code run()} and with {@code step()}.
+ *
+ * <p>The reflection output lists only members whose names contain {@code state}. The program
+ * prints each step and catches exceptions from the simulator so that a failure is reported rather
+ * than propagated. It writes no files.</p>
+ */
 public class DebugQuantumSimulationApp {
+    /**
+     * Runs the reflection check and the simulator test.
+     *
+     * <p>No command line arguments are read. The method prints the available state related methods
+     * and fields, the result of a full run, and the outcome of a single step.</p>
+     *
+     * @param args ignored
+     * @throws Exception if creating the simulator context or running the simulator fails outside
+     *     the locally handled blocks
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== Event System Debug (Fixed) ===");
         

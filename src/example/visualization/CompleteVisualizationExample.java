@@ -22,8 +22,29 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 
+/**
+ * Generates a gallery of quantum visualization images with Java2D and
+ * {@link VisualizationEngine}.
+ *
+ * <p>The program writes PNG images and text reports to {@code ./output/quantum_viz/} and its
+ * subdirectories: {@code bloch_spheres}, {@code multi_qubit}, {@code circuits}, {@code animations},
+ * {@code tomography}, and {@code error_analysis}. Several figures are illustrative rather than
+ * measured: the tomography reconstruction is the ideal density matrix with small Hermitian noise
+ * added, and the noise analysis curves come from closed form expressions instead of simulated
+ * noise channels.</p>
+ */
 public class CompleteVisualizationExample {
     
+    /**
+     * Creates the output tree and generates every visualization group.
+     *
+     * <p>No command line arguments are read. The method prints a progress line per group and the
+     * absolute path of the output directory at the end. Missing directories are created with
+     * {@code mkdirs()}.</p>
+     *
+     * @param args ignored
+     * @throws Exception if directory creation, rendering, or image writing fails
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== COMPLETE QUANTUM VISUALIZATION SUITE ===");
         
@@ -1599,7 +1620,19 @@ public class CompleteVisualizationExample {
 }
 
 // Helper class for matrix operations (simplified)
+/**
+ * Minimal matrix helpers used by the tomography figures in this file.
+ *
+ * <p>The methods cover only what the figures need. Multiplication is implemented for 2 by 2
+ * matrices and otherwise returns the left operand unchanged, as noted in the code.</p>
+ */
 class MatrixOperations {
+    /**
+     * Computes the sum of the diagonal entries.
+     *
+     * @param matrix the matrix to inspect
+     * @return the trace
+     */
     public static Complex trace(ComplexMatrix matrix) {
         Complex sum = Complex.ZERO;
         for (int i = 0; i < matrix.rows(); i++) {
@@ -1608,6 +1641,16 @@ class MatrixOperations {
         return sum;
     }
     
+    /**
+     * Multiplies two matrices.
+     *
+     * <p>Only the 2 by 2 case is implemented. For other sizes the method returns its first
+     * argument, which the code labels as a simplification.</p>
+     *
+     * @param a the left matrix
+     * @param b the right matrix
+     * @return the product for 2 by 2 matrices, otherwise {@code a}
+     */
     public static ComplexMatrix multiply(ComplexMatrix a, ComplexMatrix b) {
         // Simplified multiplication for 2x2 matrices
         if (a.rows() == 2 && b.rows() == 2) {

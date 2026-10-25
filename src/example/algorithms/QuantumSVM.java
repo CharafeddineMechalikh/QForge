@@ -9,8 +9,29 @@ import com.quantum.simulator.events.QuantumEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Builds feature map circuits and a swap-test kernel circuit for a quantum kernel classifier.
+ *
+ * <p>Three feature maps are available: {@code ZZFeatureMap} (Hadamards, pairwise controlled phase
+ * rotations, then Z rotations), {@code PauliFeatureMap} (two layers of Z and Y rotations with
+ * pairwise controlled phase rotations), and a default map of RY rotations. The kernel circuit
+ * prepares both registers and applies a swap test with an ancilla at index
+ * {@code qubits1.length + qubits2.length}.</p>
+ */
 public class QuantumSVM {
     
+    /**
+     * Builds a feature map circuit for one data point.
+     *
+     * <p>The feature map name selects the construction; an unrecognized name produces the default
+     * RY encoding.</p>
+     *
+     * @param qubits the qubits of the register
+     * @param dataPoint the classical data, one value per qubit at most
+     * @param featureMap {@code ZZFeatureMap}, {@code PauliFeatureMap}, or any other value for the
+     *     default map
+     * @return the events of the feature map, in the order they should be scheduled
+     */
     public static QuantumEvent[] createQSVMFeatureMap(
         Qubit[] qubits,
         double[] dataPoint,
@@ -112,6 +133,22 @@ public class QuantumSVM {
         return events;
     }
     
+    /**
+     * Builds a circuit whose ancilla measurement estimates the kernel between two data points.
+     *
+     * <p>The kernel type is passed to the feature map builder for both registers, so recognized
+     * values are the feature map names. The swap test needs an ancilla qubit whose index is
+     * {@code qubits1.length + qubits2.length}; the caller must allocate it in the simulator
+     * register.</p>
+     *
+     * @param qubits1 the first register
+     * @param qubits2 the second register, which must have the same length
+     * @param dataPoint1 the data encoded on the first register
+     * @param dataPoint2 the data encoded on the second register
+     * @param kernelType the feature map name used for both registers
+     * @return the events of the kernel circuit, in the order they should be scheduled
+     * @throws IllegalArgumentException if the two registers have different lengths
+     */
     public static QuantumEvent[] createQSVMKernelCircuit(
         Qubit[] qubits1,
         Qubit[] qubits2,

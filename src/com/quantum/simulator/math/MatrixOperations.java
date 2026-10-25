@@ -2,37 +2,107 @@ package com.quantum.simulator.math;
 
 import java.util.Arrays;
 
+/**
+ * Static convenience operations on {@link ComplexMatrix} instances.
+ *
+ * <p>Most methods delegate to the corresponding instance methods. Methods that
+ * compute a new matrix return new instances and do not modify their arguments,
+ * except that {@link #partialTrace(ComplexMatrix, int, int[])} sorts the supplied
+ * index array.</p>
+ */
 public class MatrixOperations {
     
+    /**
+     * Multiplies two matrices.
+     *
+     * @param a the left factor
+     * @param b the right factor
+     * @return the product {@code a * b}
+     * @throws IllegalArgumentException if the dimensions are incompatible
+     */
     public static ComplexMatrix multiply(ComplexMatrix a, ComplexMatrix b) {
         return a.multiply(b);
     }
     
+    /**
+     * Adds two matrices element by element.
+     *
+     * @param a the first matrix
+     * @param b the second matrix
+     * @return the element-wise sum
+     * @throws IllegalArgumentException if the dimensions do not match
+     */
     public static ComplexMatrix add(ComplexMatrix a, ComplexMatrix b) {
         return a.add(b);
     }
     
+    /**
+     * Subtracts one matrix from another element by element.
+     *
+     * @param a the matrix to subtract from
+     * @param b the matrix to subtract
+     * @return the element-wise difference {@code a - b}
+     * @throws IllegalArgumentException if the dimensions do not match
+     */
     public static ComplexMatrix subtract(ComplexMatrix a, ComplexMatrix b) {
         return a.subtract(b);
     }
     
+    /**
+     * Computes the Kronecker product of two matrices.
+     *
+     * @param a the left factor
+     * @param b the right factor
+     * @return the tensor product {@code a} with {@code b}
+     */
     public static ComplexMatrix tensorProduct(ComplexMatrix a, ComplexMatrix b) {
         return a.tensorProduct(b);
     }
     
+    /**
+     * Returns the trace of a square matrix.
+     *
+     * @param matrix the square matrix
+     * @return the sum of the diagonal entries
+     * @throws IllegalArgumentException if the matrix is not square
+     */
     public static Complex trace(ComplexMatrix matrix) {
         return matrix.trace();
     }
     
+    /**
+     * Creates an identity matrix.
+     *
+     * @param size the number of rows and columns
+     * @return a new identity matrix of the given size
+     * @throws IllegalArgumentException if {@code size} is not positive
+     */
     public static ComplexMatrix identity(int size) {
         return ComplexMatrix.identity(size);
     }
     
+    /**
+     * Creates a zero matrix.
+     *
+     * @param rows the number of rows, must be positive
+     * @param cols the number of columns, must be positive
+     * @return a new zero matrix
+     * @throws IllegalArgumentException if {@code rows} or {@code cols} is not
+     *         positive
+     */
     public static ComplexMatrix zero(int rows, int cols) {
         return ComplexMatrix.zero(rows, cols);
     }
     
    
+    /**
+     * Computes an eigendecomposition of a square matrix.
+     *
+     * @param matrix the square matrix
+     * @return a two element array with the diagonal eigenvalue matrix at index 0
+     *         and the eigenvector matrix at index 1
+     * @throws IllegalArgumentException if the matrix is not square
+     */
     public static ComplexMatrix[] eigenDecomposition(ComplexMatrix matrix) {
         if (!matrix.isSquare()) {
             throw new IllegalArgumentException("Matrix must be square for eigen decomposition");
@@ -40,10 +110,35 @@ public class MatrixOperations {
         return matrix.eigenDecomposition();
     }
     
+    /**
+     * Computes the Kronecker product, an alias for
+     * {@link #tensorProduct(ComplexMatrix, ComplexMatrix)}.
+     *
+     * @param a the left factor
+     * @param b the right factor
+     * @return the tensor product {@code a} with {@code b}
+     */
     public static ComplexMatrix kroneckerProduct(ComplexMatrix a, ComplexMatrix b) {
         return tensorProduct(a, b);
     }
     
+    /**
+     * Traces out the subsystems that are not listed in {@code keepIndices}.
+     *
+     * <p>{@code systemSize} is the number of subsystems, so the input matrix is
+     * expected to be square with {@code 2^systemSize} rows and columns. Subsystem
+     * position {@code 0} corresponds to the most significant bit of the basis
+     * index. The result has dimension {@code 2^keepIndices.length}. The supplied
+     * array is sorted in place, and the sorted positions determine the bit order of
+     * the reduced matrix.</p>
+     *
+     * @param matrix the square matrix of dimension {@code 2^systemSize}
+     * @param systemSize the number of subsystems
+     * @param keepIndices the subsystem positions to keep, sorted in place
+     * @return the reduced matrix of dimension {@code 2^keepIndices.length}
+     * @throws IllegalArgumentException if the matrix dimension is not
+     *         {@code 2^systemSize}
+     */
     public static ComplexMatrix partialTrace(ComplexMatrix matrix, int systemSize, int[] keepIndices) {
         // Perform partial trace on a composite system
         Arrays.sort(keepIndices);
@@ -108,6 +203,16 @@ public class MatrixOperations {
         return result;
     }
     
+    /**
+     * Approximates the matrix exponential with a truncated Taylor series.
+     *
+     * <p>The returned value is the sum of {@code A^k / k!} for {@code k} from 0 to
+     * 10. No scaling and squaring is applied.</p>
+     *
+     * @param matrix the square matrix {@code A}
+     * @return the truncated series approximation of {@code exp(A)}
+     * @throws IllegalArgumentException if the matrix is not square
+     */
     public static ComplexMatrix exp(ComplexMatrix matrix) {
         // Matrix exponential using Taylor series (for small matrices)
         if (!matrix.isSquare()) {
@@ -127,6 +232,19 @@ public class MatrixOperations {
         return result;
     }
     
+    /**
+     * Computes a matrix norm.
+     *
+     * <p>The trace norm is computed as the sum of the square roots of the
+     * eigenvalues of {@code matrix * matrix.adjoint()}.</p>
+     *
+     * @param matrix the matrix
+     * @param normType one of {@code "frobenius"}, {@code "max"}, or {@code "trace"},
+     *        compared case-insensitively
+     * @return the selected norm
+     * @throws IllegalArgumentException if {@code normType} is not recognized, or if
+     *         the trace norm is requested for a non-square matrix
+     */
     public static double norm(ComplexMatrix matrix, String normType) {
         switch (normType.toLowerCase()) {
             case "frobenius":
@@ -176,6 +294,14 @@ public class MatrixOperations {
         return sum;
     }
     
+    /**
+     * Computes the eigenvalues of a square matrix, delegating to
+     * {@link ComplexMatrix#eigenvalues()}.
+     *
+     * @param matrix the square matrix
+     * @return the eigenvalues as real numbers, sorted in ascending order
+     * @throws IllegalArgumentException if the matrix is not square
+     */
     public static double[] eigenvalues(ComplexMatrix matrix) {
         if (!matrix.isSquare()) {
             throw new IllegalArgumentException("Matrix must be square to compute eigenvalues");

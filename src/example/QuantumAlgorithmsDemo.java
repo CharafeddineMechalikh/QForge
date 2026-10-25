@@ -15,8 +15,36 @@ import example.algorithms.*;
 import java.util.*;
 import java.time.Instant;
 
+/**
+ * Canonical entry point for the algorithm demonstrations in {@code example.algorithms}.
+ *
+ * <p>Each demonstration builds a simulator, schedules a circuit, runs it, and prints the final
+ * state together with a {@code SUCCESS} or {@code FAILED} verdict where the code can check one.
+ * The checks compare against values computed by the program itself (for example exact
+ * diagonalization for the variational eigensolver and the analytic evolution for the Trotter
+ * circuit), and a negative verdict is printed as an honest result rather than hidden.</p>
+ *
+ * <p>The algorithms are small demonstrations: the variational eigensolver, quantum neural network,
+ * kernel classifier, and QAOA examples use 2 to 5 qubits and fixed data sets, and QAOA uses fixed
+ * angles that are not optimized.</p>
+ */
 public class QuantumAlgorithmsDemo {
     
+    /**
+     * Runs one demonstrated algorithm or all of them.
+     *
+     * <p>The first argument selects the algorithm, case insensitively: {@code GROVER},
+     * {@code QFT}, {@code QPE}, {@code VQE}, {@code QNN}, {@code QSVM}, {@code SHOR_CODE},
+     * {@code QAOA}, {@code TROTTER}, {@code QUANTUM_WALK}, or {@code ALL}. With no argument,
+     * {@code ALL} is used. Any other value prints an unknown algorithm message and does nothing.
+     * Additional arguments are ignored.</p>
+     *
+     * <p>Output consists of section headers, circuit gate counts, final states, probability
+     * tables, and verdict lines on standard output. No files are written.</p>
+     *
+     * @param args zero or one algorithm name
+     * @throws Exception if a demonstration fails while running its simulation
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== Quantum Algorithms Demonstration ===");
         

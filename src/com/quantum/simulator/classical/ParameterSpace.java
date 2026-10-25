@@ -2,19 +2,68 @@ package com.quantum.simulator.classical;
 
 import java.util.*;
 
+/**
+ * Named parameter container with numeric bounds, discrete choices and optional L2
+ * regularization.
+ *
+ * <p>Numeric parameters are added with
+ * {@link #addParameter(String, double, double, double)} and accept a
+ * {@link Number}, which is clamped to the declared bounds when written through
+ * {@link #setValue(String, Object)}. Discrete parameters are added with
+ * {@link #addDiscreteParameter(String, List, Object)} and accept only values from their
+ * list. Generic parameters are added with {@link #addParameter(String, Object)} and
+ * accept only {@link Number} values.
+ *
+ * <p>Random configurations and neighbours use an internal {@link Random}, whose seed
+ * can be fixed with {@link #setRandomSeed(long)}. The class is a mutable container
+ * without synchronization.
+ */
 public class ParameterSpace {
     private final Map<String, Parameter> parameters;
     private final Random random;
     
+    /**
+     * Creates an empty parameter space with an unseeded random generator.
+     */
     public ParameterSpace() {
         this.parameters = new HashMap<>();
         this.random = new Random();
     }
     
+    /**
+     * Adds a numeric parameter without regularization.
+     *
+     * <p>Equivalent to calling
+     * {@link #addParameter(String, double, double, double, double)} with a
+     * regularization weight of {@code 0.0}.
+     *
+     * @param name parameter name
+     * @param initialValue starting value, which must lie within the bounds
+     * @param min lower bound, inclusive
+     * @param max upper bound, inclusive
+     * @throws IllegalArgumentException if the name already exists, if {@code min} is
+     *                                  greater than {@code max}, or if the initial value
+     *                                  is outside the bounds
+     */
     public void addParameter(String name, double initialValue, double min, double max) {
         addParameter(name, initialValue, min, max, 0.0); // No regularization by default
     }
     
+    /**
+     * Adds a numeric parameter with bounds and an L2 regularization weight.
+     *
+     * <p>The weight is stored for use by {@link #computeRegularizationCost(Map)} and is
+     * not applied by any other method. Both bounds are inclusive.
+     *
+     * @param name parameter name
+     * @param initialValue starting value, which must lie within the bounds
+     * @param min lower bound, inclusive
+     * @param max upper bound, inclusive
+     * @param regularization L2 penalty weight, used only when greater than zero
+     * @throws IllegalArgumentException if the name already exists, if {@code min} is
+     *                                  greater than {@code max}, or if the initial value
+     *                                  is outside the bounds
+     */
     public void addParameter(String name, double initialValue, double min, double max, double regularization) {
         if (parameters.containsKey(name)) {
             throw new IllegalArgumentException("Parameter '" + name + "' already exists");
@@ -31,6 +80,17 @@ public class ParameterSpace {
         parameters.put(name, new NumericParameter(name, initialValue, min, max, regularization));
     }
     
+    /**
+     * Adds a parameter that accepts one of a fixed list of values.
+     *
+     * <p>The value list is copied.
+     *
+     * @param name parameter name
+     * @param values allowed values
+     * @param initialValue starting value, which must be one of {@code values}
+     * @throws IllegalArgumentException if the name already exists or the initial value
+     *                                  is not in the list
+     */
     public void addDiscreteParameter(String name, List<Object> values, Object initialValue) {
         if (parameters.containsKey(name)) {
             throw new IllegalArgumentException("Parameter '" + name + "' already exists");
@@ -43,6 +103,18 @@ public class ParameterSpace {
         parameters.put(name, new DiscreteParameter(name, values, initialValue));
     }
     
+    /**
+     * Sets the current value of a parameter.
+     *
+     * <p>Discrete parameters accept only declared values. Numeric parameters require a
+     * {@link Number}, which is converted to {@code double} and clamped to the inclusive
+     * bounds rather than rejected. Generic parameters also require a {@link Number}.
+     *
+     * @param name parameter name
+     * @param value new value
+     * @throws IllegalArgumentException if the parameter is unknown or the value is not
+     *                                  accepted by the parameter type
+     */
     public void setValue(String name, Object value) {
         Parameter param = parameters.get(name);
         if (param == null) {
@@ -74,6 +146,13 @@ public class ParameterSpace {
         }
     }
     
+    /**
+     * Returns the current value of a parameter.
+     *
+     * @param name parameter name
+     * @return current value
+     * @throws IllegalArgumentException if the parameter is unknown
+     */
     public Object getValue(String name) {
         Parameter param = parameters.get(name);
         if (param == null) {
@@ -82,6 +161,14 @@ public class ParameterSpace {
         return param.currentValue;
     }
     
+    /**
+     * Returns the current value of a parameter as a {@code double}.
+     *
+     * @param name parameter name
+     * @return current value converted to {@code double}
+     * @throws IllegalArgumentException if the parameter is unknown or its value is not a
+     *                                  {@link Number}
+     */
     public double getDoubleValue(String name) {
         Object value = getValue(name);
         if (value instanceof Number) {
@@ -90,6 +177,14 @@ public class ParameterSpace {
         throw new IllegalArgumentException("Parameter '" + name + "' is not numeric");
     }
     
+    /**
+     * Returns the current value of a parameter as an {@code int}.
+     *
+     * @param name parameter name
+     * @return current value converted to {@code int}
+     * @throws IllegalArgumentException if the parameter is unknown or its value is not a
+     *                                  {@link Number}
+     */
     public int getIntValue(String name) {
         Object value = getValue(name);
         if (value instanceof Number) {
@@ -98,6 +193,11 @@ public class ParameterSpace {
         throw new IllegalArgumentException("Parameter '" + name + "' is not numeric");
     }
     
+    /**
+     * Returns the current values of all parameters.
+     *
+     * @return new map from parameter names to current values
+     */
     public Map<String, Object> getCurrentValues() {
         Map<String, Object> values = new HashMap<>();
         for (Map.Entry<String, Parameter> entry : parameters.entrySet()) {
@@ -106,6 +206,15 @@ public class ParameterSpace {
         return values;
     }
     
+    /**
+     * Draws a random configuration over the declared domains.
+     *
+     * <p>Numeric parameters are drawn uniformly from {@code [min, max)}, discrete
+     * parameters uniformly from their value list, and generic parameters keep their
+     * current value.
+     *
+     * @return new map from parameter names to values
+     */
     public Map<String, Object> getRandomConfiguration() {
         Map<String, Object> config = new HashMap<>();
         
@@ -129,6 +238,21 @@ public class ParameterSpace {
         return config;
     }
     
+    /**
+     * Perturbs a configuration with one random step.
+     *
+     * <p>Each numeric parameter is shifted by an amount drawn uniformly between
+     * {@code -stepSize * range} and {@code stepSize * range}, where {@code range} is
+     * {@code max - min}, and the result is clipped to the inclusive bounds. Discrete and
+     * generic parameters are copied unchanged.
+     *
+     * @param current base configuration, which must map every numeric parameter to a
+     *                number
+     * @param stepSize relative step scale
+     * @return new map with the perturbed configuration
+     * @throws NullPointerException if {@code current} has no entry for a numeric
+     *                              parameter
+     */
     public Map<String, Object> getNeighborConfiguration(Map<String, Object> current, double stepSize) {
         Map<String, Object> neighbor = new HashMap<>(current);
         
@@ -154,6 +278,19 @@ public class ParameterSpace {
         return neighbor;
     }
     
+    /**
+     * Sums the L2 penalties of the numeric parameters.
+     *
+     * <p>A numeric parameter contributes {@code regularization * value * value} only
+     * when its weight is greater than zero. Discrete and generic parameters never
+     * contribute.
+     *
+     * @param values values to evaluate, which must contain every numeric parameter with
+     *               a positive regularization weight and map it to a number
+     * @return accumulated penalty
+     * @throws NullPointerException if such a parameter is missing or maps to
+     *                              {@code null}
+     */
     public double computeRegularizationCost(Map<String, Object> values) {
         double cost = 0.0;
         
@@ -172,10 +309,24 @@ public class ParameterSpace {
         return cost;
     }
     
+    /**
+     * Returns the parameter names.
+     *
+     * <p>The returned set is an unmodifiable view of the live key set, so it reflects
+     * parameters added or removed after this call.
+     *
+     * @return unmodifiable view of the parameter names
+     */
     public Set<String> getParameterNames() {
         return Collections.unmodifiableSet(parameters.keySet());
     }
     
+    /**
+     * Describes a parameter.
+     *
+     * @param name parameter name
+     * @return description of the parameter, or {@code null} when the name is unknown
+     */
     public ParameterInfo getParameterInfo(String name) {
         Parameter param = parameters.get(name);
         if (param == null) {
@@ -195,6 +346,12 @@ public class ParameterSpace {
         }
     }
     
+    /**
+     * Restores the initial values of numeric and discrete parameters.
+     *
+     * <p>Generic parameters added with {@link #addParameter(String, Object)} keep their
+     * current value because no separate initial value is recorded for them.
+     */
     public void resetToInitial() {
         for (Parameter param : parameters.values()) {
             if (param instanceof DiscreteParameter) {
@@ -264,6 +421,15 @@ public class ParameterSpace {
     }
     
     // Information class for parameter inspection
+    /**
+     * Description of one parameter, as returned by
+     * {@link ParameterSpace#getParameterInfo(String)}.
+     *
+     * <p>The {@code type} string selects how the fields are interpreted:
+     * {@code "numeric"} uses the minimum and maximum, {@code "discrete"} uses the value
+     * list, and any other value is treated as a generic parameter.
+     * {@link #toString()} formats the description according to the same string.
+     */
     public static class ParameterInfo {
         private final String name;
         private final String type;
@@ -273,6 +439,16 @@ public class ParameterSpace {
         private final Double regularization;
         
         // Constructor for numeric parameters
+        /**
+         * Creates a description of a numeric parameter.
+         *
+         * @param name parameter name
+         * @param type descriptive type string, normally {@code "numeric"}
+         * @param min lower bound
+         * @param max upper bound
+         * @param currentValue current value
+         * @param regularization L2 regularization weight
+         */
         public ParameterInfo(String name, String type, double min, double max, 
                            double currentValue, double regularization) {
             this.name = name;
@@ -284,6 +460,14 @@ public class ParameterSpace {
         }
         
         // Constructor for discrete parameters
+        /**
+         * Creates a description of a discrete parameter.
+         *
+         * @param name parameter name
+         * @param type descriptive type string, normally {@code "discrete"}
+         * @param values allowed values
+         * @param currentValue current value
+         */
         public ParameterInfo(String name, String type, List<Object> values, Object currentValue) {
             this.name = name;
             this.type = type;
@@ -294,6 +478,13 @@ public class ParameterSpace {
         }
         
         // Constructor for generic parameters
+        /**
+         * Creates a description of a generic parameter.
+         *
+         * @param name parameter name
+         * @param type descriptive type string
+         * @param currentValue current value
+         */
         public ParameterInfo(String name, String type, Object currentValue) {
             this.name = name;
             this.type = type;
@@ -304,13 +495,53 @@ public class ParameterSpace {
         }
          
 
+        /**
+         * Returns the parameter name.
+         *
+         * @return parameter name
+         */
 		public String getName() { return name; }
+        /**
+         * Returns the descriptive type string.
+         *
+         * @return type string
+         */
         public String getType() { return type; }
+        /**
+         * Returns the minimum bound or the value list, depending on the parameter type.
+         *
+         * @return minimum bound for numeric parameters, value list for discrete
+         *         parameters, and {@code null} otherwise
+         */
         public Object getMinOrValues() { return minOrValues; }
+        /**
+         * Returns the maximum bound, when one was supplied.
+         *
+         * @return maximum bound for numeric parameters, {@code null} otherwise
+         */
         public Object getMaxOrCurrent() { return maxOrCurrent; }
+        /**
+         * Returns the current value.
+         *
+         * @return current value
+         */
         public Object getCurrentValue() { return currentValue; }
+        /**
+         * Returns the regularization weight, when one was supplied.
+         *
+         * @return regularization weight for numeric parameters, {@code null} otherwise
+         */
         public Double getRegularization() { return regularization; }
         
+        /**
+         * Returns a formatted description.
+         *
+         * <p>The format is chosen by the type string: {@code "numeric"} prints the range,
+         * current value and regularization, {@code "discrete"} prints the value list and
+         * current value, and any other type prints the current value.
+         *
+         * @return formatted description
+         */
         @Override
         public String toString() {
             if (type.equals("numeric")) {
@@ -328,6 +559,16 @@ public class ParameterSpace {
     
     // ==================== ADDITIONAL UTILITY METHODS ====================
     
+    /**
+     * Adds a generic parameter that stores an arbitrary initial value.
+     *
+     * <p>Generic parameters have no bounds and, in {@link #setValue(String, Object)},
+     * accept only {@link Number} values.
+     *
+     * @param name parameter name
+     * @param initialValue starting value, also used as the current value
+     * @throws IllegalArgumentException if the name already exists
+     */
     public void addParameter(String name, Object initialValue) {
         if (parameters.containsKey(name)) {
             throw new IllegalArgumentException("Parameter '" + name + "' already exists");
@@ -335,18 +576,43 @@ public class ParameterSpace {
         parameters.put(name, new GenericParameter(name, initialValue));
     }
     
+    /**
+     * Removes a parameter.
+     *
+     * @param name parameter name, which may be absent
+     */
     public void removeParameter(String name) {
         parameters.remove(name);
     }
     
+    /**
+     * Reports whether a parameter exists.
+     *
+     * @param name parameter name
+     * @return {@code true} when the parameter exists
+     */
     public boolean hasParameter(String name) {
         return parameters.containsKey(name);
     }
     
+    /**
+     * Seeds the internal random generator.
+     *
+     * <p>Seeding makes subsequent random configurations and perturbations reproducible
+     * for the same sequence of calls.
+     *
+     * @param seed random seed
+     */
     public void setRandomSeed(long seed) {
         random.setSeed(seed);
     }
     
+    /**
+     * Draws several independent random configurations.
+     *
+     * @param numSamples number of configurations to draw
+     * @return list of configurations, empty when {@code numSamples} is not positive
+     */
     public List<Map<String, Object>> sampleConfigurations(int numSamples) {
         List<Map<String, Object>> samples = new ArrayList<>();
         for (int i = 0; i < numSamples; i++) {
@@ -355,6 +621,17 @@ public class ParameterSpace {
         return samples;
     }
     
+    /**
+     * Averages a list of configurations.
+     *
+     * <p>Numeric parameters are averaged arithmetically, so every configuration must
+     * map them to a number. Other parameters use their most common value; ties depend on
+     * hash iteration order, so the winner is not specified. An empty list yields the
+     * current values.
+     *
+     * @param configurations configurations to average, normally drawn from this space
+     * @return new map with the averaged values
+     */
     public Map<String, Object> getMeanConfiguration(List<Map<String, Object>> configurations) {
         if (configurations.isEmpty()) {
             return getCurrentValues();
@@ -395,6 +672,14 @@ public class ParameterSpace {
         return meanConfig;
     }
     
+    /**
+     * Clamps numeric values to the parameter bounds in place.
+     *
+     * <p>Entries for unknown or non-numeric parameters are left unchanged.
+     *
+     * @param values values to clamp; entries for numeric parameters must hold a
+     *               {@link Number}
+     */
     public void clipToBounds(Map<String, Object> values) {
         for (Map.Entry<String, Object> entry : values.entrySet()) {
             String name = entry.getKey();
@@ -409,6 +694,13 @@ public class ParameterSpace {
         }
     }
     
+    /**
+     * Returns the width of a numeric parameter range.
+     *
+     * @param name parameter name
+     * @return {@code max - min} for a numeric parameter, and {@code 0.0} for other or
+     *         unknown names
+     */
     public double getParameterRange(String name) {
         Parameter param = parameters.get(name);
         if (param instanceof NumericParameter) {
@@ -418,6 +710,17 @@ public class ParameterSpace {
         return 0.0;
     }
     
+    /**
+     * Tests whether a value lies within the inclusive bounds of a numeric parameter.
+     *
+     * <p>Non-numeric and unknown parameters have no bounds, so this method returns
+     * {@code true} for them.
+     *
+     * @param name parameter name
+     * @param value value to test
+     * @return {@code true} when the value is inside the bounds or the parameter has no
+     *         bounds
+     */
     public boolean isWithinBounds(String name, double value) {
         Parameter param = parameters.get(name);
         if (param instanceof NumericParameter) {
@@ -428,6 +731,17 @@ public class ParameterSpace {
     }
     
     // Factory method for common parameter types
+    /**
+     * Builds a parameter space with rotation and entanglement angles for a register.
+     *
+     * <p>For each qubit {@code i} the space contains {@code theta_i} and {@code phi_i}
+     * with bounds {@code [-pi, pi]}, initial value {@code 0.0} and regularization
+     * {@code 0.001}. For each adjacent pair it adds {@code entangle_i_(i+1)} with the
+     * same bounds and initial value and a regularization of {@code 0.01}.
+     *
+     * @param numQubits number of qubits
+     * @return new parameter space
+     */
     public static ParameterSpace createDefaultParameterSpace(int numQubits) {
         ParameterSpace space = new ParameterSpace();
         
@@ -446,6 +760,11 @@ public class ParameterSpace {
     }
     
     // Example usage
+    /**
+     * Prints a small demonstration of the parameter space to standard output.
+     *
+     * @param args command line arguments, not used
+     */
     public static void main(String[] args) {
         ParameterSpace space = new ParameterSpace();
         

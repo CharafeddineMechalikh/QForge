@@ -9,8 +9,25 @@ import com.quantum.simulator.state.Qubit;
 
 import example.EventBuilderHelper;
 
+/**
+ * Builds encoding circuits for simple quantum error correcting codes.
+ *
+ * <p>These methods only produce the encoding gates. Syndrome extraction, decoding, and recovery
+ * operations are not included, with the exception of the phase flip code, which applies
+ * Hadamards after encoding but does not undo them at the end.</p>
+ */
 public class QuantumErrorCorrection {
     
+    /**
+     * Builds a three-qubit bit-flip encoding: two CNOTs copy the data qubit into both ancillary
+     * qubits, mapping {@code alpha|0> + beta|1>} to {@code alpha|000> + beta|111>}.
+     *
+     * @param dataQubits the data register; only the first element is used
+     * @param ancillaryQubits the ancillary register; the first two elements are used
+     * @return the encoding events, in the order they should be scheduled
+     * @throws IllegalArgumentException if fewer than one data qubit or fewer than two ancillary
+     *     qubits are supplied
+     */
     public static QuantumEvent[] createBitFlipCode(
         Qubit[] dataQubits, // 1 data qubit
         Qubit[] ancillaryQubits // 2 ancillary qubits
@@ -33,6 +50,18 @@ public class QuantumErrorCorrection {
         return circuit.toArray(new QuantumEvent[0]);
     }
     
+    /**
+     * Builds a phase-flip encoding by applying the bit-flip encoding followed by a Hadamard on
+     * each of the three qubits, which moves phase flips into the bit-flip basis.
+     *
+     * <p>Unlike {@link #createBitFlipCode(Qubit[], Qubit[])}, this method does not validate the
+     * array lengths.</p>
+     *
+     * @param dataQubits the data register; only the first element is used
+     * @param ancillaryQubits the ancillary register; the first two elements are used
+     * @return the encoding events, in the order they should be scheduled
+     * @throws ArrayIndexOutOfBoundsException if either array is shorter than the code requires
+     */
     public static QuantumEvent[] createPhaseFlipCode(
         Qubit[] dataQubits,
         Qubit[] ancillaryQubits
@@ -58,6 +87,18 @@ public class QuantumErrorCorrection {
         return circuit.toArray(new QuantumEvent[0]);
     }
     
+    /**
+     * Builds the nine-qubit Shor encoding circuit.
+     *
+     * <p>The circuit applies a Hadamard to the first qubit of each three-qubit block and then CNOTs
+     * from that qubit to the other two qubits of the block. Starting from the all-zero state this
+     * prepares the product of three GHZ blocks, which is the logical zero codeword. The circuit
+     * contains no syndrome measurement or recovery stage.</p>
+     *
+     * @param qubits the nine qubits of the code, grouped as three consecutive blocks
+     * @return the encoding events, in the order they should be scheduled
+     * @throws IllegalArgumentException if fewer than nine qubits are supplied
+     */
     public static QuantumEvent[] createShorCode(
         Qubit[] qubits // 9 qubits needed
     ) {

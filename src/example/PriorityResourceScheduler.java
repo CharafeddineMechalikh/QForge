@@ -12,8 +12,28 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * Submits four simulations with different priorities to a shared {@link ResourceManager} and
+ * reports their completion order and the resource statistics.
+ *
+ * <p>Tasks are sorted by priority before submission to a two thread pool. Each task requests two
+ * CPU cores and its own memory size, sleeps for one to three seconds, runs a random circuit, and
+ * releases its allocation. A rejected request makes that task return {@code null}, which the
+ * caller reports as a completion without a runtime.</p>
+ */
 public class PriorityResourceScheduler {
     
+    /**
+     * Runs the scheduling demonstration and prints its analysis.
+     *
+     * <p>No command line arguments are read. The output lists the submission parameters, the
+     * completion order with runtimes, the resource statistics, the average utilization, the
+     * allocation success rate, and any allocations still active. The method waits up to one
+     * minute for the executor to terminate.</p>
+     *
+     * @param args ignored
+     * @throws Exception if the executor cannot be created or awaited
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== PRIORITY RESOURCE SCHEDULER ===");
         

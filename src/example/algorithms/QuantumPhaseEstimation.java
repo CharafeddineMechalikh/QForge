@@ -16,8 +16,36 @@ import com.quantum.simulator.state.Qubit;
 
 import example.EventBuilderHelper;
 
+/**
+ * Builds a quantum phase estimation circuit from a supplied unitary circuit.
+ *
+ * <p>The estimation register is put into a uniform superposition, controlled powers of each gate
+ * in the unitary circuit are applied with repetition counts {@code 2^(t - 1 - j)}, and an inverse
+ * Quantum Fourier Transform is applied to the estimation register. Controlled powers are formed
+ * explicitly by matrix exponentiation, which the code limits to gates acting on at most 10
+ * qubits.</p>
+ */
 public class QuantumPhaseEstimation {
     
+    /**
+     * Builds the phase estimation circuit.
+     *
+     * <p>Every operation in {@code unitaryCircuit} must be a {@link QuantumGate} whose target and
+     * control qubits all belong to the eigenstate register. The precision in bits must equal the
+     * number of estimation qubits.</p>
+     *
+     * @param estimationQubits the estimation register, which receives the Hadamards and the
+     *     inverse transform
+     * @param eigenstateQubits the register the unitary acts on
+     * @param unitaryCircuit the gates whose controlled powers are applied
+     * @param precisionBits the number of estimation bits, which must equal the register length
+     * @return the events of the circuit, in the order they should be scheduled
+     * @throws IllegalArgumentException if the estimation register is empty, if the precision does
+     *     not match its length, if the unitary circuit is empty, if an operation is not a gate, or
+     *     if a gate acts outside the eigenstate register
+     * @throws UnsupportedOperationException if a controlled power would require a matrix for more
+     *     than 10 qubits
+     */
     public static QuantumEvent[] createPhaseEstimationCircuit(
         Qubit[] estimationQubits, 
         Qubit[] eigenstateQubits,
@@ -135,6 +163,17 @@ public class QuantumPhaseEstimation {
         return result;
     }
     
+    /**
+     * Builds an inverse Quantum Fourier Transform circuit.
+     *
+     * <p>The circuit first swaps the outer qubits to reverse the register order, then applies
+     * controlled phase gates with angle {@code -PI / 2^(k - j)} followed by a Hadamard, walking
+     * from the last qubit down to the first.</p>
+     *
+     * @param qubits the register to transform
+     * @param name the prefix used for the event names
+     * @return the events of the circuit, in the order they should be scheduled
+     */
     public static List<QuantumEvent> createInverseQFT(Qubit[] qubits, String name) {
         List<QuantumEvent> events = new ArrayList<>();
         int n = qubits.length;

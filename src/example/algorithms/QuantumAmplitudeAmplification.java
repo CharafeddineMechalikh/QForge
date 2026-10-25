@@ -8,9 +8,31 @@ import com.quantum.simulator.operations.*;
 import com.quantum.simulator.events.QuantumEvent;
 import java.util.*;
 
+/**
+ * Builds amplitude amplification circuits from a caller supplied initialization circuit and
+ * oracle circuit.
+ *
+ * <p>The multi-controlled Z gate used inside the diffusion step is a simplified decomposition: two
+ * qubits use a CZ, three qubits use a short CNOT and RZ sequence, and larger registers use a
+ * cascade of CNOTs. These decompositions are marked as simplified in the code and are not
+ * claimed to be optimal. The class only assembles events; it does not run a simulation.</p>
+ */
 public class QuantumAmplitudeAmplification {
     
     // Generalization of Grover's algorithm
+    /**
+     * Appends amplification iterations to an initialization circuit.
+     *
+     * <p>Each iteration appends the oracle events followed by a standard diffusion operator. The
+     * supplied events are reused as they are, and no validation of the iteration count is
+     * performed.</p>
+     *
+     * @param qubits the qubits used to build the diffusion operator
+     * @param initializationCircuit the events that prepare the initial state
+     * @param oracleCircuit the events that mark the solutions
+     * @param iterations the number of oracle and diffusion repetitions
+     * @return the combined events, in the order they should be scheduled
+     */
     public static QuantumEvent[] amplify(
         Qubit[] qubits, 
         QuantumEvent[] initializationCircuit,
@@ -172,6 +194,17 @@ public class QuantumAmplitudeAmplification {
     }
     
     // Alternative: Simplified diffusion for NISQ devices
+    /**
+     * Builds a simplified diffusion operator.
+     *
+     * <p>For a single qubit the sequence is H, X, H. For several qubits the method recursively
+     * applies that single-qubit sequence to each qubit separately, so the result is a tensor
+     * product of single-qubit reflections rather than an inversion about the global average.</p>
+     *
+     * @param qubits the qubits the operator acts on
+     * @param name the prefix used for the event names
+     * @return the events of the operator
+     */
     public static List<QuantumEvent> createSimplifiedDiffusion(
         Qubit[] qubits, String name) {
         List<QuantumEvent> events = new ArrayList<>();
@@ -198,6 +231,23 @@ public class QuantumAmplitudeAmplification {
     }
     
     // Complete amplitude amplification with initialization helper
+    /**
+     * Builds an initialization circuit, then appends oracle and diffusion iterations.
+     *
+     * <p>The initialization type is matched case insensitively after conversion to upper case.
+     * Recognized values are {@code UNIFORM} and {@code PLUS_STATE} (both produce a Hadamard on
+     * every qubit), {@code W_STATE} (a fixed three-qubit preparation that is skipped for fewer
+     * than three qubits), and {@code GHZ_STATE}. Any other value falls back to the uniform
+     * preparation.</p>
+     *
+     * @param qubits the qubits of the circuit
+     * @param initializationType the name of the initialization to build
+     * @param oracleCircuit the events that mark the solutions
+     * @param iterations the number of oracle and diffusion repetitions
+     * @param useSimplifiedDiffusion {@code true} to use the tensor product diffusion, {@code false}
+     *     to use the standard diffusion
+     * @return the events of the circuit, in the order they should be scheduled
+     */
     public static QuantumEvent[] amplifyWithInitialization(
         Qubit[] qubits,
         String initializationType, // "UNIFORM", "CUSTOM", "PLUS_STATE"
@@ -287,6 +337,18 @@ public class QuantumAmplitudeAmplification {
     }
     
     // Example oracle circuits for common problems
+    /**
+     * Builds an oracle that marks one computational basis state.
+     *
+     * <p>For the all-ones state the method applies the multi-controlled Z directly. For the zero
+     * state and for any other pattern it applies X gates to the qubits that must be zero, applies
+     * the multi-controlled Z, then undoes the X gates.</p>
+     *
+     * @param qubits the qubits of the register
+     * @param markedState the basis state to mark, read with the first qubit as most significant
+     * @param name the prefix used for the event names
+     * @return the events of the oracle
+     */
     public static QuantumEvent[] createMarkingOracle(
         Qubit[] qubits, int markedState, String name) {
         // Creates oracle that marks a specific computational basis state
@@ -342,6 +404,15 @@ public class QuantumAmplitudeAmplification {
     }
     
     // Demo method showing complete amplitude amplification
+    /**
+     * Builds and prints an amplitude amplification circuit for the state {@code |101>} on three
+     * qubits.
+     *
+     * <p>The method only assembles the circuit and prints its gate count and the marked state; it
+     * does not schedule or run a simulation.</p>
+     *
+     * @throws Exception declared for symmetry with simulator calls, not thrown by this method
+     */
     public static void demoAmplitudeAmplification() throws Exception {
         System.out.println("=== Quantum Amplitude Amplification Demo ===");
         
@@ -376,6 +447,16 @@ public class QuantumAmplitudeAmplification {
     }
     
     // Utility method to calculate optimal number of Grover iterations
+    /**
+     * Calculates {@code floor(PI / 4 * sqrt(N / M))}, the usual Grover iteration count for
+     * {@code M} solutions in a space of size {@code N}.
+     *
+     * @param searchSpaceSize the number of basis states, {@code N}
+     * @param numSolutions the number of marked states, {@code M}
+     * @return the iteration count, truncated toward zero
+     * @throws IllegalArgumentException if {@code numSolutions} is not positive or exceeds the
+     *     search space size
+     */
     public static int calculateOptimalIterations(int searchSpaceSize, int numSolutions) {
         // Optimal number: floor(π/4 * √(N/M))
         if (numSolutions <= 0 || numSolutions > searchSpaceSize) {

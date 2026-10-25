@@ -3,8 +3,25 @@ package example.plugins;
 import com.quantum.simulator.plugin.Plugin;
 import java.util.*;
 
+/**
+ * Exercises a plugin through a minimal lifecycle: initialize, query supported extensions, and
+ * clean up.
+ *
+ * <p>The test uses an in-memory {@code PluginContext} that prints its log messages to standard
+ * output. It reports success unless the plugin throws, and does not check the content of the
+ * extensions beyond whether they are null.</p>
+ */
 public class PluginTester {
     
+    /**
+     * Runs the lifecycle test for one plugin.
+     *
+     * <p>Supported extensions are queried from a fixed list of five names, and each available
+     * extension is reported as available or null. Errors are printed with a stack trace and are not
+     * rethrown.</p>
+     *
+     * @param plugin the plugin to test
+     */
     public static void testPlugin(Plugin plugin) {
         System.out.println("\n=== Testing Plugin: " + plugin.getName() + " ===");
         

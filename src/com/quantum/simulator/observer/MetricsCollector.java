@@ -16,6 +16,60 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Observer that records counts, timings, fidelity statistics, and measurement
+ * statistics as name and value pairs.
+ *
+ * <p>Values are read with {@link #getMetric(String)} or {@link #getAllMetrics()},
+ * and {@link #generateReport()} copies them into a {@link SimulationReport}.
+ * The following keys are produced:</p>
+ *
+ * <ul>
+ *   <li>{@code state_updates} (long): state update callbacks plus
+ *       {@link #recordStateTransition(QuantumState, QuantumState)} calls.</li>
+ *   <li>{@code last_state_update} (long): {@link System#currentTimeMillis()} at
+ *       the most recent state update.</li>
+ *   <li>{@code num_qubits} (int): qubit count, taken from the first state update
+ *       or from the context when {@link #onInitialized(SimulationContext)} runs.
+ *       The initialization value overwrites an earlier value.</li>
+ *   <li>{@code operation_<name>_count} (long): count for each operation name seen
+ *       through a state update event or {@link #recordOperation(QuantumOperation)}.</li>
+ *   <li>{@code events_scheduled} (long): scheduled event callbacks plus
+ *       {@link #recordEventScheduled(QuantumEvent)} calls.</li>
+ *   <li>{@code simulation_start_time} (long): epoch milliseconds, set by the
+ *       first scheduled event, by initialization, or by
+ *       {@link #recordStartTime(Instant)}.</li>
+ *   <li>{@code simulation_end_time} (long): epoch milliseconds when
+ *       {@link #onCompleted(SimulationResult)} runs.</li>
+ *   <li>{@code simulation_duration_ms} and {@code simulation_duration_seconds}
+ *       (long): end minus start, or {@code 0} when no start time was recorded.</li>
+ *   <li>{@code errors} (long), {@code error_<Type>_count} (long), and
+ *       {@code last_error_time} (long): error total, counts per simple throwable
+ *       class name ({@code Unknown} when the throwable is {@code null}), and the
+ *       time of the most recent error.</li>
+ *   <li>{@code backend} (int): ordinal of the configured
+ *       {@link com.quantum.simulator.config.SimulationBackend}.</li>
+ *   <li>{@code measurements} (long) and {@code last_measurement} (long):
+ *       measurement count and the time of the most recent measurement.</li>
+ *   <li>{@code last_state_distance}, {@code current_fidelity},
+ *       {@code average_state_distance}, and {@code average_fidelity} (double):
+ *       distance and fidelity of recorded state transitions and their running
+ *       averages.</li>
+ *   <li>{@code average_expectation}, {@code average_variance},
+ *       {@code min_expectation}, {@code max_expectation}, {@code min_variance}, and
+ *       {@code max_variance} (double): running measurement statistics.</li>
+ *   <li>{@code total_simulation_time_ms}, {@code state_updates_per_ms},
+ *       {@code total_operations}, {@code operations_per_second}, and
+ *       {@code error_rate} (number): final statistics written by
+ *       {@link #onCompleted(SimulationResult)}. The error rate is the ratio
+ *       {@code errors / total_operations}.</li>
+ * </ul>
+ *
+ * <p>After construction and after {@link #reset()}, the map contains
+ * {@code state_updates}, {@code measurements}, {@code events_scheduled}, and
+ * {@code errors} set to {@code 0}, and {@code average_fidelity} set to
+ * {@code 1.0}.</p>
+ */
 public class MetricsCollector implements SimulationObserver {
     private final Map<String, Number> metrics;
     private final List<MeasurementRecord> measurementHistory;
@@ -34,6 +88,10 @@ public class MetricsCollector implements SimulationObserver {
     private int distanceSamples;
     private QuantumState initialState;
     
+    /**
+     * Creates a collector with an empty metric map, empty histories, zeroed counters,
+     * and the default metrics installed by {@link #reset()}.
+     */
     public MetricsCollector() {
         this.metrics = new ConcurrentHashMap<>();
         this.measurementHistory = Collections.synchronizedList(new ArrayList<>());
@@ -43,6 +101,14 @@ public class MetricsCollector implements SimulationObserver {
         reset();
     }
      
+    /**
+     * Records a state update and, when the event carries an operation, increments the
+     * operation count. A state snapshot is stored every 100 state updates.
+     *
+     * @param state the state after the update; its qubit count is stored in
+     *              {@code num_qubits} only when that key is absent
+     * @param event the event that produced the update, or {@code null}
+     */
     @Override
     public void onStateUpdate(QuantumState state, QuantumEvent event) {
         stateUpdates++;
@@ -64,6 +130,12 @@ public class MetricsCollector implements SimulationObserver {
     }
     
     
+    /**
+     * Records a scheduled event and sets {@code simulation_start_time} when no start
+     * time has been set yet.
+     *
+     * @param event the scheduled event
+     */
     @Override
     public void onEventScheduled(QuantumEvent event) {
         eventsScheduled++;
@@ -74,6 +146,13 @@ public class MetricsCollector implements SimulationObserver {
         }
     }
     
+    /**
+     * Records an error, the count for its throwable class, and the time of the error.
+     *
+     * @param errorMessage the error description; it is not stored as a metric
+     * @param error the throwable used to derive the error type; when {@code null} the
+     *              type is {@code Unknown}
+     */
     @Override
     public void onError(String errorMessage, Throwable error) {
         errors++;
@@ -86,6 +165,13 @@ public class MetricsCollector implements SimulationObserver {
         metrics.put("last_error_time", System.currentTimeMillis()); 
     }
      
+    /**
+     * Records the start time, qubit count, and backend ordinal from the context.
+     * Nothing is recorded when the context is {@code null}.
+     *
+     * @param context the simulation context holding the configuration and current
+     *                state
+     */
     @Override
     public void onInitialized(SimulationContext context) {
         if (context != null) {
@@ -97,6 +183,12 @@ public class MetricsCollector implements SimulationObserver {
         }
     }
     
+    /**
+     * Records the end time, the duration, and the final statistics for a completed
+     * simulation.
+     *
+     * @param result the completed simulation result
+     */
     @Override
     public void onCompleted(SimulationResult result) {
         simulationEndTime = Instant.now();
@@ -117,31 +209,70 @@ public class MetricsCollector implements SimulationObserver {
         calculateFinalStats(result);
     }
     
+    /**
+     * Clears all recorded data and restores the default metrics.
+     */
     @Override
     public void onReset() {
         reset();
     }
     
+    /**
+     * Stores an arbitrary metric, replacing any previous value for the same name.
+     *
+     * @param name the metric key
+     * @param value the metric value
+     */
     public void recordMetric(String name, Number value) {
         metrics.put(name, value);
     }
     
+    /**
+     * Increments the count for an operation name and updates its metric key.
+     *
+     * @param operation the operation to count
+     */
     public void recordOperation(QuantumOperation operation) {
         String opName = operation.getName();
         operationCounts.computeIfAbsent(opName, k -> new AtomicLong(0)).incrementAndGet();
         metrics.put("operation_" + opName + "_count", operationCounts.get(opName).get());
     }
     
+    /**
+     * Sets the simulation start time used by later duration calculations.
+     *
+     * @param startTime the start time
+     */
     public void recordStartTime(Instant startTime) {
         this.simulationStartTime = startTime;
         metrics.put("simulation_start_time", startTime.toEpochMilli());
     }
     
+    /**
+     * Increments the scheduled event count without changing the start time.
+     *
+     * @param event the event being scheduled
+     */
     public void recordEventScheduled(QuantumEvent event) {
         eventsScheduled++;
         metrics.put("events_scheduled", eventsScheduled);
     }
     
+    /**
+     * Records a transition between two states and updates the distance and fidelity
+     * metrics.
+     *
+     * <p>When both states are non-null, the fidelity is the squared magnitude of the
+     * state vector inner product (clamped to at most {@code 1.0}) for two state
+     * vectors, or the density matrix fidelity otherwise. The distance is
+     * {@code sqrt(max(0, 1 - fidelity))} for state vectors and the trace distance for
+     * density matrices. States with different qubit counts produce a fidelity of
+     * {@code 0.0} and a distance of {@code 1.0}. A snapshot is stored every 100 state
+     * updates.</p>
+     *
+     * @param oldState the state before the transition, or {@code null}
+     * @param newState the state after the transition, or {@code null}
+     */
     public void recordStateTransition(QuantumState oldState, QuantumState newState) {
         stateUpdates++;
         metrics.put("state_updates", stateUpdates);
@@ -166,6 +297,11 @@ public class MetricsCollector implements SimulationObserver {
         }
     }
     
+    /**
+     * Adds a fidelity sample and updates the current and average fidelity metrics.
+     *
+     * @param fidelity the fidelity sample
+     */
     public void recordFidelity(double fidelity) {
         cumulativeFidelity += fidelity;
         fidelitySamples++;
@@ -173,34 +309,71 @@ public class MetricsCollector implements SimulationObserver {
         metrics.put("average_fidelity", cumulativeFidelity / fidelitySamples);
     }
     
+    /**
+     * Returns a metric value.
+     *
+     * @param name the metric key
+     * @return the recorded value, or {@code null} when the key is absent
+     */
     public Number getMetric(String name) {
         return metrics.get(name);
     }
     
+    /**
+     * Returns a copy of all metrics.
+     *
+     * @return a new map of metric names to values
+     */
     public Map<String, Number> getAllMetrics() {
         return new HashMap<>(metrics);
     }
     
+    /**
+     * Returns the recorded measurements.
+     *
+     * @return a new list containing the measurement records
+     */
     public List<MeasurementRecord> getMeasurementHistory() {
         return new ArrayList<>(measurementHistory);
     }
     
+    /**
+     * Returns the recorded state snapshots.
+     *
+     * @return a new list containing the state snapshots
+     */
     public List<StateSnapshot> getStateHistory() {
         return new ArrayList<>(stateHistory);
     }
     
+    /**
+     * Returns the per operation counts.
+     *
+     * @return a new map of operation name to count
+     */
     public Map<String, Long> getOperationCounts() {
         Map<String, Long> counts = new HashMap<>();
         operationCounts.forEach((k, v) -> counts.put(k, v.get()));
         return counts;
     }
     
+    /**
+     * Returns the per error type counts.
+     *
+     * @return a new map of throwable simple class name to count
+     */
     public Map<String, Long> getErrorCounts() {
         Map<String, Long> counts = new HashMap<>();
         errorCounts.forEach((k, v) -> counts.put(k, v.get()));
         return counts;
     }
     
+    /**
+     * Creates a report with copies of the current metrics, operation counts, error
+     * counts, and measurement history.
+     *
+     * @return a new report
+     */
     public SimulationReport generateReport() {
         return new SimulationReport(
             getAllMetrics(),
@@ -212,6 +385,10 @@ public class MetricsCollector implements SimulationObserver {
         );
     }
     
+    /**
+     * Clears metrics, histories, operation and error counts, timers, and accumulated
+     * samples, then installs the default metrics.
+     */
     public void reset() {
         metrics.clear();
         measurementHistory.clear();
@@ -239,6 +416,11 @@ public class MetricsCollector implements SimulationObserver {
         metrics.put("average_fidelity", 1.0);
     }
     
+    /**
+     * Appends a snapshot with the current time, qubit count, purity, and state type.
+     *
+     * @param state the state to summarize
+     */
     private void recordStateSnapshot(QuantumState state) {
         StateSnapshot snapshot = new StateSnapshot(
             Instant.now(),
@@ -249,6 +431,13 @@ public class MetricsCollector implements SimulationObserver {
         stateHistory.add(snapshot);
     }
     
+    /**
+     * Updates the running expectation and variance statistics using the measurement
+     * count as the sample count. The first sample also initializes the minimum and
+     * maximum values.
+     *
+     * @param result the measurement providing the expectation value and variance
+     */
     private void updateMeasurementStats(MeasurementResult result) {
         double currentExp = result.getExpectationValue();
         double currentVar = result.getVariance();
@@ -278,6 +467,18 @@ public class MetricsCollector implements SimulationObserver {
         }
     }
     
+    /**
+     * Writes total operations, operations per second, state updates per millisecond,
+     * and the error rate.
+     *
+     * <p>The supplied result is not read; all values come from the collector state.
+     * The error rate is {@code errors / total_operations} and is only written when at
+     * least one operation was counted. The rate values that need a duration are only
+     * written when a start and an end time are available, and
+     * {@code state_updates_per_ms} also requires at least one state update.</p>
+     *
+     * @param result the completed simulation result
+     */
     private void calculateFinalStats(SimulationResult result) {
         if (simulationStartTime != null && simulationEndTime != null) {
             Duration duration = Duration.between(simulationStartTime, simulationEndTime);
@@ -310,6 +511,15 @@ public class MetricsCollector implements SimulationObserver {
         }
     }
     
+    /**
+     * Computes the fidelity between two states.
+     *
+     * @param state1 the first state
+     * @param state2 the second state
+     * @return {@code 0.0} when the qubit counts differ, the squared inner product
+     *         magnitude for two state vectors (clamped to at most {@code 1.0}), or the
+     *         density matrix fidelity otherwise
+     */
     private double calculateStateFidelity(QuantumState state1, QuantumState state2) {
         if (state1.getNumQubits() != state2.getNumQubits()) {
             return 0.0;
@@ -321,6 +531,15 @@ public class MetricsCollector implements SimulationObserver {
         return DensityMatrix.fidelity(toDensityMatrix(state1), toDensityMatrix(state2));
     }
     
+    /**
+     * Computes a distance between two states.
+     *
+     * @param state1 the first state
+     * @param state2 the second state
+     * @return {@code 1.0} when the qubit counts differ, the square root of
+     *         {@code max(0, 1 - fidelity)} for two state vectors, or the trace
+     *         distance otherwise
+     */
     private double calculateStateDistance(QuantumState state1, QuantumState state2) {
         if (state1.getNumQubits() != state2.getNumQubits()) {
             return 1.0;
@@ -332,6 +551,13 @@ public class MetricsCollector implements SimulationObserver {
         return DensityMatrix.traceDistance(toDensityMatrix(state1), toDensityMatrix(state2));
     }
     
+    /**
+     * Returns a state as a density matrix, converting state vectors when needed.
+     *
+     * @param state the state to convert
+     * @return the state itself when it already is a {@link DensityMatrix}, otherwise
+     *         its density matrix form
+     */
     private static DensityMatrix toDensityMatrix(QuantumState state) {
         if (state instanceof DensityMatrix) {
             return (DensityMatrix) state;
@@ -340,6 +566,13 @@ public class MetricsCollector implements SimulationObserver {
     }
     
     // Inner classes
+    /**
+     * Record of a single measurement.
+     *
+     * <p>The record stores the values reported by the {@link MeasurementResult} when
+     * {@link MetricsCollector#recordMeasurement(MeasurementResult)} runs and does not
+     * reference the result object.</p>
+     */
     public static class MeasurementRecord {
         private final Instant timestamp;
         private final String observableName;
@@ -347,6 +580,15 @@ public class MetricsCollector implements SimulationObserver {
         private final double variance;
         private final int shots;
         
+        /**
+         * Creates a measurement record.
+         *
+         * @param timestamp the measurement time
+         * @param observableName the observable name
+         * @param expectationValue the expectation value
+         * @param variance the variance
+         * @param shots the number of shots
+         */
         public MeasurementRecord(Instant timestamp, String observableName,
                                double expectationValue, double variance, int shots) {
             this.timestamp = timestamp;
@@ -356,12 +598,43 @@ public class MetricsCollector implements SimulationObserver {
             this.shots = shots;
         }
         
+        /**
+         * Returns the measurement time.
+         *
+         * @return the timestamp
+         */
         public Instant getTimestamp() { return timestamp; }
+        /**
+         * Returns the observable name.
+         *
+         * @return the observable name
+         */
         public String getObservableName() { return observableName; }
+        /**
+         * Returns the expectation value.
+         *
+         * @return the expectation value
+         */
         public double getExpectationValue() { return expectationValue; }
+        /**
+         * Returns the variance.
+         *
+         * @return the variance
+         */
         public double getVariance() { return variance; }
+        /**
+         * Returns the shot count.
+         *
+         * @return the number of shots
+         */
         public int getShots() { return shots; }
         
+        /**
+         * Returns a formatted description of the record.
+         *
+         * @return a string with the timestamp, observable, expectation value, variance,
+         *         and shot count
+         */
         @Override
         public String toString() {
             return String.format(Locale.ROOT, 
@@ -371,12 +644,24 @@ public class MetricsCollector implements SimulationObserver {
         }
     }
     
+    /**
+     * Point in time summary of a quantum state, holding its qubit count, purity, and
+     * state type name ({@code StateVector} or {@code DensityMatrix}).
+     */
     public static class StateSnapshot {
         private final Instant timestamp;
         private final int numQubits;
         private final double purity;
         private final String stateType;
         
+        /**
+         * Creates a state snapshot.
+         *
+         * @param timestamp the capture time
+         * @param numQubits the number of qubits
+         * @param purity the state purity
+         * @param stateType the state type name
+         */
         public StateSnapshot(Instant timestamp, int numQubits, double purity, String stateType) {
             this.timestamp = timestamp;
             this.numQubits = numQubits;
@@ -384,11 +669,36 @@ public class MetricsCollector implements SimulationObserver {
             this.stateType = stateType;
         }
         
+        /**
+         * Returns the capture time.
+         *
+         * @return the timestamp
+         */
         public Instant getTimestamp() { return timestamp; }
+        /**
+         * Returns the number of qubits.
+         *
+         * @return the qubit count
+         */
         public int getNumQubits() { return numQubits; }
+        /**
+         * Returns the state purity.
+         *
+         * @return the purity
+         */
         public double getPurity() { return purity; }
+        /**
+         * Returns the state type name.
+         *
+         * @return the state type name
+         */
         public String getStateType() { return stateType; }
         
+        /**
+         * Returns a formatted description of the snapshot.
+         *
+         * @return a string with the timestamp, qubit count, purity, and state type
+         */
         @Override
         public String toString() {
             return String.format(Locale.ROOT, 
@@ -398,6 +708,10 @@ public class MetricsCollector implements SimulationObserver {
         }
     }
     
+    /**
+     * Immutable snapshot of collected metrics and histories, created by
+     * {@link MetricsCollector#generateReport()}.
+     */
     public static class SimulationReport {
         private final Map<String, Number> metrics;
         private final Map<String, Long> operationCounts;
@@ -407,6 +721,16 @@ public class MetricsCollector implements SimulationObserver {
         private final Instant endTime;
         private final Instant reportTime;
         
+        /**
+         * Creates a report from copies of the supplied data.
+         *
+         * @param metrics the metrics to copy
+         * @param operationCounts the operation counts to copy
+         * @param errorCounts the error counts to copy
+         * @param measurementHistory the measurements to copy
+         * @param startTime the simulation start time, or {@code null}
+         * @param endTime the simulation end time, or {@code null}
+         */
         public SimulationReport(Map<String, Number> metrics, Map<String, Long> operationCounts,
                               Map<String, Long> errorCounts, List<MeasurementRecord> measurementHistory,
                               Instant startTime, Instant endTime) {
@@ -419,14 +743,55 @@ public class MetricsCollector implements SimulationObserver {
             this.reportTime = Instant.now();
         }
         
+        /**
+         * Returns the metrics.
+         *
+         * @return an unmodifiable map of metric names to values
+         */
         public Map<String, Number> getMetrics() { return Collections.unmodifiableMap(metrics); }
+        /**
+         * Returns the operation counts.
+         *
+         * @return an unmodifiable map of operation name to count
+         */
         public Map<String, Long> getOperationCounts() { return Collections.unmodifiableMap(operationCounts); }
+        /**
+         * Returns the error counts.
+         *
+         * @return an unmodifiable map of error type to count
+         */
         public Map<String, Long> getErrorCounts() { return Collections.unmodifiableMap(errorCounts); }
+        /**
+         * Returns the measurements.
+         *
+         * @return an unmodifiable list of measurement records
+         */
         public List<MeasurementRecord> getMeasurementHistory() { return Collections.unmodifiableList(measurementHistory); }
+        /**
+         * Returns the simulation start time.
+         *
+         * @return the start time, or {@code null} when it was not recorded
+         */
         public Instant getStartTime() { return startTime; }
+        /**
+         * Returns the simulation end time.
+         *
+         * @return the end time, or {@code null} when it was not recorded
+         */
         public Instant getEndTime() { return endTime; }
+        /**
+         * Returns the time this report was created.
+         *
+         * @return the report creation time
+         */
         public Instant getReportTime() { return reportTime; }
         
+        /**
+         * Returns the simulation duration.
+         *
+         * @return the time between the start and end times, or {@link Duration#ZERO} when
+         *         either time is {@code null}
+         */
         public Duration getDuration() {
             if (startTime != null && endTime != null) {
                 return Duration.between(startTime, endTime);
@@ -434,6 +799,12 @@ public class MetricsCollector implements SimulationObserver {
             return Duration.ZERO;
         }
         
+        /**
+         * Returns the operation throughput.
+         *
+         * @return the sum of the operation counts divided by the duration in seconds, or
+         *         {@code 0.0} when the duration is zero
+         */
         public double getThroughput() {
             long totalOps = operationCounts.values().stream().mapToLong(Long::longValue).sum();
             Duration duration = getDuration();
@@ -441,6 +812,15 @@ public class MetricsCollector implements SimulationObserver {
             return totalOps / (duration.toMillis() / 1000.0);
         }
         
+        /**
+         * Returns a multi line summary of the report.
+         *
+         * <p>The summary includes the duration, qubit count, state updates, measurements,
+         * operations, errors, and, when present, the error rate as a percentage, the
+         * average fidelity, and the throughput in operations per second.</p>
+         *
+         * @return the summary text
+         */
         public String toSummaryString() {
             StringBuilder sb = new StringBuilder();
             sb.append("Simulation Report\n");
@@ -474,12 +854,23 @@ public class MetricsCollector implements SimulationObserver {
             return sb.toString();
         }
         
+        /**
+         * Returns the same text as {@link #toSummaryString()}.
+         *
+         * @return the summary text
+         */
         @Override
         public String toString() {
             return toSummaryString();
         }
     }
 
+	/**
+	 * Records a measurement result, appends a {@link MeasurementRecord}, and updates
+	 * the measurement statistics.
+	 *
+	 * @param result the measurement result to record
+	 */
 	public void recordMeasurement(MeasurementResult result) {
         measurements++;
         metrics.put("measurements", measurements);
@@ -498,6 +889,11 @@ public class MetricsCollector implements SimulationObserver {
         updateMeasurementStats(result);
     }
      
+    /**
+     * Delegates to {@link #recordMeasurement(MeasurementResult)}.
+     *
+     * @param result the measurement result to record
+     */
     @Override
     public void onMeasurement(MeasurementResult result) {
         // Delegate to recordMeasurement method

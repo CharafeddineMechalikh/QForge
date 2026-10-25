@@ -3,7 +3,21 @@ package example;
 import com.quantum.simulator.state.StateVector;
 import com.quantum.simulator.math.Complex;
 
+/**
+ * Prints a few basic facts about {@link StateVector} instances.
+ *
+ * <p>The program creates the zero state, then a state with both amplitudes set to one. Because
+ * the constructor normalizes its input, the printed probabilities of the second state are 0.5
+ * each. It writes no files.</p>
+ */
 public class SimpleStateTest {
+    /**
+     * Creates the two states and prints their amplitudes, probabilities, and the probability sum.
+     *
+     * <p>No command line arguments are read and no results are checked.</p>
+     *
+     * @param args ignored
+     */
     public static void main(String[] args) {
         System.out.println("=== Simple State Test ===");
         

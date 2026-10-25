@@ -14,6 +14,15 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Command line runner that loads a JSON simulation configuration and a JSON circuit, schedules
+ * the circuit on a {@link QuantumSimulator}, and prints the resulting state and metrics.
+ *
+ * <p>Resource lookups search, in order, the class directory, the working directory,
+ * {@code src/example/}, the classpath, and {@code src/main/resources/}. The demo names
+ * {@code bell}, {@code grover}, {@code qft}, and {@code teleport} map to circuit and config files
+ * under {@code circuits/} and {@code config/}. The runner writes no files.</p>
+ */
 public class CircuitRunner {
     
     // Default file names
@@ -38,6 +47,22 @@ public class CircuitRunner {
         "teleport", "quantum_teleportation_config.json"
     );
     
+    /**
+     * Runs a simulation selected by the command line arguments.
+     *
+     * <p>Accepted forms: no argument (default Bell state), one argument (a demo name or a config
+     * file path), or two arguments (a config file path followed by a circuit file path). When a
+     * single config path is given, a circuit named like the config with {@code _circuit.json}
+     * instead of {@code _config.json} is looked up. More than two arguments print the help
+     * text.</p>
+     *
+     * <p>The method prints the resolved file paths, the number of scheduled events, the final
+     * state, the basis state probabilities above 0.001, and any simulation metrics. On failure it
+     * prints the stack trace and exits with status 1.</p>
+     *
+     * @param args optional demo name, config path, or config path plus circuit path
+     * @throws Exception if loading or running the simulation fails outside the handled error path
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== Quantum Circuit Runner ===");
         System.out.println("Usage: CircuitRunner [config_file] [circuit_file]");
@@ -490,19 +515,57 @@ public class CircuitRunner {
     }
     
     // Inner classes for JSON parsing
+    /**
+     * Jackson binding for a circuit JSON document: an optional name and description plus the
+     * list of gate operations.
+     */
     public static class CircuitDefinition {
         private String name;
         private String description;
         private List<GateOperation> gates;
         
+        /**
+         * Returns the circuit name from the JSON document.
+         *
+         * @return the name, or {@code null} if it was not present
+         */
         public String getName() { return name; }
+        /**
+         * Sets the circuit name.
+         *
+         * @param name the name to use
+         */
         public void setName(String name) { this.name = name; }
+        /**
+         * Returns the circuit description from the JSON document.
+         *
+         * @return the description, or {@code null} if it was not present
+         */
         public String getDescription() { return description; }
+        /**
+         * Sets the circuit description.
+         *
+         * @param description the description to use
+         */
         public void setDescription(String description) { this.description = description; }
+        /**
+         * Returns the gate operations of the circuit.
+         *
+         * @return the gate list, or {@code null} if the document had no {@code gates} field
+         */
         public List<GateOperation> getGates() { return gates; }
+        /**
+         * Sets the gate operations of the circuit.
+         *
+         * @param gates the gate list to use
+         */
         public void setGates(List<GateOperation> gates) { this.gates = gates; }
     }
     
+    /**
+     * Jackson binding for one gate entry in a circuit JSON document. Qubit indices refer to
+     * positions in the simulator register.
+     */
     public static class GateOperation {
         private String id;
         private String type;
@@ -512,17 +575,78 @@ public class CircuitRunner {
         private String description;
         
         // Getters and setters
+        /**
+         * Returns the gate identifier used in messages and event names.
+         *
+         * @return the identifier, or {@code null} if it was not present
+         */
         public String getId() { return id; }
+        /**
+         * Sets the gate identifier.
+         *
+         * @param id the identifier to use
+         */
         public void setId(String id) { this.id = id; }
+        /**
+         * Returns the gate type name passed to the gate library, such as {@code H} or
+         * {@code CNOT}.
+         *
+         * @return the gate type, or {@code null} if it was not present
+         */
         public String getType() { return type; }
+        /**
+         * Sets the gate type name.
+         *
+         * @param type the gate type to use
+         */
         public void setType(String type) { this.type = type; }
+        /**
+         * Returns the target qubit indices.
+         *
+         * @return the target indices, or an empty array if the field was absent
+         */
         public int[] getTargetQubits() { return targetQubits != null ? targetQubits : new int[0]; }
+        /**
+         * Sets the target qubit indices.
+         *
+         * @param targetQubits the target indices to use
+         */
         public void setTargetQubits(int[] targetQubits) { this.targetQubits = targetQubits; }
+        /**
+         * Returns the control qubit indices.
+         *
+         * @return the control indices, or an empty array if the field was absent
+         */
         public int[] getControlQubits() { return controlQubits != null ? controlQubits : new int[0]; }
+        /**
+         * Sets the control qubit indices.
+         *
+         * @param controlQubits the control indices to use
+         */
         public void setControlQubits(int[] controlQubits) { this.controlQubits = controlQubits; }
+        /**
+         * Returns the gate parameters, such as rotation angles.
+         *
+         * @return the parameter map, or an empty map if the field was absent
+         */
         public Map<String, Object> getParameters() { return parameters != null ? parameters : new HashMap<>(); }
+        /**
+         * Sets the gate parameters.
+         *
+         * @param parameters the parameter map to use
+         */
         public void setParameters(Map<String, Object> parameters) { this.parameters = parameters; }
+        /**
+         * Returns the optional description used as the event description.
+         *
+         * @return the description, or {@code null} if it was not present
+         */
         public String getDescription() { return description; }
+        /**
+         * Sets the event description.
+         *
+         * @param description the description to use
+         */
         public void setDescription(String description) { this.description = description; }
     }
 }

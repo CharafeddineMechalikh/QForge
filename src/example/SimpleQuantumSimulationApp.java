@@ -12,7 +12,22 @@ import com.quantum.simulator.operations.MultiQubitGate;
 import com.quantum.simulator.operations.QuantumOperation;
 import com.quantum.simulator.events.QuantumEvent;
 
+/**
+ * Minimal demonstration of a single-qubit circuit, a Bell state, and a two-qubit Grover circuit,
+ * built with {@link EventBuilderHelper}.
+ *
+ * <p>All three demonstrations use the state vector backend and print the final state and
+ * probabilities. The program performs no verification of the results and writes no files.</p>
+ */
 public class SimpleQuantumSimulationApp {
+    /**
+     * Runs the three demonstration methods in sequence.
+     *
+     * <p>No command line arguments are read. If a demonstration throws, the remaining
+     * demonstrations are skipped and the error is printed.</p>
+     *
+     * @param args ignored
+     */
     public static void main(String[] args) {
         System.out.println("=== Quantum Simulation Framework ===");
         

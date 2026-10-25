@@ -3,11 +3,31 @@ package com.quantum.simulator.math;
 import java.util.Locale;
 import java.util.Arrays;
 
+/**
+ * Mutable dense matrix of {@link Complex} entries, stored as a rectangular array
+ * indexed by row and column.
+ *
+ * <p>Dimensions are fixed at construction. Constructor arrays are copied,
+ * {@link #get(int, int)} returns a copy, and {@link #set(int, int, Complex)}
+ * stores a copy, so no internal {@code Complex} instance is exposed.</p>
+ *
+ * <p>{@link #equals(Object)}, {@link #isHermitian()}, and {@link #isUnitary()}
+ * use the tolerant {@link Complex#equals(Object)} comparison, which allows an
+ * absolute difference of {@code 1e-10} per part.</p>
+ */
 public class ComplexMatrix {
     private final int rows;
     private final int cols;
     private final Complex[][] data;
     
+    /**
+     * Creates a zero matrix with the given dimensions.
+     *
+     * @param rows the number of rows, must be positive
+     * @param cols the number of columns, must be positive
+     * @throws IllegalArgumentException if {@code rows} or {@code cols} is not
+     *         positive
+     */
     public ComplexMatrix(int rows, int cols) {
         if (rows <= 0 || cols <= 0) {
             throw new IllegalArgumentException("Matrix dimensions must be positive");
@@ -24,6 +44,14 @@ public class ComplexMatrix {
         }
     }
     
+    /**
+     * Creates a matrix from a rectangular array of complex values. The array is
+     * copied, so later changes to {@code data} do not affect this matrix.
+     *
+     * @param data the source values, indexed as {@code data[row][col]}
+     * @throws IllegalArgumentException if {@code data} is null or empty, or if the
+     *         rows do not all have the same length
+     */
     public ComplexMatrix(Complex[][] data) {
         if (data == null || data.length == 0 || data[0].length == 0) {
             throw new IllegalArgumentException("Data array cannot be null or empty");
@@ -44,6 +72,14 @@ public class ComplexMatrix {
         }
     }
     
+    /**
+     * Creates a matrix from a rectangular array of real values, using zero
+     * imaginary parts. The array is copied.
+     *
+     * @param realData the source values, indexed as {@code realData[row][col]}
+     * @throws IllegalArgumentException if {@code realData} is null or empty, or if
+     *         the rows do not all have the same length
+     */
     public ComplexMatrix(double[][] realData) {
         if (realData == null || realData.length == 0 || realData[0].length == 0) {
             throw new IllegalArgumentException("Data array cannot be null or empty");
@@ -63,28 +99,70 @@ public class ComplexMatrix {
         }
     }
     
+    /**
+     * Returns the number of rows.
+     *
+     * @return the number of rows
+     */
     public int rows() {
         return rows;
     }
     
+    /**
+     * Returns the number of columns.
+     *
+     * @return the number of columns
+     */
     public int cols() {
         return cols;
     }
     
+    /**
+     * Returns the entry at the given position.
+     *
+     * @param row the row index
+     * @param col the column index
+     * @return a copy of the entry
+     * @throws IndexOutOfBoundsException if either index is out of range
+     */
     public Complex get(int row, int col) {
         checkIndices(row, col);
         return new Complex(data[row][col]);
     }
     
+    /**
+     * Stores a complex value at the given position. The value is copied.
+     *
+     * @param row the row index
+     * @param col the column index
+     * @param value the value to store
+     * @throws IndexOutOfBoundsException if either index is out of range
+     */
     public void set(int row, int col, Complex value) {
         checkIndices(row, col);
         data[row][col] = new Complex(value);
     }
     
+    /**
+     * Stores a complex value given by its parts at the given position.
+     *
+     * @param row the row index
+     * @param col the column index
+     * @param real the real part
+     * @param imag the imaginary part
+     * @throws IndexOutOfBoundsException if either index is out of range
+     */
     public void set(int row, int col, double real, double imag) {
         set(row, col, new Complex(real, imag));
     }
     
+    /**
+     * Returns the element-wise sum of this matrix and another.
+     *
+     * @param other the matrix to add
+     * @return a new matrix with the sums
+     * @throws IllegalArgumentException if the dimensions do not match
+     */
     public ComplexMatrix add(ComplexMatrix other) {
         checkSameDimensions(other);
         
@@ -98,6 +176,13 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Returns the element-wise difference of this matrix and another.
+     *
+     * @param other the matrix to subtract
+     * @return a new matrix with the differences
+     * @throws IllegalArgumentException if the dimensions do not match
+     */
     public ComplexMatrix subtract(ComplexMatrix other) {
         checkSameDimensions(other);
         
@@ -111,6 +196,15 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Returns the matrix product {@code this * other}.
+     *
+     * @param other the right hand factor
+     * @return a new matrix with {@code this.rows} rows and {@code other.cols}
+     *         columns
+     * @throws IllegalArgumentException if {@code this.cols} is not equal to
+     *         {@code other.rows}
+     */
     public ComplexMatrix multiply(ComplexMatrix other) {
         if (this.cols != other.rows) {
             throw new IllegalArgumentException(
@@ -134,6 +228,12 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Returns a new matrix with every entry multiplied by a complex scalar.
+     *
+     * @param scalar the scalar factor
+     * @return a new scaled matrix
+     */
     public ComplexMatrix multiply(Complex scalar) {
         ComplexMatrix result = new ComplexMatrix(rows, cols);
         for (int i = 0; i < rows; i++) {
@@ -144,10 +244,22 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Returns a new matrix with every entry multiplied by a real scalar.
+     *
+     * @param scalar the real scalar factor
+     * @return a new scaled matrix
+     */
     public ComplexMatrix scale(double scalar) {
         return multiply(new Complex(scalar, 0));
     }
     
+    /**
+     * Returns the transpose, with rows and columns exchanged. Entries are not
+     * conjugated.
+     *
+     * @return a new matrix of dimensions {@code cols x rows}
+     */
     public ComplexMatrix transpose() {
         ComplexMatrix result = new ComplexMatrix(cols, rows);
         for (int i = 0; i < rows; i++) {
@@ -158,6 +270,12 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Returns the conjugate transpose (adjoint).
+     *
+     * @return a new matrix of dimensions {@code cols x rows} with conjugated
+     *         entries
+     */
     public ComplexMatrix adjoint() {
         ComplexMatrix result = new ComplexMatrix(cols, rows);
         for (int i = 0; i < rows; i++) {
@@ -168,6 +286,11 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Returns a new matrix with every entry conjugated.
+     *
+     * @return the element-wise conjugate
+     */
     public ComplexMatrix conjugate() {
         ComplexMatrix result = new ComplexMatrix(rows, cols);
         for (int i = 0; i < rows; i++) {
@@ -178,6 +301,12 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Returns the sum of the diagonal entries.
+     *
+     * @return the trace
+     * @throws IllegalArgumentException if the matrix is not square
+     */
     public Complex trace() {
         if (!isSquare()) {
             throw new IllegalArgumentException("Trace is only defined for square matrices");
@@ -190,6 +319,17 @@ public class ComplexMatrix {
         return sum;
     }
     
+    /**
+     * Returns the Kronecker product of this matrix and another.
+     *
+     * <p>Entry {@code (i1, j1)} of this matrix is multiplied by the whole of
+     * {@code other} and placed in the result block whose first row is
+     * {@code i1 * other.rows} and first column is {@code j1 * other.cols}.</p>
+     *
+     * @param other the right hand factor
+     * @return a new matrix with {@code rows * other.rows} rows and
+     *         {@code cols * other.cols} columns
+     */
     public ComplexMatrix tensorProduct(ComplexMatrix other) {
         int newRows = this.rows * other.rows;
         int newCols = this.cols * other.cols;
@@ -211,10 +351,22 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Tests whether the number of rows equals the number of columns.
+     *
+     * @return {@code true} if the matrix is square
+     */
     public boolean isSquare() {
         return rows == cols;
     }
     
+    /**
+     * Tests whether this matrix is Hermitian, meaning it is square and each entry
+     * equals the conjugate of its mirror entry within the tolerance of
+     * {@link Complex#equals(Object)}.
+     *
+     * @return {@code true} if the matrix is square and Hermitian
+     */
     public boolean isHermitian() {
         if (!isSquare()) return false;
         
@@ -228,6 +380,13 @@ public class ComplexMatrix {
         return true;
     }
     
+    /**
+     * Tests whether this matrix is unitary by comparing {@code this * adjoint()}
+     * with the identity matrix using {@link #equals(Object)}.
+     *
+     * @return {@code true} if the matrix is square and the product equals the
+     *         identity within the entry tolerance
+     */
     public boolean isUnitary() {
         if (!isSquare()) return false;
         
@@ -237,10 +396,20 @@ public class ComplexMatrix {
         return product.equals(identity);
     }
     
+    /**
+     * Returns a deep copy of this matrix.
+     *
+     * @return a new matrix with the same dimensions and entry values
+     */
     public ComplexMatrix copy() {
         return new ComplexMatrix(data);
     }
     
+    /**
+     * Returns the real part of every entry.
+     *
+     * @return a new array of dimensions {@code rows x cols}
+     */
     public double[][] getRealParts() {
         double[][] realParts = new double[rows][cols];
         for (int i = 0; i < rows; i++) {
@@ -251,6 +420,11 @@ public class ComplexMatrix {
         return realParts;
     }
     
+    /**
+     * Returns the imaginary part of every entry.
+     *
+     * @return a new array of dimensions {@code rows x cols}
+     */
     public double[][] getImaginaryParts() {
         double[][] imagParts = new double[rows][cols];
         for (int i = 0; i < rows; i++) {
@@ -262,6 +436,13 @@ public class ComplexMatrix {
     }
     
     // Static factory methods
+    /**
+     * Creates an identity matrix.
+     *
+     * @param size the number of rows and columns
+     * @return a new identity matrix of the given size
+     * @throws IllegalArgumentException if {@code size} is not positive
+     */
     public static ComplexMatrix identity(int size) {
         ComplexMatrix matrix = new ComplexMatrix(size, size);
         for (int i = 0; i < size; i++) {
@@ -270,14 +451,36 @@ public class ComplexMatrix {
         return matrix;
     }
     
+    /**
+     * Creates a zero matrix.
+     *
+     * @param rows the number of rows, must be positive
+     * @param cols the number of columns, must be positive
+     * @return a new zero matrix
+     * @throws IllegalArgumentException if {@code rows} or {@code cols} is not
+     *         positive
+     */
     public static ComplexMatrix zero(int rows, int cols) {
         return new ComplexMatrix(rows, cols);
     }
     
+    /**
+     * Creates a complex matrix from real values.
+     *
+     * @param realData the source values, indexed as {@code realData[row][col]}
+     * @return a new matrix with zero imaginary parts
+     * @throws IllegalArgumentException if {@code realData} is null or empty, or if
+     *         the rows do not all have the same length
+     */
     public static ComplexMatrix fromReal(double[][] realData) {
         return new ComplexMatrix(realData);
     }
     
+    /**
+     * Returns the Pauli X matrix {@code [[0, 1], [1, 0]]}.
+     *
+     * @return a new {@code 2 x 2} matrix
+     */
     public static ComplexMatrix pauliX() {
         ComplexMatrix matrix = new ComplexMatrix(2, 2);
         matrix.set(0, 0, Complex.ZERO);
@@ -287,6 +490,11 @@ public class ComplexMatrix {
         return matrix;
     }
     
+    /**
+     * Returns the Pauli Y matrix {@code [[0, -i], [i, 0]]}.
+     *
+     * @return a new {@code 2 x 2} matrix
+     */
     public static ComplexMatrix pauliY() {
         ComplexMatrix matrix = new ComplexMatrix(2, 2);
         matrix.set(0, 0, Complex.ZERO);
@@ -296,6 +504,11 @@ public class ComplexMatrix {
         return matrix;
     }
     
+    /**
+     * Returns the Pauli Z matrix {@code [[1, 0], [0, -1]]}.
+     *
+     * @return a new {@code 2 x 2} matrix
+     */
     public static ComplexMatrix pauliZ() {
         ComplexMatrix matrix = new ComplexMatrix(2, 2);
         matrix.set(0, 0, Complex.ONE);
@@ -305,6 +518,11 @@ public class ComplexMatrix {
         return matrix;
     }
     
+    /**
+     * Returns the Hadamard matrix {@code 1/sqrt(2) * [[1, 1], [1, -1]]}.
+     *
+     * @return a new {@code 2 x 2} matrix
+     */
     public static ComplexMatrix hadamard() {
         double factor = 1.0 / Math.sqrt(2);
         ComplexMatrix matrix = new ComplexMatrix(2, 2);
@@ -333,6 +551,14 @@ public class ComplexMatrix {
         }
     }
     
+    /**
+     * Compares this matrix with another object entry by entry using the tolerant
+     * {@link Complex#equals(Object)}.
+     *
+     * @param obj the object to compare with
+     * @return {@code true} if {@code obj} is a {@code ComplexMatrix} with the same
+     *         dimensions and all entries equal within tolerance
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -352,6 +578,14 @@ public class ComplexMatrix {
         return true;
     }
     
+    /**
+     * Returns a hash code based on the dimensions and the exact entry values.
+     *
+     * <p>Because {@link #equals(Object)} uses a tolerance, matrices that compare
+     * equal may have different hash codes.</p>
+     *
+     * @return the hash code
+     */
     @Override
     public int hashCode() {
         int result = rows;
@@ -360,6 +594,12 @@ public class ComplexMatrix {
         return result;
     }
     
+    /**
+     * Returns a multi-line summary showing at most the first six rows and six
+     * columns.
+     *
+     * @return the formatted summary
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -383,6 +623,17 @@ public class ComplexMatrix {
     }
     
     
+    /**
+     * Computes the eigenvalues as real numbers.
+     *
+     * <p>For Hermitian matrices the values are the real diagonal entries produced
+     * by the cyclic Jacobi eigendecomposition. For other matrices a power iteration
+     * based estimate is used. In both cases only real parts are returned and the
+     * array is sorted in ascending order.</p>
+     *
+     * @return the eigenvalues sorted in ascending order
+     * @throws IllegalArgumentException if the matrix is not square
+     */
     public double[] eigenvalues() {
         if (!isSquare()) {
             throw new IllegalArgumentException("Matrix must be square to compute eigenvalues");
@@ -486,6 +737,27 @@ public class ComplexMatrix {
         return lambda.real();
     }
     
+    /**
+     * Computes an eigendecomposition.
+     *
+     * <p>For Hermitian matrices a cyclic Jacobi method is used. Each off-diagonal
+     * pair is first made real with a phase rotation and then zeroed with a real
+     * Jacobi rotation. Iteration stops after 100 sweeps or when the sum of the
+     * squared magnitudes of the upper triangle entries is less than
+     * {@code 1e-28}. The resulting eigenvalues are real and sorted in ascending
+     * order, and column {@code k} of the eigenvector matrix belongs to diagonal
+     * entry {@code k} of the eigenvalue matrix.</p>
+     *
+     * <p>For non-Hermitian matrices a QR iteration with at most 50 iterations is
+     * attempted, stopping when the matrix is upper triangular within a tolerance
+     * of {@code 1e-6}. If that computation throws an exception, the method falls
+     * back to estimated diagonal eigenvalues and the identity eigenvector
+     * matrix.</p>
+     *
+     * @return a two element array with the diagonal eigenvalue matrix at index 0
+     *         and the eigenvector matrix at index 1
+     * @throws IllegalArgumentException if the matrix is not square
+     */
     public ComplexMatrix[] eigenDecomposition() {
         if (!isSquare()) {
             throw new IllegalArgumentException("Matrix must be square for eigen decomposition");

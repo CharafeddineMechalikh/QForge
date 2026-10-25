@@ -10,8 +10,30 @@ import com.quantum.simulator.events.*;
 import com.quantum.simulator.state.*;
 import java.util.*;
 
+/**
+ * Demonstrates registering plugins with the simulator plugin manager, running a circuit while they
+ * are active, and querying their extension points.
+ *
+ * <p>Four package-private plugins are registered: an advanced noise model plugin, a circuit
+ * compression plugin, an error correction plugin, and a performance monitor. The plugins perform
+ * bookkeeping and describe their capabilities; the noise plugin returns placeholder
+ * {@link NoiseModel} instances that do not alter the state, and the compression plugin logs
+ * scheduled gates without rewriting the circuit.</p>
+ */
 public class PluginSystemExample {
     
+    /**
+     * Runs the plugin demonstration.
+     *
+     * <p>No command line arguments are read. The method prints the loaded plugins with their
+     * versions and descriptions, the final state of a three-qubit circuit, and the extensions each
+     * plugin reports for {@code noise_models}, {@code gate_compression_rules},
+     * {@code error_correction}, and {@code performance_metrics}. The simulator is shut down in a
+     * finally block. Errors are printed with a stack trace.</p>
+     *
+     * @param args ignored
+     * @throws Exception if simulator setup or the simulation fails outside the handled block
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== PLUGIN SYSTEM EXTENSION EXAMPLE ===");
         

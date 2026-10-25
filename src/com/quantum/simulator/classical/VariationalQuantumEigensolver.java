@@ -16,6 +16,30 @@ import com.quantum.simulator.math.ComplexMatrix;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Variational Quantum Eigensolver that runs its ansatz on the event driven simulator
+ * and minimizes the expectation value of a Hamiltonian observable.
+ *
+ * <p>The ansatz has a fixed number of layers, two in this implementation. Each layer
+ * applies {@code RY(theta)} followed by {@code RZ(phi)} to every qubit, and then, for
+ * every adjacent pair, a {@code CNOT} from the first to the second qubit, an
+ * {@code RZ(entangle)} on the second qubit and a second {@code CNOT}. Construction adds
+ * a bounded parameter in {@code [-pi, pi]} for every angle, with initial values drawn
+ * uniformly from {@code [-pi/2, pi/2)} by a generator seeded with {@code 42}, so the
+ * starting point is reproducible for the same construction order.
+ *
+ * <p>Each {@link #executeIteration()} call records the current parameters, builds the
+ * circuit, executes it on the simulator, evaluates the Hamiltonian expectation with
+ * {@link Observable#measure(com.quantum.simulator.state.QuantumState)} and stores that
+ * energy as the cost. Unless convergence is detected, the gradient of every parameter is
+ * then estimated by central finite differences with a step of {@code 1e-3}, which costs
+ * two extra circuit executions per parameter, and one optimizer update is applied. The
+ * default optimizer is gradient descent with momentum, and proposed values are clipped
+ * to the parameter bounds.
+ *
+ * <p>Convergence is reported when at least two costs exist and the last two differ by
+ * less than the configured threshold, or when the iteration limit is reached.
+ */
 public class VariationalQuantumEigensolver implements HybridAlgorithm {
     private static final int ANSATZ_LAYERS = 2;
     
@@ -34,6 +58,16 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
     private boolean converged;
     private final Random initialParameterRandom = new Random(42);
     
+    /**
+     * Creates a solver for a Hamiltonian over a fixed set of qubits.
+     *
+     * <p>The ansatz parameter space, with random initial angles, and the default
+     * gradient descent optimizer are created here. The simulator is supplied later
+     * through {@link #initialize(QuantumSimulator, Map)}.
+     *
+     * @param hamiltonian observable whose expectation value is minimized
+     * @param qubits qubits the ansatz acts on; the list is copied
+     */
     public VariationalQuantumEigensolver(Observable hamiltonian, List<Qubit> qubits) {
         this.hamiltonian = hamiltonian;
         this.qubits = new ArrayList<>(qubits);
@@ -54,6 +88,28 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
         this.optimizer = new GradientDescentOptimizer();
     }
     
+    /**
+     * Binds the solver to a simulator and applies configuration parameters.
+     *
+     * <p>The supplied parameters are merged into the current parameter map, so values
+     * from an earlier call remain unless they are overwritten.
+     * {@code convergence_threshold} (default {@code 1e-6}) and {@code max_iterations}
+     * (default {@code 100}) are read directly, and the optimizer additionally reads
+     * {@code learning_rate} (default {@code 0.1}) and {@code momentum} (default
+     * {@code 0.9}). The values are cast to {@code double} and {@code int}, so callers
+     * must supply {@link Double} and {@link Integer} instances for those keys.
+     *
+     * <p>The qubit count is validated only when the simulator already has a context.
+     * The method finishes by calling {@link #reset()}, which discards any previous
+     * iteration state.
+     *
+     * @param simulator simulator used to execute ansatz circuits
+     * @param parameters configuration values, may be {@code null}
+     * @throws IllegalArgumentException if the simulator context exists and its qubit
+     *                                  count differs from the number of qubits supplied
+     *                                  at construction
+     * @throws ClassCastException if a configuration value has the wrong type
+     */
     @Override
     public void initialize(QuantumSimulator simulator, Map<String, Object> parameters) {
         this.simulator = simulator;
@@ -78,6 +134,23 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
         reset();
     }
     
+    /**
+     * Performs one VQE iteration.
+     *
+     * <p>The iteration is skipped when the solver has already converged or the iteration
+     * limit has been reached. Otherwise the iteration counter is incremented, the current
+     * parameters are snapshotted into the parameter history, the ansatz is executed and
+     * the measured energy is appended to the cost history and becomes the current cost.
+     * Convergence is then checked. When the solver has not converged, the gradient is
+     * estimated for every current parameter and one optimizer update is applied, with
+     * the result clipped to the parameter bounds.
+     *
+     * @return {@code true} when another iteration should follow, {@code false} when the
+     *         solver converged, the iteration limit was reached, or no iteration was
+     *         possible
+     * @throws IllegalStateException if no simulator has been set or circuit execution
+     *                               fails
+     */
     @Override
     public boolean executeIteration() {
         if (converged || iterationCount >= maxIterations) {
@@ -113,6 +186,18 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
         return !converged;
     }
     
+    /**
+     * Executes the ansatz with the current parameters and returns the simulation result.
+     *
+     * <p>The result carries additional data under {@code algorithm},
+     * {@code optimal_energy}, {@code optimal_parameters}, {@code iterations},
+     * {@code converged} and {@code cost_history}. The energy and parameters are the
+     * current ones and are labelled optimal even when the solver has not converged.
+     *
+     * @return simulation result of the current circuit execution
+     * @throws IllegalStateException if no simulator has been set or circuit execution
+     *                               fails
+     */
     @Override
     public SimulationResult getResult() {
         SimulationResult result = executeCircuit(
@@ -126,31 +211,69 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
         return result;
     }
     
+    /**
+     * Returns the cost of the most recent iteration.
+     *
+     * @return current energy, or {@link Double#MAX_VALUE} before the first iteration and
+     *         after {@link #reset()}
+     */
     @Override
     public double getCurrentCost() {
         return currentCost;
     }
     
+    /**
+     * Returns a copy of the configuration parameters.
+     *
+     * @return copy of the parameter map
+     */
     @Override
     public Map<String, Object> getParameters() {
         return new HashMap<>(parameters);
     }
     
+    /**
+     * Sets a configuration parameter.
+     *
+     * <p>The value is only read by {@link #initialize(QuantumSimulator, Map)}, so a
+     * change made after initialization takes effect at the next initialization.
+     *
+     * @param name parameter name
+     * @param value parameter value
+     */
     @Override
     public void setParameter(String name, Object value) {
         parameters.put(name, value);
     }
     
+    /**
+     * Reports whether the convergence criterion has been met.
+     *
+     * @return {@code true} when the solver has converged
+     */
     @Override
     public boolean isConverged() {
         return converged;
     }
     
+    /**
+     * Returns the number of iterations performed since the last reset.
+     *
+     * @return iteration count
+     */
     @Override
     public int getIterationCount() {
         return iterationCount;
     }
     
+    /**
+     * Clears histories and returns the solver to its initial state.
+     *
+     * <p>The cost history, parameter history and iteration count are cleared, the
+     * current cost is set to {@link Double#MAX_VALUE}, the convergence flag is cleared,
+     * the ansatz parameters return to their initial angles and the optimizer clears its
+     * velocity. The simulator reference and the configuration parameters are kept.
+     */
     @Override
     public void reset() {
         costHistory.clear();
@@ -162,29 +285,65 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
         optimizer.reset();
     }
     
+    /**
+     * Returns the algorithm name.
+     *
+     * @return the literal {@code VariationalQuantumEigensolver}
+     */
     @Override
     public String getName() {
         return "VariationalQuantumEigensolver";
     }
     
+    /**
+     * Builds the ansatz circuit for the current parameters without executing it.
+     *
+     * @return new list of operations for one ansatz evaluation
+     */
     @Override
     public List<QuantumOperation> getNextOperations() {
         // Return the next set of operations based on current parameters
         return prepareParameterizedCircuit(parameterSpace.getCurrentParameters());
     }
     
+    /**
+     * Returns the most recent energy.
+     *
+     * @return the same value as {@link #getCurrentCost()}
+     */
     public double getEnergy() {
         return currentCost;
     }
     
+    /**
+     * Returns the current ansatz parameters.
+     *
+     * <p>The values describe the latest optimizer state and are not necessarily an
+     * optimum.
+     *
+     * @return copy of the current parameter values
+     */
     public Map<String, Double> getOptimalParameters() {
         return parameterSpace.getCurrentParameters();
     }
     
+    /**
+     * Returns the energy recorded in each completed iteration.
+     *
+     * @return copy of the cost history, oldest first
+     */
     public List<Double> getCostHistory() {
         return new ArrayList<>(costHistory);
     }
     
+    /**
+     * Returns the parameter values recorded at the start of each completed iteration.
+     *
+     * <p>The returned list is a copy, but the snapshot maps inside it are shared with the
+     * history.
+     *
+     * @return list of parameter snapshots, oldest first
+     */
     public List<Map<String, Double>> getParameterHistory() {
         return new ArrayList<>(parameterHistory);
     }
@@ -322,20 +481,43 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
         private final Map<String, Parameter> parameters;
         private final Map<String, Double> currentValues;
         
+        /**
+         * Creates an empty parameter table.
+         */
         public ParameterSpace() {
             this.parameters = new HashMap<>();
             this.currentValues = new HashMap<>();
         }
         
+        /**
+         * Adds a bounded parameter and sets its current value to the initial value.
+         *
+         * @param name parameter name
+         * @param initialValue starting value
+         * @param min lower bound, inclusive
+         * @param max upper bound, inclusive
+         */
         public void addParameter(String name, double initialValue, double min, double max) {
             parameters.put(name, new Parameter(name, initialValue, min, max));
             currentValues.put(name, initialValue);
         }
         
+        /**
+         * Returns a copy of the current values.
+         *
+         * @return map from parameter names to current values
+         */
         public Map<String, Double> getCurrentParameters() {
             return new HashMap<>(currentValues);
         }
         
+        /**
+         * Stores new values, clipping each one to its bounds.
+         *
+         * <p>Names that are not present in this table are ignored.
+         *
+         * @param newValues proposed values
+         */
         public void updateParameters(Map<String, Double> newValues) {
             for (Map.Entry<String, Double> entry : newValues.entrySet()) {
                 String name = entry.getKey();
@@ -350,6 +532,9 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
             }
         }
         
+        /**
+         * Restores the initial value of every parameter.
+         */
         public void reset() {
             for (Map.Entry<String, Parameter> entry : parameters.entrySet()) {
                 currentValues.put(entry.getKey(), entry.getValue().initialValue);
@@ -372,10 +557,34 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
     }
     
     // Interface for optimizers
+    /**
+     * Strategy that turns a gradient estimate into a new parameter set.
+     *
+     * <p>An implementation is initialized with the algorithm configuration, receives one
+     * update per non-converged iteration, and can be reset between runs. The solver
+     * clips the returned values to the parameter bounds and ignores names it does not
+     * know.
+     */
     public interface Optimizer {
+        /**
+         * Applies configuration parameters to the optimizer.
+         *
+         * @param parameters configuration values
+         */
         void initialize(Map<String, Object> parameters);
+        /**
+         * Computes the next parameter values.
+         *
+         * @param currentParams current parameter values
+         * @param gradient estimated derivative for each parameter
+         * @param cost cost of the current parameters
+         * @return proposed parameter values
+         */
         Map<String, Double> updateParameters(Map<String, Double> currentParams, 
                                            Map<String, Double> gradient, double cost);
+        /**
+         * Clears any optimizer state accumulated across iterations.
+         */
         void reset();
     }
     
@@ -385,12 +594,25 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
         private double momentum;
         private Map<String, Double> velocity;
         
+        /**
+         * Creates an optimizer with learning rate {@code 0.1} and momentum
+         * {@code 0.9}.
+         */
         public GradientDescentOptimizer() {
             this.learningRate = 0.1;
             this.momentum = 0.9;
             this.velocity = new HashMap<>();
         }
         
+        /**
+         * Reads the learning rate and momentum from the configuration.
+         *
+         * <p>The keys {@code learning_rate} and {@code momentum} default to {@code 0.1}
+         * and {@code 0.9}; their values must be {@link Double} instances. The stored
+         * velocity is cleared.
+         *
+         * @param parameters configuration values
+         */
         @Override
         public void initialize(Map<String, Object> parameters) {
             this.learningRate = (double) parameters.getOrDefault("learning_rate", 0.1);
@@ -398,6 +620,18 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
             velocity.clear();
         }
         
+        /**
+         * Applies one gradient descent step with momentum.
+         *
+         * <p>For every current parameter the velocity is updated to
+         * {@code momentum * velocity - learningRate * gradient} and the proposed value is
+         * {@code current + velocity}. A missing gradient entry counts as zero.
+         *
+         * @param currentParams current parameter values
+         * @param gradient estimated derivative for each parameter
+         * @param cost current cost, not used by this optimizer
+         * @return proposed parameter values
+         */
         @Override
         public Map<String, Double> updateParameters(Map<String, Double> currentParams, 
                                                   Map<String, Double> gradient, double cost) {
@@ -420,6 +654,9 @@ public class VariationalQuantumEigensolver implements HybridAlgorithm {
             return newParams;
         }
         
+        /**
+         * Clears the stored velocity.
+         */
         @Override
         public void reset() {
             velocity.clear();

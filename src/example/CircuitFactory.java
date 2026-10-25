@@ -7,8 +7,23 @@ import com.quantum.simulator.events.QuantumEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Builds small, fixed quantum circuits as arrays of {@link QuantumEvent} instances.
+ *
+ * <p>The factory methods return events that are ordered by the shared timer of
+ * {@link EventBuilderHelper}, so a caller can schedule them in array order to obtain the
+ * intended gate sequence. Events are not scheduled on a simulator here.</p>
+ */
 public class CircuitFactory {
     
+    /**
+     * Creates a two-qubit Bell state preparation circuit: a Hadamard on {@code q0} followed by
+     * a CNOT controlled by {@code q0} with {@code q1} as target.
+     *
+     * @param q0 the control qubit, which receives the Hadamard gate
+     * @param q1 the target qubit of the CNOT gate
+     * @return two events, in the order they should be scheduled
+     */
     public static QuantumEvent[] createBellStateCircuit(Qubit q0, Qubit q1) {
         
         return new QuantumEvent[] {
@@ -18,6 +33,17 @@ public class CircuitFactory {
         };
     }
     
+    /**
+     * Creates a hard-coded two-qubit Grover style circuit: a uniform superposition, a CZ oracle,
+     * and one diffusion step built from Hadamards, Pauli-X gates, a CZ and the inverse rotations.
+     *
+     * <p>The oracle marks the all-ones state and the circuit applies a single iteration only, so
+     * this is a demonstration of the gate sequence rather than a general search routine.</p>
+     *
+     * @param q0 the first qubit
+     * @param q1 the second qubit
+     * @return the events of the circuit, in the order they should be scheduled
+     */
     public static QuantumEvent[] createGroversSearchCircuit(Qubit q0, Qubit q1) {
         
         List<QuantumEvent> circuit = new ArrayList<>();
@@ -57,6 +83,16 @@ public class CircuitFactory {
         return circuit.toArray(new QuantumEvent[0]);
     }
     
+    /**
+     * Creates a Quantum Fourier Transform circuit for the given qubits.
+     *
+     * <p>The implementation applies a Hadamard to each qubit followed by controlled phase gates
+     * with angle {@code PI / 2^(j - i)}, then swaps qubits to reverse their order. No measurement
+     * or state preparation is included.</p>
+     *
+     * @param qubits the qubits to transform, in register order
+     * @return the events of the circuit, in the order they should be scheduled
+     */
     public static QuantumEvent[] createQuantumFourierTransform(Qubit[] qubits) {
         List<QuantumEvent> circuit = new ArrayList<>();
         int n = qubits.length;

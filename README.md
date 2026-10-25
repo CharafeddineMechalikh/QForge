@@ -1,132 +1,216 @@
-# QuantLab
+# QuantLab: Event-Driven Quantum Circuit Simulator in Java
 
-QuantLab is an event-driven quantum circuit simulator written in Java. It is a quantum computing project, not a quantitative finance library. Circuits are described as timed `QuantumEvent` objects and executed against a state-vector or density-matrix backend.
+**QuantLab is a quantum circuit simulator written in pure Java 17.** It simulates quantum circuits
+with a state vector or a density matrix, applies realistic quantum noise (depolarizing, dephasing,
+amplitude damping), measures arbitrary Hermitian observables, and ships runnable implementations of
+Grover's algorithm, the Quantum Fourier Transform, quantum phase estimation, VQE, QAOA, Trotterized
+time evolution, the Shor code, quantum walks, a quantum neural network, and a quantum kernel
+classifier.
 
-## Requirements
+It is a **quantum computing** library, not a quantitative finance library.
 
-- JDK 17
-- Maven 3.8 or newer
-
-## Build and test
+[![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
+[![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen)](docs/development.md)
+[![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/architecture.md)
 
 ```bash
+git clone https://github.com/CharafeddineMechalikh/QuantLab.git
+cd QuantLab
 mvn -o compile
-mvn -o test
-```
-
-The `-o` flag uses the local Maven cache. Remove it if dependencies need to be downloaded. The test suite covers gates, measurement, noise, algorithms, JSON loading, metrics, plugins, and VQE convergence.
-
-## Quick start
-
-Run all algorithm demos:
-
-```bash
 java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo ALL
 ```
 
-On Linux or macOS use `:` instead of `;` in the classpath.
+No GPU, no C++ toolchain, no Python environment. One JDK and Maven are enough.
 
-Run a specific demo (`GROVER`, `QFT`, `QPE`, `VQE`, `QNN`, `QSVM`, `SHOR_CODE`, `QAOA`, `TROTTER`, `QUANTUM_WALK`):
+## Contents
 
-```bash
-java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo VQE
-```
+- [Why QuantLab](#why-quantlab)
+- [Quick start](#quick-start)
+- [Architecture](#architecture)
+- [Documentation](#documentation)
+- [Features](#features)
+- [Quantum algorithms](#quantum-algorithms)
+- [Programmatic use](#programmatic-use)
+- [JSON circuit and configuration](#json-circuit-and-configuration)
+- [FAQ](#faq)
+- [Requirements and build](#requirements-and-build)
+- [Project layout](#project-layout)
+- [Contributing](#contributing)
+- [Limitations](#limitations)
+- [Citation](#citation)
 
-Run a JSON-defined circuit:
+## Why QuantLab
+
+| Reason | What it means in practice |
+| --- | --- |
+| Real quantum noise | Kraus-operator channels, deterministic on the density matrix, quantum trajectories on the state vector |
+| Two exact backends | `STATE_VECTOR` up to 30 qubits, `DENSITY_MATRIX` up to 12 qubits |
+| Observable-driven measurement | Projective collapse, eigenvalues, expectation value, variance, standard error |
+| Time-ordered execution | Circuits are scheduled `QuantumEvent` objects, so mid-circuit measurement and feed-forward are natural |
+| Algorithm reference code | Ten algorithm demos, each with a quantitative pass criterion and a test |
+| JSON first | Circuits and noisy configurations are plain JSON files that may contain comments |
+| Extensible | Plugin API, observer callbacks, custom gates, custom noise channels |
+| Visualized | Java2D state renderings, density matrices, circuit diagrams, timelines, animated GIFs |
+| Documented | Nine guides plus full Javadoc on every public type in the simulator and the examples |
+| Self-contained math | Complex arithmetic, tensor products, and eigen routines live in-repo, with no numerical library dependency |
+
+## Quick start
+
+Run a JSON-defined Bell circuit:
 
 ```bash
 java -cp "target/classes;lib/*" example.CircuitRunner bell
-java -cp "target/classes;lib/*" example.CircuitRunner src/example/config/short_config.json
 ```
+
+Expected output, with the timing lines omitted. The two equal amplitudes are the Bell state:
+
+```text
+[OK] SIMULATION COMPLETED SUCCESSFULLY
+
+[PLOT] Results:
+  Runtime: 47 ms
+
+[LAB] Quantum State:
+  StateVector[2 qubits, dim=4]:
+  |0>: 0.707107 (p=0.5000)
+  |11>: 0.707107 (p=0.5000)
+
+[TARGET] Measurement Probabilities:
+  |00>: 0.5000 (50.0%)
+  |11>: 0.5000 (50.0%)
+```
+
+Run all algorithm demos, or one of them (`GROVER`, `QFT`, `QPE`, `VQE`, `QNN`, `QSVM`,
+`SHOR_CODE`, `QAOA`, `TROTTER`, `QUANTUM_WALK`):
+
+```bash
+java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo ALL
+java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo VQE
+```
+
+Each demo prints `SUCCESS` or `FAILED` with the numbers behind the verdict. A `FAILED` line is a
+real result, not a broken installer.
+
+On Linux or macOS replace the `;` classpath separator with `:`.
+
+## Architecture
+
+Circuits enter as timed events. The dispatcher orders them by scheduled time, then by priority,
+then by construction sequence, and hands each one to the context, which mutates the quantum state.
+Observers, metrics, and visualization attach to that pipeline without changing it.
+
+```mermaid
+flowchart LR
+    A["JSON circuit or Java code"] --> B["QuantumEvent queue"]
+    B --> C["EventDispatcher"]
+    C --> D["SimulationContext"]
+    D --> E["StateVector backend"]
+    D --> F["DensityMatrix backend"]
+    E --> G["Measurement and noise"]
+    F --> G
+    G --> H["SimulationResult"]
+    H --> I["MetricsCollector"]
+    H --> J["VisualizationEngine"]
+    K["PluginManager"] -.-> C
+    K -.-> D
+```
+
+Full details, including the lifecycle state machine and the event ordering rules, are in
+[docs/architecture.md](docs/architecture.md).
+
+## Documentation
+
+| Guide | Covers | Read time |
+| --- | --- | --- |
+| [Getting started](docs/getting-started.md) | Install, build, run demos, first circuit, JSON loading | 10 min |
+| [Architecture](docs/architecture.md) | Lifecycle, event ordering, dispatch pipeline, state representations | 15 min |
+| [Configuration](docs/configuration.md) | `SimulationConfig` fields, validation, noise profiles, resource limits | 10 min |
+| [Gates and circuits](docs/gates-and-circuits.md) | Gate catalog, qubit ordering, custom gates, circuit JSON | 12 min |
+| [Measurement and noise](docs/measurement-and-noise.md) | Collapse, observables, Kraus channels, trajectories, fidelity | 12 min |
+| [Algorithms](docs/algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, walks | 15 min |
+| [Extending QuantLab](docs/extending.md) | Plugins, observers, custom gates and noise, feed-forward control | 12 min |
+| [Development](docs/development.md) | Repo layout, tests, Javadoc, conventions, releases | 8 min |
+| [Documentation index](docs/README.md) | Guide map and writing conventions | 2 min |
+
+API reference: run `mvn javadoc:javadoc`, then open `target/site/apidocs/index.html`.
 
 ## Features
 
 ### Backends
 
-- `STATE_VECTOR`: exact pure-state simulation, `2^n` complex amplitudes, up to 30 qubits in theory, limited by heap size.
-- `DENSITY_MATRIX`: exact mixed-state simulation, `2^n x 2^n` matrix, up to 12 qubits. A 12-qubit density matrix alone is about 256 MiB.
+| Backend | State size | Qubit ceiling | Best for |
+| --- | --- | --- | --- |
+| `STATE_VECTOR` | `2^n` complex amplitudes | 30, limited by heap | Pure states, algorithms, larger circuits |
+| `DENSITY_MATRIX` | `2^n x 2^n` complex matrix | 12 | Noise, mixed states, decoherence studies |
 
-The tensor-network, stabilizer, and path-integral enum entries were removed because they had no implementation. Only the two backends above are advertised.
+A 12-qubit density matrix alone is about 256 MiB. `SimulationConfig.validate()` estimates the
+memory requirement before the simulation starts, so an impossible configuration fails early instead
+of exhausting the heap mid-run. The tensor-network, stabilizer, and path-integral enum entries were
+removed because they had no implementation; only the two backends above are advertised.
 
 ### Gates
 
-`H`, `X`, `Y`, `Z`, `S`, `T`, `RX`, `RY`, `RZ`, `P`, `CNOT`, `CZ`, `CPHASE`, `SWAP`, `Toffoli`, multi-controlled `Z`, and controlled `SWAP`. Arbitrary local unitaries can be applied with `MultiQubitGate`.
+`H`, `X`, `Y`, `Z`, `S`, `T`, `RX`, `RY`, `RZ`, `P`, `CNOT`, `CZ`, `CPHASE`, `SWAP`, `Toffoli`,
+multi-controlled `Z`, and controlled `SWAP`. Arbitrary local unitaries go through `MultiQubitGate`
+or a custom gate factory you register yourself.
 
-Gate matrices use the convention **control qubits first, then target qubits**. `QuantumGate.getMatrixQubitIndices()` returns exactly this ordering.
+Gate matrices use the convention **control qubits first, then target qubits**, and qubit `0` is the
+most significant bit of a basis index. `QuantumGate.getMatrixQubitIndices()` returns exactly this
+ordering.
 
 ### Measurement
 
-- Computational-basis and general Hermitian-observable measurement.
-- Projective state collapse after destructive measurement, including partial measurement of a subset of qubits.
-- Non-destructive measurement is supported.
-- Reported statistics include sampled counts, outcome probabilities, eigenvalues, expectation value, variance, and standard error.
+- Computational-basis and general Hermitian observable measurement.
+- Projective state collapse after destructive measurement, including partial measurement of a
+  subset of qubits.
+- Non-destructive measurement.
+- Counts, outcome probabilities, eigenvalues, expectation value, variance, standard error.
 - Mid-circuit measurement updates the state before later gates run.
 
 ### Noise
 
-- Depolarizing, dephasing, and amplitude-damping channels.
-- Correct Kraus operators for one and multiple target qubits.
+- Depolarizing, dephasing, and amplitude damping, each with correct Kraus operators for one or
+  several target qubits.
 - Density-matrix mode applies the deterministic channel `sum K rho K^dagger`.
-- State-vector mode uses quantum trajectories: one Kraus operator is sampled and the state is renormalized. Results are stochastic per run.
-- A `NoiseProfile` in `SimulationConfig` is applied after every gate. Manual `NoiseModel` events can also be scheduled.
+- State-vector mode uses quantum trajectories: one Kraus operator is sampled and the state is
+  renormalized, so results are stochastic per run.
+- A `NoiseProfile` in `SimulationConfig` is applied after every gate; manual `NoiseModel` events can
+  also be scheduled at a chosen time.
 - Fidelity and trace distance are computed from the density matrices rather than placeholders.
-
-### Algorithms and examples
-
-- Grover search for arbitrary marked states, using exact multi-controlled phase gates.
-- Quantum Fourier transform and phase estimation, including controlled powers of a supplied unitary and inverse QFT.
-- Variational quantum eigensolver with circuit execution and Hamiltonian expectation values.
-- QAOA MaxCut circuit construction.
-- Trotterized Heisenberg evolution with `X`, `Y`, `Z`, `XX`, `YY`, and `ZZ` terms.
-- Shor 9-qubit error-correction encoding.
-- Continuous-time and discrete-time quantum walks.
-- Small trained QNN and swap-test quantum kernel classifier demos.
-
-The QNN and QSVM code is educational, not production machine learning.
 
 ### Other APIs
 
 - JSON configuration and circuit loading, with unknown fields ignored and comments accepted.
-- `SimulationObserver` callbacks and a populated `MetricsCollector` (state updates, operations, fidelity, distance, measurements, throughput).
-- Plugin API exposed through `QuantumSimulator.getPluginManager()`, with lifecycle and hook dispatch.
-- Java2D visualization: Bloch-style state rendering, density matrices, circuit diagrams, event timelines, purity plots, and animated GIFs.
+- `SimulationObserver` callbacks and a populated `MetricsCollector` (state updates, operations,
+  fidelity, distance, measurements, throughput).
+- Plugin API exposed through `QuantumSimulator.getPluginManager()`, with lifecycle and hook
+  dispatch.
+- Java2D visualization: Bloch-style state rendering, density matrices, circuit diagrams, event
+  timelines, purity plots, animated GIFs.
 
-## Configuration
+## Quantum algorithms
 
-`SimulationConfig.loadFromFile()` reads JSON. A minimal configuration:
+Every demo is runnable through `example.QuantumAlgorithmsDemo` and is covered by the test suite.
+The criteria below are the ones the code actually checks.
 
-```json
-{
-  "numQubits": 2,
-  "backend": "DENSITY_MATRIX",
-  "noiseProfile": {
-    "global_noise": {
-      "depolarizing": 0.001
-    },
-    "qubit_noise": {
-      "0": {
-        "dephasing": 0.002
-      }
-    }
-  },
-  "maxSteps": 1000
-}
-```
+| Selector | Circuit | Qubits | What it verifies |
+| --- | --- | --- | --- |
+| `GROVER` | Search for `\|111>` in a 3-qubit space | 3 | Target probability is the unique maximum and beats uniform by 0.1, with `max(1, floor(pi/4 * sqrt(2^n)))` iterations |
+| `QFT` | Fourier transform of `\|000>` | 3 | Every basis probability is within 0.01 of `1/8` |
+| `QPE` | Phase estimation of the `T` gate | 4 | Estimate equals `0.125` with probability above 0.99 |
+| `VQE` | H2 in a 2-qubit parity mapping | 2 | Energy within 1 mHartree of exact diagonalization |
+| `QNN` | 2-qubit variational classifier, 60 epochs | 2 | 100 percent accuracy on the four training samples |
+| `QSVM` | ZZ feature map, swap-test kernel, kernel perceptron | 5 | Training and test predictions all correct |
+| `SHOR_CODE` | 9-qubit encoding of logical `\|0>` | 9 | Probability mass above 0.999 on the eight codewords |
+| `QAOA` | MaxCut on a triangle, one layer | 3 | Amplitude concentrated on the maximum cuts |
+| `TROTTER` | Heisenberg `XX + YY + ZZ`, 4 steps, `t = 0.5` | 2 | Trotter state matches the exact matrix-exponential evolution |
+| `QUANTUM_WALK` | Continuous-time walk on a 3-node line | 3 | Probability above 0.1 on both neighbouring sites |
 
-A value of `0` for `maxSteps` means unlimited. `SimulationConfig.saveToFile()` writes a round-trippable configuration.
-
-A circuit file:
-
-```json
-{
-  "name": "Bell State Circuit",
-  "description": "Creates a Bell state",
-  "gates": [
-    {"id": "h0", "type": "H", "targetQubits": [0]},
-    {"id": "cnot01", "type": "CNOT", "targetQubits": [1], "controlQubits": [0]}
-  ]
-}
-```
+The Shor demo is encoding only (no syndrome extraction or recovery loop), and the QNN and QSVM code
+is educational, not production machine learning. [docs/algorithms.md](docs/algorithms.md) gives the
+formulas, the circuit builders, and the limits for each one.
 
 ## Programmatic use
 
@@ -154,22 +238,157 @@ SimulationResult result = simulator.run();
 System.out.println(result.getFinalState());
 ```
 
+## JSON circuit and configuration
+
+A circuit file:
+
+```json
+{
+  "name": "Bell State Circuit",
+  "description": "Creates a Bell state",
+  "gates": [
+    {"id": "h0", "type": "H", "targetQubits": [0]},
+    {"id": "cnot01", "type": "CNOT", "targetQubits": [1], "controlQubits": [0]}
+  ]
+}
+```
+
+A noisy configuration:
+
+```json
+{
+  "numQubits": 2,
+  "backend": "DENSITY_MATRIX",
+  "noiseProfile": {
+    "global_noise": {
+      "depolarizing": 0.001
+    },
+    "qubit_noise": {
+      "0": {
+        "dephasing": 0.002
+      }
+    }
+  },
+  "maxSteps": 1000
+}
+```
+
+A `maxSteps` value of `0` means unlimited. `SimulationConfig.loadFromFile()` ignores unknown fields,
+accepts comments, and reads enum values case-insensitively, and `saveToFile()` writes a
+round-trippable configuration.
+
+## FAQ
+
+**Is QuantLab a quantum computer emulator or a simulator?**
+A simulator. It computes the exact state evolution of a circuit on a classical CPU. There is no QPU
+backend.
+
+**How many qubits can I simulate?**
+Up to 30 with `STATE_VECTOR` and up to 12 with `DENSITY_MATRIX`, in practice limited by available
+heap. Raise it with `-Xmx`, for example `-Xmx8g`.
+
+**Does it support quantum noise?**
+Yes: depolarizing, dephasing, and amplitude damping channels with Kraus operators, configurable per
+qubit or globally through JSON and applied after every gate. On the state-vector backend noise is
+sampled as quantum trajectories, so a single run is stochastic.
+
+**Can I measure in the middle of a circuit?**
+Yes. A mid-circuit measurement collapses the state and later gates act on the collapsed state, which
+is what feed-forward experiments need.
+
+**Is it OpenQASM compatible?**
+Not yet. Circuits are built in Java or in the project's own JSON schema, with no QASM import or
+export.
+
+**Does it run on Windows, Linux, and macOS?**
+Yes. It is plain Java, and the visualization writes PNG and GIF files through Java2D. There is no
+interactive UI.
+
+**Is this production grade?**
+It is an educational and research-prototyping simulator. The math is exact for the supported
+backends, but the density-matrix eigen routines are dense and the noise model is gate-based rather
+than time-based. See [Limitations](#limitations).
+
+**Which license applies?**
+No `LICENSE` file is in the repository yet, so no license is granted. Resolving that is tracked in
+[CHANGELOG.md](CHANGELOG.md).
+
+## Requirements and build
+
+- JDK 17
+- Maven 3.8 or newer
+
+```bash
+mvn -o compile
+mvn -o test
+```
+
+The `-o` flag uses the local Maven cache; remove it if dependencies need to be downloaded. The
+suite runs 42 tests across gates, measurement, noise, algorithms, JSON loading, metrics, plugins,
+and VQE convergence.
+
+Generate the API documentation:
+
+```bash
+mvn javadoc:javadoc
+```
+
+The HTML is written to `target/site/apidocs/index.html`. Every public type and member in the
+simulator packages and the example programs is documented, and each package has a summary page. The
+first run resolves the Javadoc plugin dependencies, so omit `-o` for that command unless they are
+already cached.
+
 ## Project layout
 
-```
-src/com/quantum/simulator/      core simulator, states, gates, noise, measurement, observers, plugins
-src/example/                    demos, algorithm circuits, JSON resources
-src/test/java/                  JUnit 5 tests
+```text
+src/com/quantum/simulator/   core simulator, states, gates, noise, measurement, observers, plugins
+src/example/                 demos, algorithm circuits, JSON resources
+src/test/java/               JUnit 5 tests
+docs/                        user and developer guides
 ```
 
-The canonical algorithm entry point is `example.QuantumAlgorithmsDemo`. Older demo programs are kept as additional examples but overlap with it.
+The canonical algorithm entry point is `example.QuantumAlgorithmsDemo`. Older demo programs are kept
+as additional examples but overlap with it. The Java packages remain `com.quantum.simulator.*` after
+the rename to QuantLab; only the Maven coordinates and the project name changed.
+
+## Contributing
+
+1. Run `mvn -o test` before you start; the suite must stay green.
+2. Add a JUnit test for every behavior change, following the conventions in
+   [docs/development.md](docs/development.md).
+3. Keep the documentation honest: if a feature is unimplemented, document that instead of implying
+   support.
+4. Open an issue first for anything larger than a bug fix.
 
 ## Limitations
 
 - No OpenQASM import or export; circuits are built in Java or JSON.
 - Noise in configuration mode is gate-based, not time-based idle noise.
 - State-vector noise is trajectory-based and therefore stochastic.
-- Multi-qubit depolarizing is limited to 4 target qubits because the channel requires `4^n - 1` Kraus operators.
-- Independent multi-qubit dephasing and damping are limited to 8 target qubits.
-- Visualization uses Java2D and local PNG/GIF files; there is no interactive UI.
-- No tensor-network or stabilizer backend.
+- Multi-qubit depolarizing is limited to 4 target qubits because the channel requires `4^n - 1`
+  Kraus operators; independent multi-qubit dephasing and damping are limited to 8 targets.
+- Density-matrix simulation is exact but expensive, and the eigen routines are dense.
+- Visualization uses Java2D and local PNG and GIF files; there is no interactive UI.
+- No tensor-network, stabilizer, or path-integral backend.
+- The configured `timeoutSeconds` value and the three default control rules are recorded but not
+  enforced by the engine; see [docs/configuration.md](docs/configuration.md).
+
+## Citation
+
+If QuantLab helps your work, cite the repository:
+
+```bibtex
+@software{quantlab2026,
+  title   = {QuantLab: An Event-Driven Quantum Circuit Simulator in Java},
+  author  = {Mechalikh, Charafeddine},
+  year    = {2026},
+  version = {1.0.0},
+  url     = {https://github.com/CharafeddineMechalikh/QuantLab}
+}
+```
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes. This project adheres to
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html) and follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/).

@@ -25,7 +25,24 @@ import com.quantum.simulator.events.EventType;
 import java.time.Duration;
 import java.time.Instant; 
 
+/**
+ * Introductory demonstration of single-qubit gates, a Bell state, Grover's search, the Quantum
+ * Fourier Transform, and a three-qubit bit-flip correction cycle.
+ *
+ * <p>The program prints intermediate states, probabilities, a metrics report for the transform,
+ * and {@code [OK]} or {@code [FAIL]} lines for the checks it performs. Exceptions raised by the
+ * individual demonstrations are caught by {@link #main(String[])} and printed with a stack trace;
+ * no files are written.</p>
+ */
 public class QuantumSimulationApp {
+    /**
+     * Runs the five demonstration methods in sequence.
+     *
+     * <p>No command line arguments are read. If a demonstration throws, the remaining
+     * demonstrations are skipped and the error is printed.</p>
+     *
+     * @param args ignored
+     */
     public static void main(String[] args) {
         System.out.println("=== Quantum Simulation Framework ===");
         
@@ -556,6 +573,16 @@ public class QuantumSimulationApp {
     }
     
     
+    /**
+     * Builds and runs a two-qubit Grover search for {@code |11>} and prints the result.
+     *
+     * <p>The circuit comes from
+     * {@link GroversAlgorithm#createGroversCircuit(Qubit[], int)} with the target state
+     * {@code 3}. The probabilities of all four basis states are printed, followed by a
+     * SUCCESS, PARTIAL, or FAILED verdict based on the probability of {@code |11>}.</p>
+     *
+     * @throws Exception if the simulation fails
+     */
     public static void runGroversSearchExample() throws Exception {
         System.out.println("\n=== Corrected Grover's Search Algorithm ===");
         System.out.println("Searching for |11> in 2-qubit system");

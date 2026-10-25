@@ -8,8 +8,30 @@ import com.quantum.simulator.state.Qubit;
 
 import example.EventBuilderHelper;
 
+/**
+ * Sketch implementations of arithmetic circuits.
+ *
+ * <p>The adder is a partial ripple-carry construction: it emits the carry and sum CNOTs that are
+ * present in the source but omits the remaining carry logic, as noted in the code. The multiplier
+ * is a placeholder that returns an empty circuit. Neither method performs a complete arithmetic
+ * operation.</p>
+ */
 public class QuantumArithmetic {
     
+    /**
+     * Builds the CNOT sequence of a partial ripple-carry adder.
+     *
+     * <p>For each position the method emits carry CNOTs into {@code carry[i + 1]} and sum CNOTs
+     * from {@code a[i]} into {@code b[i]}, plus a carry-in CNOT for positions above zero. The
+     * additional carry logic needed for a complete adder is not included.</p>
+     *
+     * @param a the first addend, one qubit per bit
+     * @param b the second addend, one qubit per bit; it receives the partial sum
+     * @param carry the carry qubits, which must hold at least as many entries as {@code a}
+     * @return the events of the partial adder, in the order they should be scheduled
+     * @throws ArrayIndexOutOfBoundsException if {@code b} or {@code carry} is shorter than
+     *     {@code a}
+     */
     public static QuantumEvent[] createQuantumAdder(
         Qubit[] a, // First number (n qubits)
         Qubit[] b, // Second number (n qubits)
@@ -44,6 +66,17 @@ public class QuantumArithmetic {
         return circuit.toArray(new QuantumEvent[0]);
     }
     
+    /**
+     * Returns an empty circuit for multiplication.
+     *
+     * <p>The loops only compute placeholder values and add no events; the controlled additions
+     * that would implement the product are not present. Callers receive an empty array.</p>
+     *
+     * @param a the multiplicand register, one qubit per bit
+     * @param b the multiplier register, one qubit per bit
+     * @param result the result register, nominally two bits per input bit
+     * @return an empty event array
+     */
     public static QuantumEvent[] createQuantumMultiplier(
         Qubit[] a, // Multiplicand (n qubits)
         Qubit[] b, // Multiplier (n qubits)

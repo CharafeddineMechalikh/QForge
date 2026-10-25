@@ -6,8 +6,31 @@ import com.quantum.simulator.operations.*;
 import com.quantum.simulator.events.QuantumEvent;
 import java.util.*;
 
+/**
+ * Builds Grover search circuits that mark one computational basis state.
+ *
+ * <p>The oracle flips the phase of the target state by surrounding a multi-controlled Z gate with
+ * Pauli-X gates on the qubits that must be zero. The diffusion step uses the standard
+ * Hadamard, X, multi-controlled Z, X, Hadamard sequence. The number of iterations is
+ * {@code max(1, floor(PI / 4 * sqrt(N)))} for a search space of size {@code N}, which ignores the
+ * number of marked states.</p>
+ */
 public class GroversAlgorithm {
     
+    /**
+     * Builds a Grover circuit for one target state.
+     *
+     * <p>The method prints the target bit string, the search space size, and the iteration count
+     * to standard output before returning the gates. The first {@code n} Hadamards prepare a
+     * uniform superposition over the {@code 2^n} basis states, then each iteration adds an oracle
+     * and a diffusion operator.</p>
+     *
+     * @param qubits the qubits of the search register, most significant bit first
+     * @param targetState the basis state to amplify, from {@code 0} to {@code 2^n - 1}
+     * @return the events of the circuit, in the order they should be scheduled
+     * @throws IllegalArgumentException if fewer than two qubits are supplied or the target state
+     *     lies outside the search space
+     */
     public static QuantumEvent[] createGroversCircuit(Qubit[] qubits, int targetState) {
         int n = qubits.length;
         if (n < 2) {
@@ -105,6 +128,13 @@ public class GroversAlgorithm {
         return events;
     }
     
+    /**
+     * Builds a two-qubit circuit that amplifies the state {@code |11>}.
+     *
+     * @param qubits exactly two qubits
+     * @return the events of the circuit
+     * @throws IllegalArgumentException if the array does not contain exactly two qubits
+     */
     public static QuantumEvent[] createSimpleGrovers2Qubit(Qubit[] qubits) {
         if (qubits.length != 2) {
             throw new IllegalArgumentException("This method requires exactly 2 qubits");
@@ -112,6 +142,13 @@ public class GroversAlgorithm {
         return createGroversCircuit(qubits, 3);
     }
     
+    /**
+     * Builds a Grover circuit that targets the all-ones state of the supplied register.
+     *
+     * @param qubits the qubits of the search register
+     * @return the events of the circuit
+     * @throws IllegalArgumentException if fewer than two qubits are supplied
+     */
     public static QuantumEvent[] createDemoCircuit(Qubit[] qubits) {
         int targetState = (1 << qubits.length) - 1;
         return createGroversCircuit(qubits, targetState);

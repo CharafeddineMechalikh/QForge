@@ -26,6 +26,22 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageOutputStream;
 
+/**
+ * Observer that captures state and event history and renders Java2D images.
+ *
+ * <p>During a run, {@link #onStateUpdate(QuantumState, QuantumEvent)} stores a
+ * {@link StateSnapshot} and, when an event is supplied, an {@link EventRecord}.
+ * When the simulation completes, {@link #onCompleted(SimulationResult)} writes
+ * {@code final_state.png}, {@code event_timeline.png}, and
+ * {@code metrics_plot.png} to the output directory.
+ * {@link #generateAnimation(String, int)} additionally writes an animated GIF
+ * named after its argument.</p>
+ *
+ * <p>The default constructor keeps at most 1000 history entries and writes to
+ * {@code ./visualizations/}. Directories are created on demand. Rendered images
+ * are RGB {@link BufferedImage} instances sized 800 by 600 for state vectors,
+ * 600 by 600 for density matrices, and 400 by 300 for unsupported states.</p>
+ */
 public class VisualizationEngine implements SimulationObserver {
     private final List<StateSnapshot> stateHistory;
     private final List<EventRecord> eventHistory;
@@ -33,6 +49,10 @@ public class VisualizationEngine implements SimulationObserver {
     private boolean captureHistory;
     private String outputDirectory;
     
+    /**
+     * Creates an engine that keeps up to 1000 history entries, captures history, and
+     * writes images to {@code ./visualizations/}.
+     */
     public VisualizationEngine() {
         this.stateHistory = Collections.synchronizedList(new ArrayList<>());
         this.eventHistory = Collections.synchronizedList(new ArrayList<>());
@@ -41,6 +61,13 @@ public class VisualizationEngine implements SimulationObserver {
         this.outputDirectory = "./visualizations/";
     }
     
+    /**
+     * Creates an engine with the supplied history limit and output directory.
+     *
+     * @param maxHistorySize the maximum number of state and event entries kept per
+     *                       history list
+     * @param outputDirectory the directory for generated images and animations
+     */
     public VisualizationEngine(int maxHistorySize, String outputDirectory) {
         this.stateHistory = Collections.synchronizedList(new ArrayList<>());
         this.eventHistory = Collections.synchronizedList(new ArrayList<>());
@@ -50,6 +77,14 @@ public class VisualizationEngine implements SimulationObserver {
     }
     
     @Override
+    /**
+     * Captures a snapshot of the state, records the event when it is non-null, and
+     * removes the oldest entry from a history that exceeds the maximum size. Nothing
+     * is captured when history capture is disabled.
+     *
+     * @param state the state after the update
+     * @param event the event that produced the update, or {@code null}
+     */
     public void onStateUpdate(QuantumState state, QuantumEvent event) {
         if (captureHistory) {
             captureSnapshot(state);
@@ -69,6 +104,12 @@ public class VisualizationEngine implements SimulationObserver {
     }
     
     @Override
+    /**
+     * Writes the summary images for the completed simulation. Failures are printed to
+     * {@link System#err} and are not propagated.
+     *
+     * @param result the completed simulation result
+     */
     public void onCompleted(SimulationResult result) {
         // Generate final visualizations
         try {
@@ -78,6 +119,13 @@ public class VisualizationEngine implements SimulationObserver {
         }
     }
     
+    /**
+     * Appends a snapshot of the state with the current time. The snapshot type is
+     * {@link StateType#STATE_VECTOR} for a {@link StateVector} and
+     * {@link StateType#DENSITY_MATRIX} for any other state.
+     *
+     * @param state the state to capture
+     */
     public void captureSnapshot(QuantumState state) {
         StateSnapshot snapshot = new StateSnapshot(
             Instant.now(),
@@ -87,6 +135,12 @@ public class VisualizationEngine implements SimulationObserver {
         stateHistory.add(snapshot);
     }
     
+    /**
+     * Appends an event record. The operation name is the name of the event operation
+     * when one is present, otherwise the event type name.
+     *
+     * @param event the event to record
+     */
     public void recordEvent(QuantumEvent event) {
         EventRecord record = new EventRecord(
             Instant.now(),
@@ -97,6 +151,13 @@ public class VisualizationEngine implements SimulationObserver {
         eventHistory.add(record);
     }
     
+    /**
+     * Renders a state as an image, choosing the renderer from the state type.
+     *
+     * @param state the state to render
+     * @return an 800 by 600 state vector image, a 600 by 600 density matrix heatmap,
+     *         or a 400 by 300 placeholder when the type is not supported
+     */
     public BufferedImage renderState(QuantumState state) {
         if (state instanceof StateVector) {
             return renderStateVector((StateVector) state);
@@ -106,6 +167,16 @@ public class VisualizationEngine implements SimulationObserver {
         return createPlaceholderImage("Unsupported state type");
     }
     
+    /**
+     * Renders state vector amplitudes as vertical bars.
+     *
+     * <p>The image is 800 by 600 pixels. At most the first 50 amplitudes are drawn,
+     * each bar height is proportional to the basis state probability, and the bar
+     * color encodes the amplitude phase. No text labels are drawn.</p>
+     *
+     * @param state the state vector to render
+     * @return the rendered image
+     */
     public BufferedImage renderStateVector(StateVector state) {
         int width = 800;
         int height = 600;
@@ -144,6 +215,16 @@ public class VisualizationEngine implements SimulationObserver {
         return image;
     }
     
+    /**
+     * Renders a density matrix as a heatmap.
+     *
+     * <p>The image is 600 by 600 pixels. At most the leading 32 by 32 block is drawn.
+     * Cell brightness is the element magnitude normalized by the largest magnitude in
+     * that block, and cell hue encodes the element phase.</p>
+     *
+     * @param densityMatrix the density matrix to render
+     * @return the rendered image
+     */
     public BufferedImage renderDensityMatrix(DensityMatrix densityMatrix) {
         int width = 600;
         int height = 600;
@@ -193,6 +274,14 @@ public class VisualizationEngine implements SimulationObserver {
         return image;
     }
     
+    /**
+     * Writes an image as a PNG file in the output directory, creating the directory
+     * when needed.
+     *
+     * @param image the image to write
+     * @param filename the file name, which should end in {@code .png}
+     * @throws IOException if the image cannot be written
+     */
     public void saveImage(BufferedImage image, String filename) throws IOException {
         File outputDir = new File(outputDirectory);
         if (!outputDir.exists()) {
@@ -203,6 +292,20 @@ public class VisualizationEngine implements SimulationObserver {
         ImageIO.write(image, "PNG", outputFile);
     }
     
+    /**
+     * Writes an animated GIF built from sampled state history entries.
+     *
+     * <p>At most about 50 frames are sampled by taking every
+     * {@code max(1, historySize / 50)}th snapshot. The GIF uses the supplied frame
+     * delay (converted from milliseconds to centiseconds with a minimum of one) and
+     * loops indefinitely. The file is written to the output directory as
+     * {@code <animationName>.gif}. The method returns without writing a file when the
+     * state history is empty.</p>
+     *
+     * @param animationName the output file name without the {@code .gif} suffix
+     * @param frameDelay the delay between frames in milliseconds
+     * @throws IOException if the GIF cannot be written
+     */
     public void generateAnimation(String animationName, int frameDelay) throws IOException {
         if (stateHistory.isEmpty()) {
             return;
@@ -244,6 +347,13 @@ public class VisualizationEngine implements SimulationObserver {
         System.out.println("Animation saved to: " + outputFile.getAbsolutePath());
     }
     
+    /**
+     * Sets GIF frame delay, disposal, and infinite looping metadata.
+     *
+     * @param metadata the image metadata to configure
+     * @param frameDelayMs the frame delay in milliseconds, converted to centiseconds
+     * @throws IOException if the native metadata format cannot be read
+     */
     private void configureGifMetadata(IIOMetadata metadata, int frameDelayMs) throws IOException {
         String format = metadata.getNativeMetadataFormatName();
         IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(format);
@@ -265,6 +375,14 @@ public class VisualizationEngine implements SimulationObserver {
         metadata.setFromTree(format, root);
     }
     
+    /**
+     * Finds a direct child metadata node by name, appending a new node when none
+     * exists.
+     *
+     * @param root the parent node
+     * @param name the node name to find
+     * @return the existing or newly appended node
+     */
     private IIOMetadataNode getMetadataNode(IIOMetadataNode root, String name) {
         for (int i = 0; i < root.getLength(); i++) {
             if (root.item(i).getNodeName().equalsIgnoreCase(name)) {
@@ -276,6 +394,16 @@ public class VisualizationEngine implements SimulationObserver {
         return node;
     }
     
+    /**
+     * Writes the final state image, the event timeline, and the metrics plot.
+     *
+     * <p>The final state image is written only when the result has a non-null final
+     * state. The timeline and metrics plot are written only when the corresponding
+     * history is non-empty.</p>
+     *
+     * @param result the completed simulation result
+     * @throws IOException if an image cannot be written
+     */
     public void generateSummaryVisualizations(SimulationResult result) throws IOException {
         System.out.println("Generating summary visualizations...");
         
@@ -290,6 +418,12 @@ public class VisualizationEngine implements SimulationObserver {
         System.out.println("Visualizations saved to: " + outputDirectory);
     }
     
+    /**
+     * Writes {@code event_timeline.png} with one labeled row per recorded event. The
+     * method returns without writing a file when the event history is empty.
+     *
+     * @throws IOException if the image cannot be written
+     */
     private void generateEventTimeline() throws IOException {
         if (eventHistory.isEmpty()) {
             return;
@@ -339,6 +473,13 @@ public class VisualizationEngine implements SimulationObserver {
         saveImage(image, "event_timeline.png");
     }
     
+    /**
+     * Writes {@code metrics_plot.png} showing state purity per snapshot. Purity values
+     * are clamped to the range 0 to 1 for plotting. The method returns without writing
+     * a file when the state history is empty.
+     *
+     * @throws IOException if the image cannot be written
+     */
     private void generateMetricsPlot() throws IOException {
         if (stateHistory.isEmpty()) {
             return;
@@ -400,12 +541,25 @@ public class VisualizationEngine implements SimulationObserver {
         saveImage(image, "metrics_plot.png");
     }
     
+    /**
+     * Maps a phase angle to an RGB color with fixed saturation and value.
+     *
+     * @param phase the phase angle in radians
+     * @return the packed RGB value
+     */
     private int phaseToColor(double phase) {
         // Convert phase angle to RGB color (HSV to RGB)
         double hue = (phase + Math.PI) / (2 * Math.PI); // Normalize to [0, 1]
         return hsvToRgb(hue, 0.8, 0.9);
     }
     
+    /**
+     * Maps a normalized magnitude and a phase angle to an RGB color.
+     *
+     * @param magnitude the normalized magnitude, used to scale brightness
+     * @param phase the phase angle in radians
+     * @return the packed RGB value
+     */
     private int magnitudePhaseToColor(double magnitude, double phase) {
         // Convert magnitude and phase to color
         double hue = (phase + Math.PI) / (2 * Math.PI); // Normalize to [0, 1]
@@ -415,6 +569,14 @@ public class VisualizationEngine implements SimulationObserver {
         return hsvToRgb(hue, saturation, value);
     }
     
+    /**
+     * Converts an HSV color to a packed RGB value.
+     *
+     * @param h the hue, normally in the range 0 to 1
+     * @param s the saturation
+     * @param v the value (brightness)
+     * @return the packed RGB value
+     */
     private int hsvToRgb(double h, double s, double v) {
         // Convert HSV to RGB
         int r, g, b;
@@ -438,6 +600,13 @@ public class VisualizationEngine implements SimulationObserver {
         return (r << 16) | (g << 8) | b;
     }
     
+    /**
+     * Creates a white placeholder image.
+     *
+     * @param text the text that would be shown; the current implementation does not
+     *             draw it
+     * @return a 400 by 300 white image
+     */
     private BufferedImage createPlaceholderImage(String text) {
         int width = 400;
         int height = 300;
@@ -454,43 +623,100 @@ public class VisualizationEngine implements SimulationObserver {
         return image;
     }
     
+    /**
+     * Returns the captured state snapshots.
+     *
+     * @return a new list containing the snapshots
+     */
     public List<StateSnapshot> getStateHistory() {
         return new ArrayList<>(stateHistory);
     }
     
+    /**
+     * Returns the captured event records.
+     *
+     * @return a new list containing the event records
+     */
     public List<EventRecord> getEventHistory() {
         return new ArrayList<>(eventHistory);
     }
     
+    /**
+     * Enables or disables history capture during state update callbacks.
+     *
+     * @param capture {@code true} to capture history, {@code false} to stop capturing
+     */
     public void setCaptureHistory(boolean capture) {
         this.captureHistory = capture;
     }
     
+    /**
+     * Sets the directory for generated images and animations.
+     *
+     * @param directory the output directory; it is created on demand when an image is
+     *                  written
+     */
     public void setOutputDirectory(String directory) {
         this.outputDirectory = directory;
     }
     
+    /**
+     * Removes all captured state snapshots and event records.
+     */
     public void clearHistory() {
         stateHistory.clear();
         eventHistory.clear();
     }
     
     // Inner classes
+    /**
+     * Captured state with the time it was recorded.
+     *
+     * <p>The snapshot keeps a reference to the supplied {@link QuantumState}; it does
+     * not copy the state.</p>
+     */
     public static class StateSnapshot {
         private final Instant timestamp;
         private final QuantumState state;
         private final StateType type;
         
+        /**
+         * Creates a state snapshot.
+         *
+         * @param timestamp the capture time
+         * @param state the captured state
+         * @param type the state type
+         */
         public StateSnapshot(Instant timestamp, QuantumState state, StateType type) {
             this.timestamp = timestamp;
             this.state = state;
             this.type = type;
         }
         
+        /**
+         * Returns the capture time.
+         *
+         * @return the timestamp
+         */
         public Instant getTimestamp() { return timestamp; }
+        /**
+         * Returns the captured state.
+         *
+         * @return the state
+         */
         public QuantumState getState() { return state; }
+        /**
+         * Returns the state type.
+         *
+         * @return the type
+         */
         public StateType getType() { return type; }
         
+        /**
+         * Returns a formatted description of the snapshot.
+         *
+         * @return a string with the timestamp, type, and qubit count
+         */
         @Override
         public String toString() {
             return String.format(Locale.ROOT, 
@@ -500,12 +726,26 @@ public class VisualizationEngine implements SimulationObserver {
         }
     }
     
+    /**
+     * Captured event with the time it was recorded.
+     *
+     * <p>The target qubit array is copied on construction and on each call to
+     * {@link #getTargetQubits()}.</p>
+     */
     public static class EventRecord {
         private final Instant timestamp;
         private final com.quantum.simulator.events.EventType type;
         private final String operationName;
         private final com.quantum.simulator.state.Qubit[] targetQubits;
         
+        /**
+         * Creates an event record.
+         *
+         * @param timestamp the capture time
+         * @param type the event type
+         * @param operationName the operation name, or the event type name
+         * @param targetQubits the target qubits, which are copied
+         */
         public EventRecord(Instant timestamp, com.quantum.simulator.events.EventType type,
                           String operationName, com.quantum.simulator.state.Qubit[] targetQubits) {
             this.timestamp = timestamp;
@@ -514,11 +754,36 @@ public class VisualizationEngine implements SimulationObserver {
             this.targetQubits = targetQubits.clone();
         }
         
+        /**
+         * Returns the capture time.
+         *
+         * @return the timestamp
+         */
         public Instant getTimestamp() { return timestamp; }
+        /**
+         * Returns the event type.
+         *
+         * @return the event type
+         */
         public com.quantum.simulator.events.EventType getType() { return type; }
+        /**
+         * Returns the operation name.
+         *
+         * @return the operation name or the event type name
+         */
         public String getOperationName() { return operationName; }
+        /**
+         * Returns the target qubits.
+         *
+         * @return a copy of the target qubit array
+         */
         public com.quantum.simulator.state.Qubit[] getTargetQubits() { return targetQubits.clone(); }
         
+        /**
+         * Returns a formatted description of the record.
+         *
+         * @return a string with the timestamp, type, operation name, and target count
+         */
         @Override
         public String toString() {
             return String.format(Locale.ROOT, 
@@ -528,8 +793,17 @@ public class VisualizationEngine implements SimulationObserver {
         }
     }
     
+    /**
+     * Kind of state held by a {@link StateSnapshot}.
+     */
     public enum StateType {
+        /**
+         * A {@link StateVector} pure state.
+         */
         STATE_VECTOR,
+        /**
+         * A {@link DensityMatrix}, used for any state that is not a state vector.
+         */
         DENSITY_MATRIX
     }
 }
