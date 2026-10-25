@@ -280,7 +280,27 @@ controller.storeInMemory("correction_target", simulator.getContext().getQubit(0)
 The controller runs after every dispatched event during `run()`. `processEvents` drains the
 measurements appended since its previous call, evaluates the enabled rules in insertion order, and
 forwards every non-null event carried by the winning decision through the scheduler installed by
-`initialize`, which is why a rule can extend the run. Three caveats follow from that implementation:
+`initialize`, which is why a rule can extend the run.
+
+```mermaid
+flowchart TD
+    A["event dispatched inside run or step"] --> B["measurement results appended to the context"]
+    B --> C["ClassicalController.processEvents"]
+    C --> D["drain the results newer than the processed counter"]
+    D --> E["every enabled rule whose appliesTo matches is asked, in insertion order"]
+    E --> F["combineDecisions keeps the highest priority non-null decision and drops the rest"]
+    F --> G{"decision carries events and a scheduler is installed"}
+    G -- yes --> H["scheduler callback re-enters QuantumSimulator.scheduleEvent"]
+    G -- no --> I["no event reaches the queue"]
+    F --> K["the winning decision alone is appended to the history"]
+    C --> J["updateClassicalParameters writes steps, time and fidelity into memory once the drain ends"]
+    L["updateEventQueue handles cancel, reschedule and modify"] -.-> M["the run loop never calls it"]
+    N["executeConditional"] -.-> M
+```
+
+`combineDecisions` sorts the collected decisions by their own priority and returns only the first, so
+a lower priority answer is discarded rather than merged, and `getDecisionHistory()` shows only the
+winners. Three caveats follow from that implementation:
 
 - Only the events on a decision matter on the live path. `updateEventQueue` does interpret
   `CANCEL_EVENT`, `RESCHEDULE_EVENT` and `MODIFY_PARAMETERS`, but the simulator never calls it, so a

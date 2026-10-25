@@ -234,6 +234,32 @@ A `GateLibrary` keeps two registries. `registerGate` stores a ready instance for
 only the factory registry. `getAvailableGates()` returns the union, and `clear()` restores the
 standard factories while discarding custom ones.
 
+A JSON circuit resolves its gate names through `createGate`, so the factory registry is the only one
+that matters there, and a miss does not fail immediately:
+
+```mermaid
+flowchart TD
+    J["gate type string from circuit JSON"] --> R["CircuitRunner collects controls first, then targets"]
+    R --> C["GateLibrary.createGate with the parameter map"]
+    C --> F{"name present in the factory registry"}
+    F -- yes --> G["registered factory builds the gate"]
+    F -- no --> X["IllegalArgumentException: No factory found for gate"]
+    X --> W["CircuitRunner catches it and prints a warning"]
+    W --> B["createBasicGate switches on the uppercased name"]
+    B --> K{"one of H, HADAMARD, X, Y, Z, CNOT, CZ, SWAP"}
+    K -- yes --> G2["hardcoded standard gate, the library is bypassed"]
+    K -- no --> E2["Unsupported gate type, the circuit fails to load"]
+    REG["registerGate stores an instance"] -.-> GET["read only by getGate, never by the JSON loader"]
+    FACT["registerFactory stores a builder"] -.-> C
+```
+
+Two consequences follow from that fallback. A custom name is not enough: without a factory the run
+either loads the wrong gate, when the name collides with one of the eight hardcoded cases, or stops
+with `Unsupported gate type`. And because `getAvailableGates()` lists the union of both registries,
+a name can appear in that list and still be uncreatable. `RX`, `RY`, `RZ`, `CPHASE` and `Toffoli`
+have factories but no hardcoded fallback, so a factory registered under one of those names is the
+only way to reach it from JSON.
+
 ## Circuit JSON schema
 
 ```mermaid

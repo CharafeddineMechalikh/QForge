@@ -49,6 +49,27 @@ Two sampling details are worth knowing when results look odd:
 `Observable` wraps a Hermitian matrix over a list of qubits, with the first qubit as the most
 significant tensor factor.
 
+One predicate decides both the cost and the meaning of every call: whether the operator is diagonal
+in the computational basis. A Pauli `Z` or a `Z`-and-`I` string takes the cheap branch; `X`, `Y` and
+a general Hamiltonian take the eigen branch.
+
+```mermaid
+flowchart TD
+    S["Observable called on a state"] --> D{"isComputationalBasis: all off-diagonal entries below 1e-12"}
+    D -- "diagonal" --> P["probabilities: sum the state probabilities of the basis states sharing the target bits"]
+    D -- "diagonal" --> EV["eigenvalues: real parts of the diagonal entries, in outcome order"]
+    D -- "diagonal" --> CO["collapse: collapseToBasisState with the sampled outcome"]
+    D -- "non-diagonal" --> P2["probabilities: partialTrace over the targets, then the reduced matrix between eigenvectors"]
+    D -- "non-diagonal" --> EV2["eigenvalues: ascending spectrum, outcome i is the sorted position"]
+    D -- "non-diagonal" --> CO2["collapse: collapseToEigenvector with eigenvector column i"]
+    P --> N["normalizeProbabilities, then return"]
+    P2 --> N
+```
+
+The eigenvector columns and the sorted eigenvalues come from the same decomposition, so outcome
+indices line up across the three calls. Nothing is cached between them, which is why an expectation
+value over several qubits is the slow path.
+
 | Factory | Result |
 | --- | --- |
 | `Observable.pauliX(q)`, `pauliY(q)`, `pauliZ(q)` | single-qubit Pauli, type `PAULI` |
