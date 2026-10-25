@@ -1,0 +1,27 @@
+{
+  "name": "Quantum Fourier Transform Experiment",
+  "numQubits": 5,
+  "backend": "STATE_VECTOR",
+  "timeResolution": "NANOSECOND",
+  "maxMemoryBytes": 4294967296,
+  "maxCPUs": 2,
+  "maxGPUs": 0,
+  "noiseProfile": {
+    "global_noise": {
+      "depolarizing": 0.001
+    },
+    "qubit_noise": {
+      "0": {
+        "dephasing": 0.002
+      }
+    }
+  },
+  "maxSteps": 10000,
+  "timeoutSeconds": 300.0,
+  "classicalControlEnabled": true,
+  "customParameters": {
+    "optimization_level": 3,
+    "cache_size": 1024,
+    "validation_enabled": true
+  }
+}

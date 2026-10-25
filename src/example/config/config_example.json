@@ -1,0 +1,30 @@
+{
+  "numQubits": 4,
+  "backend": "STATE_VECTOR",
+  "timeResolution": "NANOSECOND",
+  "maxMemoryBytes": 1073741824,
+  "maxCPUs": 4,
+  "maxGPUs": 0,
+  "noiseProfile": {
+    "global_noise": {
+      "depolarizing": 0.001,
+      "dephasing": 0.0005
+    },
+    "qubit_noise": {
+      "0": {
+        "depolarizing": 0.01,
+        "amplitude_damping": 0.005
+      },
+      "3": {
+        "dephasing": 0.02
+      }
+    }
+  },
+  "maxSteps": 1000,
+  "timeoutSeconds": 60.0,
+  "classicalControlEnabled": true,
+  "customParameters": {
+    "optimization_level": 2,
+    "cache_size": 1024
+  }
+}

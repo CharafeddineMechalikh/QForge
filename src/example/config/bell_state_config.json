@@ -1,0 +1,22 @@
+{
+  "name": "Bell State Simulation",
+  "numQubits": 2,
+  "backend": "STATE_VECTOR",
+  "timeResolution": "NANOSECOND",
+  "maxMemoryBytes": 1073741824,
+  "maxCPUs": 4,
+  "maxGPUs": 0,
+  "noiseProfile": {
+    "qubit_noise": {
+      "0": {
+        "depolarizing": 0.001
+      },
+      "1": {
+        "depolarizing": 0.001
+      }
+    }
+  },
+  "maxSteps": 100,
+  "timeoutSeconds": 30.0,
+  "classicalControlEnabled": false
+}

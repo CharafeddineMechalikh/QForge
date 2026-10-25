@@ -1,0 +1,94 @@
+{
+  "name": "Quantum Fourier Transform on 3 Qubits",
+  "description": "QFT algorithm for period finding",
+  "version": "1.0",
+  
+  // INITIAL STATE PREPARATION
+  "initialState": "ZERO",  // Alternative: "PLUS", "RANDOM", or specific state
+  
+  // QUANTUM OPERATIONS (GATES)
+  "operations": [
+    {
+      "id": "h0",
+      "type": "HADAMARD",
+      "targets": [0],
+      "time": 0,
+      "description": "Apply Hadamard to qubit 0"
+    },
+    {
+      "id": "cp01",
+      "type": "CONTROLLED_PHASE",
+      "targets": [1],
+      "controls": [0],
+      "parameters": { "angle": 1.5708 },  // π/2
+      "time": 10,
+      "description": "Controlled phase (π/2) between q0 and q1"
+    },
+    {
+      "id": "h1",
+      "type": "HADAMARD",
+      "targets": [1],
+      "time": 20,
+      "description": "Hadamard on qubit 1"
+    },
+    {
+      "id": "cp12",
+      "type": "CONTROLLED_PHASE",
+      "targets": [2],
+      "controls": [1],
+      "parameters": { "angle": 0.7854 },  // π/4
+      "time": 30,
+      "description": "Controlled phase (π/4) between q1 and q2"
+    },
+    {
+      "id": "cp02",
+      "type": "CONTROLLED_PHASE",
+      "targets": [2],
+      "controls": [0],
+      "parameters": { "angle": 0.3927 },  // π/8
+      "time": 40,
+      "description": "Controlled phase (π/8) between q0 and q2"
+    }
+  ],
+  
+  // MEASUREMENTS
+  "measurements": [
+    {
+      "id": "meas_all",
+      "type": "COMPUTATIONAL_BASIS",
+      "targets": [0, 1, 2],
+      "shots": 1024,
+      "time": 50,
+      "description": "Measure all qubits in computational basis"
+    }
+  ],
+  
+  // CLASSICAL CONTROL
+  "classicalOperations": [
+    {
+      "id": "conditional_x",
+      "type": "CONDITIONAL_GATE",
+      "condition": "measurement[0] == 1",
+      "operation": {
+        "type": "PAULI_X",
+        "targets": [1]
+      },
+      "description": "Apply X gate to q1 if q0 measured as 1"
+    }
+  ],
+  
+  // EXPECTED RESULTS (for validation)
+  "expectedResults": {
+    "probabilities": {
+      "000": 0.125,
+      "001": 0.125,
+      "010": 0.125,
+      "011": 0.125,
+      "100": 0.125,
+      "101": 0.125,
+      "110": 0.125,
+      "111": 0.125
+    },
+    "tolerance": 0.01
+  }
+}

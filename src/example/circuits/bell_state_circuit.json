@@ -1,0 +1,19 @@
+{
+  "name": "Bell State Circuit",
+  "description": "Creates a Bell state (maximally entangled state) between qubit 0 and 1",
+  "gates": [
+    {
+      "id": "h0",
+      "type": "H",
+      "targetQubits": [0],
+      "description": "Apply Hadamard on qubit 0"
+    },
+    {
+      "id": "cnot01",
+      "type": "CNOT",
+      "targetQubits": [1],
+      "controlQubits": [0],
+      "description": "Apply CNOT with control qubit 0 and target qubit 1"
+    }
+  ]
+}

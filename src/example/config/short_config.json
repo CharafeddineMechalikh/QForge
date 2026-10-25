@@ -1,0 +1,8 @@
+{
+  "numQubits": 2,
+  "backend": "STATE_VECTOR",
+  "noiseProfile": {
+    "noise_type": "depolarizing",
+    "probability": 0.01
+  }
+}
