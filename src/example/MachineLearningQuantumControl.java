@@ -1,15 +1,15 @@
 package example;
 
-import com.quantum.simulator.classical.*;
-import com.quantum.simulator.config.SimulationBackend;
-import com.quantum.simulator.config.SimulationConfig;
-import com.quantum.simulator.core.*;
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.math.Complex;
-import com.quantum.simulator.operations.*;
-import com.quantum.simulator.state.*;
-import com.quantum.simulator.measurement.*;
-import com.quantum.simulator.measurement.Observable;
+import com.mechalikh.qforge.classical.*;
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
+import com.mechalikh.qforge.core.*;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.math.Complex;
+import com.mechalikh.qforge.operations.*;
+import com.mechalikh.qforge.state.*;
+import com.mechalikh.qforge.measurement.*;
+import com.mechalikh.qforge.measurement.Observable;
 
 import java.util.*;
 import java.util.stream.Collectors;

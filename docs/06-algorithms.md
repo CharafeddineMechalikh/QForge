@@ -99,7 +99,7 @@ the most probable basis index, which is why the register layout matters.
 
 ## Variational quantum eigensolver
 
-`com.quantum.simulator.classical.VariationalQuantumEigensolver` is the real optimization loop, and
+`com.mechalikh.qforge.classical.VariationalQuantumEigensolver` is the real optimization loop, and
 `example.algorithms.VQEAlgorithm` supplies the circuit builders and Hamiltonians.
 
 ```mermaid
@@ -207,7 +207,7 @@ The demo encodes logical `|0>` and checks that the probability lands on the eigh
 `(|000> + |111>)` tensor three, divided by `sqrt(8)`. Encoding circuits only: there is no syndrome
 extraction or recovery step, so `SHOR_CODE` verifies the codeword structure rather than a correction
 cycle. `EventType.ERROR_CORRECTION` and `EventType.RECOVERY` exist as event labels, and the
-`ErrorManager` in `com.quantum.simulator.noise` tracks injected errors, but no demo closes the
+`ErrorManager` in `com.mechalikh.qforge.noise` tracks injected errors, but no demo closes the
 correction loop.
 
 ## Hamiltonian simulation

@@ -1,14 +1,14 @@
 package example;
 
-import com.quantum.simulator.config.*;
-import com.quantum.simulator.core.*;
-import com.quantum.simulator.classical.VariationalQuantumEigensolver;
-import com.quantum.simulator.math.Complex;
-import com.quantum.simulator.math.ComplexMatrix;
-import com.quantum.simulator.measurement.Observable;
-import com.quantum.simulator.state.Qubit;
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.operations.SingleQubitGate;
+import com.mechalikh.qforge.config.*;
+import com.mechalikh.qforge.core.*;
+import com.mechalikh.qforge.classical.VariationalQuantumEigensolver;
+import com.mechalikh.qforge.math.Complex;
+import com.mechalikh.qforge.math.ComplexMatrix;
+import com.mechalikh.qforge.measurement.Observable;
+import com.mechalikh.qforge.state.Qubit;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.operations.SingleQubitGate;
 
 import example.algorithms.*;
 

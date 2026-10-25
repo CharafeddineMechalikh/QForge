@@ -1,11 +1,11 @@
 package example.algorithms;
 
-import com.quantum.simulator.state.Qubit;
+import com.mechalikh.qforge.state.Qubit;
 
 import example.EventBuilderHelper;
 
-import com.quantum.simulator.operations.*;
-import com.quantum.simulator.events.QuantumEvent;
+import com.mechalikh.qforge.operations.*;
+import com.mechalikh.qforge.events.QuantumEvent;
 import java.util.ArrayList;
 import java.util.List;
 

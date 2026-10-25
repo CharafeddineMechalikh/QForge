@@ -1,13 +1,13 @@
 package example;
 
-import com.quantum.simulator.resources.*;
-import com.quantum.simulator.config.ResourceConstraints;
-import com.quantum.simulator.config.SimulationBackend;
-import com.quantum.simulator.config.SimulationConfig;
-import com.quantum.simulator.core.*;
-import com.quantum.simulator.operations.*;
-import com.quantum.simulator.state.*;
-import com.quantum.simulator.events.*;
+import com.mechalikh.qforge.resources.*;
+import com.mechalikh.qforge.config.ResourceConstraints;
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
+import com.mechalikh.qforge.core.*;
+import com.mechalikh.qforge.operations.*;
+import com.mechalikh.qforge.state.*;
+import com.mechalikh.qforge.events.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;

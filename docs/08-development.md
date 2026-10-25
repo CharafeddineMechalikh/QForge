@@ -12,7 +12,7 @@ flowchart TD
     R --> L["lib/ (runtime jars committed for the CLI demos)"]
     R --> D["docs/ (these guides)"]
     R --> C["CHANGELOG.md, README.md"]
-    S --> S1["com/quantum/simulator/ (13 packages)"]
+    S --> S1["com/mechalikh/qforge/ (13 packages)"]
     S --> S2["example/ (demos, algorithm builders, JSON resources)"]
     S2 --> S3["example/config/*.json"]
     S2 --> S4["example/circuits/*.json"]
@@ -25,9 +25,9 @@ copies every `**/*.json` and `**/*.properties` under `src` into `target/classes`
 
 | Path | Contents |
 | --- | --- |
-| `src/com/quantum/simulator/` | the library: `core`, `config`, `events`, `operations`, `state`, `strategy`, `measurement`, `noise`, `observer`, `plugin`, `classical`, `resources`, `math` |
+| `src/com/mechalikh/qforge/` | the library: `core`, `config`, `events`, `operations`, `state`, `strategy`, `measurement`, `noise`, `observer`, `plugin`, `classical`, `resources`, `math` |
 | `src/example/` | runners, `algorithms`, `plugins`, `visualization`, JSON resources |
-| `src/test/java/com/quantum/simulator/` | JUnit 5 tests and `TestSupport` |
+| `src/test/java/com/mechalikh/qforge/` | JUnit 5 tests and `TestSupport` |
 | `lib/` | `jackson-annotations`, `jackson-core`, `jackson-databind` |
 | `target/`, `bin/`, `output/` | build and demo artifacts, git-ignored |
 
@@ -114,7 +114,7 @@ measurement as static Shields images dated 2026-10-25; update both badges when t
 
 ### Adding a test
 
-1. Put it in `src/test/java/com/quantum/simulator/`, package `com.quantum.simulator`.
+1. Put it in `src/test/java/com/mechalikh/qforge/`, package `com.mechalikh.qforge`.
 2. Build a `SimulationConfig` with one or two qubits so the suite stays fast; the VQE test is
    already the slow one at about 4 seconds.
 3. Assert on a physical property (probability, energy, trace, purity) rather than on a string.
@@ -130,7 +130,7 @@ Conventions that keep the build clean:
 
 - Every package has a `package-info.java` with a summary and the invariants that matter.
 - Cross-package references use fully qualified `{@link}` targets, for example
-  `{@link com.quantum.simulator.state.StateVector}` from the `measurement` package.
+  `{@link com.mechalikh.qforge.state.StateVector}` from the `measurement` package.
 - `@throws` must name an exception the method actually declares; a hook that swallows exceptions
   does not document `@throws Exception`.
 - Documentation describes what the code does, including the negative cases: unenforced timeouts,

@@ -344,14 +344,14 @@ already cached.
 ## Project layout
 
 ```text
-src/com/quantum/simulator/   core simulator, states, gates, noise, measurement, observers, plugins
+src/com/mechalikh/qforge/   core simulator, states, gates, noise, measurement, observers, plugins
 src/example/                 demos, algorithm circuits, JSON resources
 src/test/java/               JUnit 5 tests
 docs/                        user and developer guides
 ```
 
 The Maven coordinates are `com.mechalikh:qforge`; the Java packages are
-`com.quantum.simulator.*`. The canonical algorithm entry point is
+`com.mechalikh.qforge.*`. The canonical algorithm entry point is
 `example.QuantumAlgorithmsDemo`; older demo programs are kept as additional examples but overlap
 with it.
 

@@ -1,7 +1,7 @@
 package example.plugins;
 
-import com.quantum.simulator.plugin.Plugin;
-import com.quantum.simulator.plugin.PluginContext;
+import com.mechalikh.qforge.plugin.Plugin;
+import com.mechalikh.qforge.plugin.PluginContext;
 
 /**
  * Base class for plugins that want a checked lifecycle.

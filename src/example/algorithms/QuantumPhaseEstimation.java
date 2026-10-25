@@ -5,14 +5,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.math.Complex;
-import com.quantum.simulator.math.ComplexMatrix;
-import com.quantum.simulator.operations.MultiQubitGate;
-import com.quantum.simulator.operations.QuantumGate;
-import com.quantum.simulator.operations.QuantumOperation;
-import com.quantum.simulator.operations.SingleQubitGate;
-import com.quantum.simulator.state.Qubit;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.math.Complex;
+import com.mechalikh.qforge.math.ComplexMatrix;
+import com.mechalikh.qforge.operations.MultiQubitGate;
+import com.mechalikh.qforge.operations.QuantumGate;
+import com.mechalikh.qforge.operations.QuantumOperation;
+import com.mechalikh.qforge.operations.SingleQubitGate;
+import com.mechalikh.qforge.state.Qubit;
 
 import example.EventBuilderHelper;
 

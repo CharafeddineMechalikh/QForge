@@ -22,10 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Renamed the project from QuantLab to QForge. The Eclipse project name, README, docs, citation
-  metadata and `pom.xml` URLs use QForge, and the Java packages remain `com.quantum.simulator`.
+  metadata and `pom.xml` URLs use QForge, and the Java packages stayed `com.quantum.simulator`.
 
-- Moved the Maven groupId to `com.mechalikh`, so the coordinates are `com.mechalikh:qforge`. The
-  Java packages are unchanged; `com.mechalikh` names the artifact, not the code.
+- Moved the Maven groupId to `com.mechalikh`, so the coordinates are `com.mechalikh:qforge`.
+
+- Renamed the Java packages from `com.quantum.simulator.*` to `com.mechalikh.qforge.*`. The library
+  now sits in `src/com/mechalikh/qforge/` and the tests in `src/test/java/com/mechalikh/qforge/`,
+  with all 13 subpackages kept as-is, so `core`, `state`, `noise`, `strategy` and the rest move
+  under the new prefix. The `example` demo packages are unchanged. Imports in your own code and in
+  the guides must use the new prefix; the Maven coordinates did not change again.
 
 ## [1.0.0] - 2026-10-25
 

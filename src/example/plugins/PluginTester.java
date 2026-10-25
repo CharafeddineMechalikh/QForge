@@ -1,6 +1,6 @@
 package example.plugins;
 
-import com.quantum.simulator.plugin.Plugin;
+import com.mechalikh.qforge.plugin.Plugin;
 import java.util.*;
 
 /**
@@ -62,7 +62,7 @@ public class PluginTester {
         }
     }
     
-    private static class TestPluginContext extends com.quantum.simulator.plugin.PluginContext {
+    private static class TestPluginContext extends com.mechalikh.qforge.plugin.PluginContext {
         public TestPluginContext(String pluginName) {
             super(pluginName, "1.0.0", "./test-plugins/");
         }

@@ -82,14 +82,14 @@ java -cp "target/classes;lib/*" example.CircuitRunner my_config.json my_circuit.
 A Bell state needs one simulator instance, two events, and one call to `run()`.
 
 ```java
-import com.quantum.simulator.config.SimulationBackend;
-import com.quantum.simulator.config.SimulationConfig;
-import com.quantum.simulator.core.QuantumSimulator;
-import com.quantum.simulator.core.SimulationResult;
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.operations.MultiQubitGate;
-import com.quantum.simulator.operations.SingleQubitGate;
-import com.quantum.simulator.state.Qubit;
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
+import com.mechalikh.qforge.core.QuantumSimulator;
+import com.mechalikh.qforge.core.SimulationResult;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.operations.MultiQubitGate;
+import com.mechalikh.qforge.operations.SingleQubitGate;
+import com.mechalikh.qforge.state.Qubit;
 
 SimulationConfig config = new SimulationConfig();
 config.setNumQubits(2);
@@ -139,9 +139,9 @@ Measurement is an operation like any other, so it is scheduled as an event and c
 state when it is destructive.
 
 ```java
-import com.quantum.simulator.measurement.MeasurementOperator;
-import com.quantum.simulator.measurement.Observable;
-import com.quantum.simulator.measurement.MeasurementResult;
+import com.mechalikh.qforge.measurement.MeasurementOperator;
+import com.mechalikh.qforge.measurement.Observable;
+import com.mechalikh.qforge.measurement.MeasurementResult;
 
 Observable z0 = Observable.pauliZ(q0);
 MeasurementOperator measure = new MeasurementOperator("measure_q0", z0, 100, true);

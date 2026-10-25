@@ -2,9 +2,9 @@ package example.plugins;
 
 import java.util.*;
 
-import com.quantum.simulator.core.SimulationContext;
-import com.quantum.simulator.plugin.Plugin;
-import com.quantum.simulator.plugin.PluginManager;
+import com.mechalikh.qforge.core.SimulationContext;
+import com.mechalikh.qforge.plugin.Plugin;
+import com.mechalikh.qforge.plugin.PluginManager;
 
 /**
  * A plugin manager that records a per-plugin health entry.

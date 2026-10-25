@@ -1,18 +1,18 @@
 package example.visualization;
 
 import java.util.Locale;
-import com.quantum.simulator.observer.VisualizationEngine;
-import com.quantum.simulator.config.SimulationBackend;
-import com.quantum.simulator.config.SimulationConfig;
-import com.quantum.simulator.core.*;
-import com.quantum.simulator.events.EventType;
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.math.ComplexMatrix;
-import com.quantum.simulator.noise.DephasingNoise;
-import com.quantum.simulator.state.*;
-import com.quantum.simulator.operations.*; 
-import com.quantum.simulator.math.Complex;
-import com.quantum.simulator.observer.MetricsCollector;
+import com.mechalikh.qforge.observer.VisualizationEngine;
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
+import com.mechalikh.qforge.core.*;
+import com.mechalikh.qforge.events.EventType;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.math.ComplexMatrix;
+import com.mechalikh.qforge.noise.DephasingNoise;
+import com.mechalikh.qforge.state.*;
+import com.mechalikh.qforge.operations.*; 
+import com.mechalikh.qforge.math.Complex;
+import com.mechalikh.qforge.observer.MetricsCollector;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

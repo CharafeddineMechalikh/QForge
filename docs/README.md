@@ -45,8 +45,9 @@ flowchart TD
 ## Conventions used in these guides
 
 - All code targets JDK 17 and the Maven artifact `com.mechalikh:qforge`.
-- Java packages stay under `com.quantum.simulator.*`; the artifact name changed to QForge, the
-  package names did not.
+- Java packages live under `com.mechalikh.qforge.*`, which matches the `com.mechalikh:qforge`
+  coordinates. The demos stay in the `example` package because they are runnable programs rather
+  than library code.
 - Qubit index `0` is the most significant bit of a basis-state index, so `|01>` means qubit 0 in
   state 0 and qubit 1 in state 1.
 - Gate matrices order their qubits as controls first, then targets. See

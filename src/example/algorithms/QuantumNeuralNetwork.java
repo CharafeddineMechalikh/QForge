@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.operations.SingleQubitGate;
-import com.quantum.simulator.state.Qubit;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.operations.SingleQubitGate;
+import com.mechalikh.qforge.state.Qubit;
 
 import example.EventBuilderHelper;
 

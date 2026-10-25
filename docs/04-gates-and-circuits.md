@@ -132,10 +132,10 @@ event order comes from the scheduled `Instant`.
 ## Building a circuit in Java
 
 ```java
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.operations.MultiQubitGate;
-import com.quantum.simulator.operations.SingleQubitGate;
-import com.quantum.simulator.state.Qubit;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.operations.MultiQubitGate;
+import com.mechalikh.qforge.operations.SingleQubitGate;
+import com.mechalikh.qforge.state.Qubit;
 
 List<Qubit> register = Qubit.createQubits(3);  // labelled q0, q1, q2
 Qubit[] q = register.toArray(new Qubit[0]);
@@ -190,9 +190,9 @@ QuantumGate inverse = MultiQubitGate.createCNOT(q[0], q[1]).getInverse();
 ### Custom gates
 
 ```java
-import com.quantum.simulator.math.Complex;
-import com.quantum.simulator.math.ComplexMatrix;
-import com.quantum.simulator.operations.QuantumGate;
+import com.mechalikh.qforge.math.Complex;
+import com.mechalikh.qforge.math.ComplexMatrix;
+import com.mechalikh.qforge.operations.QuantumGate;
 
 // The V gate, a square root of X: applying it twice performs a bit flip.
 ComplexMatrix v = new ComplexMatrix(2, 2);
@@ -211,7 +211,7 @@ unitarity, so check `ComplexMatrix.isUnitary()` yourself before trusting a resul
 ### Registering a gate for JSON use
 
 ```java
-import com.quantum.simulator.operations.GateLibrary;
+import com.mechalikh.qforge.operations.GateLibrary;
 
 GateLibrary library = config.getGateLibrary();
 library.registerFactory("V", (params, qubits) -> {

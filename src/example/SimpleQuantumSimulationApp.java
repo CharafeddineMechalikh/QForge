@@ -1,16 +1,16 @@
 package example;
 
 import java.util.Locale;
-import com.quantum.simulator.config.SimulationBackend;
-import com.quantum.simulator.config.SimulationConfig;
-import com.quantum.simulator.core.QuantumSimulator;
-import com.quantum.simulator.core.SimulationResult;
-import com.quantum.simulator.observer.MetricsCollector;
-import com.quantum.simulator.state.Qubit;
-import com.quantum.simulator.operations.SingleQubitGate;
-import com.quantum.simulator.operations.MultiQubitGate;
-import com.quantum.simulator.operations.QuantumOperation;
-import com.quantum.simulator.events.QuantumEvent;
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
+import com.mechalikh.qforge.core.QuantumSimulator;
+import com.mechalikh.qforge.core.SimulationResult;
+import com.mechalikh.qforge.observer.MetricsCollector;
+import com.mechalikh.qforge.state.Qubit;
+import com.mechalikh.qforge.operations.SingleQubitGate;
+import com.mechalikh.qforge.operations.MultiQubitGate;
+import com.mechalikh.qforge.operations.QuantumOperation;
+import com.mechalikh.qforge.events.QuantumEvent;
 
 /**
  * Minimal demonstration of a single-qubit circuit, a Bell state, and a two-qubit Grover circuit,

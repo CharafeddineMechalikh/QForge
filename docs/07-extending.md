@@ -36,11 +36,11 @@ sequenceDiagram
 ```
 
 ```java
-import com.quantum.simulator.core.SimulationResult;
-import com.quantum.simulator.core.SimulationContext;
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.observer.SimulationObserver;
-import com.quantum.simulator.state.QuantumState;
+import com.mechalikh.qforge.core.SimulationResult;
+import com.mechalikh.qforge.core.SimulationContext;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.observer.SimulationObserver;
+import com.mechalikh.qforge.state.QuantumState;
 
 simulator.addObserver(new SimulationObserver() {
     @Override
@@ -95,15 +95,15 @@ The history lists are bounded, so a long run reports the tail rather than everyt
 
 ## Plugins
 
-The plugin contract is `com.quantum.simulator.plugin.Plugin`: `initialize`, `cleanup`, `getName`,
+The plugin contract is `com.mechalikh.qforge.plugin.Plugin`: `initialize`, `cleanup`, `getName`,
 `getVersion`, `getDescription`, plus the default hooks `onSimulationStart`, `onSimulationEnd`,
 `onStateUpdate`, `onEventScheduled`, `onOperationApplied` and `onError`.
 
 ```java
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.plugin.Plugin;
-import com.quantum.simulator.plugin.PluginContext;
-import com.quantum.simulator.state.QuantumState;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.plugin.Plugin;
+import com.mechalikh.qforge.plugin.PluginContext;
+import com.mechalikh.qforge.state.QuantumState;
 
 public class ParityMonitor implements Plugin {
     private int events;
@@ -190,10 +190,10 @@ not visible to `CircuitRunner` unless you load the circuit yourself.
 Subclass `NoiseModel` and supply a complete Kraus set for `n` targets:
 
 ```java
-import com.quantum.simulator.math.Complex;
-import com.quantum.simulator.math.ComplexMatrix;
-import com.quantum.simulator.noise.NoiseModel;
-import com.quantum.simulator.state.Qubit;
+import com.mechalikh.qforge.math.Complex;
+import com.mechalikh.qforge.math.ComplexMatrix;
+import com.mechalikh.qforge.noise.NoiseModel;
+import com.mechalikh.qforge.state.Qubit;
 
 public class BitFlipNoise extends NoiseModel {
     public BitFlipNoise(double probability, Qubit... targets) {
@@ -237,9 +237,9 @@ Add instances to a profile with `NoiseProfile.addNoise(qubit, model)` or
 Enable it with `config.setClassicalControlEnabled(true)`, then replace the placeholder rules.
 
 ```java
-import com.quantum.simulator.classical.ClassicalController;
-import com.quantum.simulator.classical.ControlDecision;
-import com.quantum.simulator.measurement.MeasurementResult;
+import com.mechalikh.qforge.classical.ClassicalController;
+import com.mechalikh.qforge.classical.ControlDecision;
+import com.mechalikh.qforge.measurement.MeasurementResult;
 
 ClassicalController controller = simulator.getClassicalController();
 
@@ -294,7 +294,7 @@ time and parameters.
 `VisualizationEngine` implements `SimulationObserver`, so it is an observer you add:
 
 ```java
-import com.quantum.simulator.observer.VisualizationEngine;
+import com.mechalikh.qforge.observer.VisualizationEngine;
 
 VisualizationEngine viz = new VisualizationEngine(500, "./out/visualizations");
 simulator.addObserver(viz);

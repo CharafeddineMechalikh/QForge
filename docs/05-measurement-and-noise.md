@@ -175,10 +175,10 @@ scheduled times are identical.
 ### Programmatic noise
 
 ```java
-import com.quantum.simulator.noise.AmplitudeDampingNoise;
-import com.quantum.simulator.noise.DepolarizingNoise;
-import com.quantum.simulator.noise.DephasingNoise;
-import com.quantum.simulator.noise.NoiseProfile;
+import com.mechalikh.qforge.noise.AmplitudeDampingNoise;
+import com.mechalikh.qforge.noise.DepolarizingNoise;
+import com.mechalikh.qforge.noise.DephasingNoise;
+import com.mechalikh.qforge.noise.NoiseProfile;
 
 NoiseProfile profile = new NoiseProfile("gate noise");
 // A global entry carries no targets and is expanded per qubit at application time.

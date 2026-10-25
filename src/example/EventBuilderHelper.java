@@ -1,9 +1,9 @@
 package example;
 
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.operations.MultiQubitGate;
-import com.quantum.simulator.operations.QuantumOperation;
-import com.quantum.simulator.state.Qubit;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.operations.MultiQubitGate;
+import com.mechalikh.qforge.operations.QuantumOperation;
+import com.mechalikh.qforge.state.Qubit;
 import java.time.Instant;
 
 /**

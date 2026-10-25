@@ -1,14 +1,14 @@
 package example;
 
-import com.quantum.simulator.config.SimulationBackend;
-import com.quantum.simulator.config.SimulationConfig;
-import com.quantum.simulator.core.QuantumSimulator;
-import com.quantum.simulator.core.SimulationContext;
-import com.quantum.simulator.state.Qubit;
-import com.quantum.simulator.state.StateVector;
-import com.quantum.simulator.operations.SingleQubitGate;
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.math.Complex;
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
+import com.mechalikh.qforge.core.QuantumSimulator;
+import com.mechalikh.qforge.core.SimulationContext;
+import com.mechalikh.qforge.state.Qubit;
+import com.mechalikh.qforge.state.StateVector;
+import com.mechalikh.qforge.operations.SingleQubitGate;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.math.Complex;
 import java.time.Instant;
 
 /**

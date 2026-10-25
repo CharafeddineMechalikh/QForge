@@ -1,7 +1,7 @@
 package example;
 
-import com.quantum.simulator.state.StateVector;
-import com.quantum.simulator.math.Complex;
+import com.mechalikh.qforge.state.StateVector;
+import com.mechalikh.qforge.math.Complex;
 
 /**
  * Prints a few basic facts about {@link StateVector} instances.

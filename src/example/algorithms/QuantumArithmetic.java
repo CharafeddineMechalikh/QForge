@@ -3,8 +3,8 @@ package example.algorithms;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.quantum.simulator.events.QuantumEvent;
-import com.quantum.simulator.state.Qubit;
+import com.mechalikh.qforge.events.QuantumEvent;
+import com.mechalikh.qforge.state.Qubit;
 
 import example.EventBuilderHelper;
 

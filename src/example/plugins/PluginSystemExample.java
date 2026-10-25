@@ -1,13 +1,13 @@
 package example.plugins;
 
-import com.quantum.simulator.plugin.*;
-import com.quantum.simulator.config.SimulationBackend;
-import com.quantum.simulator.config.SimulationConfig;
-import com.quantum.simulator.core.*;
-import com.quantum.simulator.operations.*;
-import com.quantum.simulator.noise.*;
-import com.quantum.simulator.events.*;
-import com.quantum.simulator.state.*;
+import com.mechalikh.qforge.plugin.*;
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
+import com.mechalikh.qforge.core.*;
+import com.mechalikh.qforge.operations.*;
+import com.mechalikh.qforge.noise.*;
+import com.mechalikh.qforge.events.*;
+import com.mechalikh.qforge.state.*;
 import java.util.*;
 
 /**
@@ -263,13 +263,13 @@ public class PluginSystemExample {
             }
             
             @Override
-            public com.quantum.simulator.state.QuantumState apply(com.quantum.simulator.state.QuantumState state) {
+            public com.mechalikh.qforge.state.QuantumState apply(com.mechalikh.qforge.state.QuantumState state) {
                 return state;
             }
             
             @Override
-            public com.quantum.simulator.math.ComplexMatrix[] getKrausOperators(int numQubits) {
-                return new com.quantum.simulator.math.ComplexMatrix[0];
+            public com.mechalikh.qforge.math.ComplexMatrix[] getKrausOperators(int numQubits) {
+                return new com.mechalikh.qforge.math.ComplexMatrix[0];
             }
             
             @Override
