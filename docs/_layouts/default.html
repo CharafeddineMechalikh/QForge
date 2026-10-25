@@ -42,11 +42,17 @@
     :root {
       --fg: #1b1f24; --muted: #57606a; --bg: #ffffff; --panel: #f6f8fa;
       --line: #d0d7de; --accent: #0b5fff; --code: #24292f;
+      --tok-comment: #5b6572; --tok-keyword: #cf222e; --tok-type: #8250df; --tok-string: #0a3069;
+      --tok-number: #0550ae; --tok-attr: #953800; --tok-tag: #116329; --tok-op: #cf222e;
+      --tok-add: #116329; --tok-del: #cf222e;
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --fg: #e6edf3; --muted: #9198a1; --bg: #0d1117; --panel: #161b22;
         --line: #30363d; --accent: #6cb6ff; --code: #e6edf3;
+        --tok-comment: #8b949e; --tok-keyword: #ff7b72; --tok-type: #d2a8ff; --tok-string: #a5d6ff;
+        --tok-number: #79c0ff; --tok-attr: #ffa657; --tok-tag: #7ee787; --tok-op: #ff7b72;
+        --tok-add: #7ee787; --tok-del: #ff7b72;
       }
     }
     * { box-sizing: border-box; }
@@ -93,6 +99,20 @@
     footer a { color: var(--accent); }
     .highlight pre, pre.highlight { margin: 0; }
     .highlight table pre { margin: 0; }
+    /* Rouge token classes for the fenced java, bash, json, xml and properties blocks. */
+    .highlight .c, .highlight .cm, .highlight .c1, .highlight .cs, .highlight .cp { color: var(--tok-comment); font-style: italic; }
+    .highlight .k, .highlight .kd, .highlight .kn, .highlight .kc, .highlight .kp, .highlight .kr { color: var(--tok-keyword); }
+    .highlight .kt, .highlight .nc, .highlight .nn, .highlight .nl { color: var(--tok-type); }
+    .highlight .nf, .highlight .fm { color: var(--tok-type); }
+    .highlight .nd { color: var(--tok-attr); }
+    .highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .ss, .highlight .sx, .highlight .dl { color: var(--tok-string); }
+    .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo, .highlight .il { color: var(--tok-number); }
+    .highlight .na, .highlight .nb, .highlight .bp, .highlight .no, .highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi, .highlight .py { color: var(--tok-attr); }
+    .highlight .nt { color: var(--tok-tag); }
+    .highlight .o, .highlight .ow { color: var(--tok-op); }
+    .highlight .gi { color: var(--tok-add); }
+    .highlight .gd { color: var(--tok-del); }
+    .highlight .err { color: var(--tok-del); }
   </style>
 </head>
 <body>
