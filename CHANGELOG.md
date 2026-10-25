@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `CITATION.cff`, so GitHub can render a "Cite this repository" entry, plus `url` and `scm`
+  metadata in `pom.xml`.
+
 - No `LICENSE` file is in the repository yet, so no license is granted. Adding one is the next
   planned change.
 

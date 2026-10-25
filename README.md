@@ -375,7 +375,8 @@ the rename to QuantLab; only the Maven coordinates and the project name changed.
 
 ## Citation
 
-If QuantLab helps your work, cite the repository:
+If QuantLab helps your work, cite the repository. GitHub also reads
+[CITATION.cff](CITATION.cff) and offers a "Cite this repository" button:
 
 ```bibtex
 @software{quantlab2026,

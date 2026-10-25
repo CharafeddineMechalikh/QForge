@@ -5,6 +5,13 @@
   <version>1.0.0</version>
   <name>QuantLab</name>
   <description>Event-driven quantum circuit simulator with state-vector and density-matrix backends</description>
+  <url>https://github.com/CharafeddineMechalikh/QuantLab</url>
+  <scm>
+    <connection>scm:git:https://github.com/CharafeddineMechalikh/QuantLab.git</connection>
+    <developerConnection>scm:git:git@github.com:CharafeddineMechalikh/QuantLab.git</developerConnection>
+    <url>https://github.com/CharafeddineMechalikh/QuantLab</url>
+    <tag>v1.0.0</tag>
+  </scm>
    <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
