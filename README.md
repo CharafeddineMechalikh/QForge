@@ -7,8 +7,6 @@ Grover's algorithm, the Quantum Fourier Transform, quantum phase estimation, VQE
 time evolution, the Shor code, quantum walks, a quantum neural network, and a quantum kernel
 classifier.
 
-It is a **quantum computing** library, not a quantitative finance library.
-
 [![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
