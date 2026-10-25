@@ -8,6 +8,7 @@ time evolution, the Shor code, quantum walks, a quantum neural network, and a qu
 classifier.
 
 [![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-338%20passing-brightgreen)](docs/08-development.md)
@@ -42,6 +43,7 @@ No GPU, no C++ toolchain, no Python environment. One JDK and Maven are enough.
 - [Roadmap](#roadmap)
 - [Limitations](#limitations)
 - [Citation](#citation)
+- [License](#license)
 
 ## Why QForge
 
@@ -312,7 +314,7 @@ backends, but the density-matrix eigen routines are dense and the noise model is
 than time-based. See [Limitations](#limitations).
 
 **Which license applies?**
-No `LICENSE` file is in the repository yet, so no license is granted.
+MIT. The full text is in [LICENSE](LICENSE); see [License](#license).
 
 ## Requirements and build
 
@@ -384,10 +386,10 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 - [x] 338-test JUnit 5 suite with 97.7 percent instruction and 91.8 percent branch coverage
 - [x] JaCoCo coverage check that fails `mvn verify` below 90 percent instruction and branch coverage
 - [x] Travis CI and Codacy configuration files, plus `CITATION.cff` and repository metadata
+- [x] MIT license, declared in `pom.xml` and `CITATION.cff`
 
 **Planned**
 
-- [ ] Add a `LICENSE` file, since no license is granted yet
 - [ ] Activate Travis CI and Codacy on their hosted services and turn on their badges
 - [ ] Publish `com.qforge:qforge` to Maven Central or JitPack
 - [ ] Import and export OpenQASM 2 and 3
@@ -439,3 +441,10 @@ If QForge helps your work, cite the repository:
 See [CHANGELOG.md](CHANGELOG.md) for release notes. This project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## License
+
+Distributed under the MIT License. You may use, modify and redistribute it, in source or binary
+form, as long as the copyright notice and the license text travel with it. There is no warranty.
+The full text is in [LICENSE](LICENSE), the terms are also declared in `pom.xml` and
+`CITATION.cff`, and `Copyright (c) 2026 Charafeddine Mechalikh` is the notice to keep in copies.

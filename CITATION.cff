@@ -11,6 +11,7 @@ abstract: >-
   Trotterized evolution, the Shor code, quantum walks, a quantum neural network, and
   a swap-test kernel classifier.
 type: software
+license: MIT
 authors:
   - family-names: Mechalikh
     given-names: Charafeddine

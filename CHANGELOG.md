@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   percent and branch coverage to 91.8 percent, with a `verify` rule that fails below 90 percent
   instruction or branch coverage.
 
-- No `LICENSE` file is in the repository yet, so no license is granted. Adding one is the next
-  planned change.
+- MIT license: a `LICENSE` file, a `<licenses>` entry in `pom.xml`, and `license: MIT` in
+  `CITATION.cff`.
 
 ### Changed
 

@@ -6,6 +6,13 @@
   <name>QForge</name>
   <description>Event-driven quantum circuit simulator with state-vector and density-matrix backends</description>
   <url>https://github.com/CharafeddineMechalikh/QForge</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
   <scm>
     <connection>scm:git:https://github.com/CharafeddineMechalikh/QForge.git</connection>
     <developerConnection>scm:git:git@github.com:CharafeddineMechalikh/QForge.git</developerConnection>
