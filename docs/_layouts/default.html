@@ -128,7 +128,8 @@
 (function () {
   var codes = Array.prototype.slice.call(document.querySelectorAll('code.language-mermaid'));
   codes.forEach(function (code) {
-    var source = code.textContent;
+    // strict sanitization drops <br/> tags inside labels, which would run two lines together
+    var source = code.textContent.replace(/<br\s*\/?>/gi, ' ');
     var block = code.parentNode;
     while (block && block.nodeName !== 'PRE' && block.nodeName !== 'DIV') { block = block.parentNode; }
     if (block && block.nodeName === 'PRE' && block.parentNode && block.parentNode.nodeName === 'DIV') {
