@@ -147,8 +147,7 @@ API reference: run `mvn javadoc:javadoc`, then open `target/site/apidocs/index.h
 
 A 12-qubit density matrix alone is about 256 MiB. `SimulationConfig.validate()` estimates the
 memory requirement before the simulation starts, so an impossible configuration fails early instead
-of exhausting the heap mid-run. The tensor-network, stabilizer, and path-integral enum entries were
-removed because they had no implementation; only the two backends above are advertised.
+of exhausting the heap mid-run.
 
 ### Gates
 
@@ -310,8 +309,7 @@ backends, but the density-matrix eigen routines are dense and the noise model is
 than time-based. See [Limitations](#limitations).
 
 **Which license applies?**
-No `LICENSE` file is in the repository yet, so no license is granted. Resolving that is tracked in
-[CHANGELOG.md](CHANGELOG.md).
+No `LICENSE` file is in the repository yet, so no license is granted.
 
 ## Requirements and build
 
@@ -347,9 +345,10 @@ src/test/java/               JUnit 5 tests
 docs/                        user and developer guides
 ```
 
-The canonical algorithm entry point is `example.QuantumAlgorithmsDemo`. Older demo programs are kept
-as additional examples but overlap with it. The Java packages remain `com.quantum.simulator.*` after
-the rename to QuantLab; only the Maven coordinates and the project name changed.
+The Maven coordinates are `com.quantlab:quantlab`; the Java packages are
+`com.quantum.simulator.*`. The canonical algorithm entry point is
+`example.QuantumAlgorithmsDemo`; older demo programs are kept as additional examples but overlap
+with it.
 
 ## Contributing
 
@@ -375,8 +374,7 @@ the rename to QuantLab; only the Maven coordinates and the project name changed.
 
 ## Citation
 
-If QuantLab helps your work, cite the repository. GitHub also reads
-[CITATION.cff](CITATION.cff) and offers a "Cite this repository" button:
+If QuantLab helps your work, cite the repository:
 
 ```bibtex
 @software{quantlab2026,
