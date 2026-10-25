@@ -92,6 +92,17 @@
     blockquote { margin: 16px 0; padding: 2px 14px; border-left: 4px solid var(--line); color: var(--muted); }
     hr { border: none; border-top: 1px solid var(--line); margin: 30px 0; }
     pre.mermaid { background: var(--bg); border: none; text-align: center; display: block; }
+    .diagram-source {
+      border: 1px solid var(--line); border-left: 4px solid var(--accent);
+      border-radius: 6px; padding: 10px 12px; background: var(--panel);
+    }
+    .diagram-source p { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+    .diagram-source pre { margin: 0; background: var(--bg); }
+    .noscript-note {
+      border: 1px solid var(--line); border-radius: 6px; background: var(--panel);
+      color: var(--muted); font-size: 14px; padding: 8px 12px; margin: 0 auto;
+      max-width: 52rem;
+    }
     footer {
       border-top: 1px solid var(--line); color: var(--muted); font-size: 14px;
       max-width: 52rem; margin: 0 auto; padding: 18px 20px 40px;
@@ -135,6 +146,8 @@
 </nav>
 {% endif %}
 <main>
+<noscript><div class="noscript-note">Diagrams are drawn in the browser. With JavaScript disabled, the
+Mermaid blocks on this page appear as source text.</div></noscript>
 {{ content }}
 </main>
 <footer>
@@ -147,8 +160,20 @@
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
 (function () {
-  var codes = Array.prototype.slice.call(document.querySelectorAll('code.language-mermaid'));
-  codes.forEach(function (code) {
+  function showSource(item, message) {
+    var box = document.createElement('div');
+    box.className = 'diagram-source';
+    var label = document.createElement('p');
+    label.textContent = message;
+    var pre = document.createElement('pre');
+    pre.textContent = item.src;
+    box.appendChild(label);
+    box.appendChild(pre);
+    if (item.el.parentNode) { item.el.parentNode.replaceChild(box, item.el); }
+  }
+
+  var items = [];
+  Array.prototype.slice.call(document.querySelectorAll('code.language-mermaid')).forEach(function (code) {
     // strict sanitization drops <br/> tags inside labels, which would run two lines together
     var source = code.textContent.replace(/<br\s*\/?>/gi, ' ');
     var block = code.parentNode;
@@ -161,11 +186,27 @@
     holder.className = 'mermaid';
     holder.textContent = source;
     if (block.parentNode) { block.parentNode.replaceChild(holder, block); } else { block.replaceWith(holder); }
+    items.push({ el: holder, src: source });
   });
-  if (window.mermaid) {
-    window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral' });
-    window.mermaid.run({ querySelector: '.mermaid' });
+  if (items.length === 0) { return; }
+
+  if (!window.mermaid) {
+    items.forEach(function (item) {
+      showSource(item, 'Diagram source. The Mermaid renderer did not load from cdn.jsdelivr.net.');
+    });
+    return;
   }
+
+  window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral' });
+  // one run call per diagram, so a single bad source cannot stop the others from rendering
+  items.forEach(function (item) {
+    var outcome = window.mermaid.run({ nodes: [item.el] });
+    if (outcome && typeof outcome.then === 'function') {
+      outcome.then(null, function () {
+        showSource(item, 'Diagram source. Mermaid could not parse this block.');
+      });
+    }
+  });
 })();
 </script>
 </body>
