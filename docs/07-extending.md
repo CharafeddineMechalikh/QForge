@@ -1,3 +1,10 @@
+---
+title: "Extending QForge"
+nav: "07 Extending"
+order: 7
+description: "Plugins, observer callbacks, custom gates, custom noise channels and classical feed-forward control."
+---
+
 # Extending QForge
 
 Four extension seams exist, and they differ in how much of the engine they can reach:

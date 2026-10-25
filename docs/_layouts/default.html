@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if page.title %}
+  <title>{{ page.title }} | QForge quantum circuit simulator in Java</title>
+  {% else %}
+  <title>{{ site.title }} | QForge quantum circuit simulator in Java</title>
+  {% endif %}
+  {% if page.description %}
+  <meta name="description" content="{{ page.description | strip_newlines | escape }}">
+  <meta property="og:description" content="{{ page.description | strip_newlines | escape }}">
+  {% else %}
+  <meta name="description" content="{{ site.description | strip_newlines | escape }}">
+  {% endif %}
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="QForge documentation">
+  <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
+  <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.url }}">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#0b1f3a">
+  <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.url | replace: 'index.html', '' }}">
+  <link rel="alternate" type="text/markdown" href="https://github.com/CharafeddineMechalikh/QForge/raw/main/docs/{{ page.path }}">
+  {% if page.url == '/' %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "QForge",
+    "applicationCategory": "DeveloperApplication",
+    "programmingLanguage": "Java",
+    "operatingSystem": "Cross-platform",
+    "description": "{{ site.description | strip_newlines | escape }}",
+    "url": "{{ site.url }}{{ site.baseurl }}/",
+    "codeRepository": "https://github.com/CharafeddineMechalikh/QForge",
+    "license": "https://opensource.org/licenses/MIT"
+  }
+  </script>
+  {% endif %}
+  <style>
+    :root {
+      --fg: #1b1f24; --muted: #57606a; --bg: #ffffff; --panel: #f6f8fa;
+      --line: #d0d7de; --accent: #0b5fff; --code: #24292f;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e6edf3; --muted: #9198a1; --bg: #0d1117; --panel: #161b22;
+        --line: #30363d; --accent: #6cb6ff; --code: #e6edf3;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; color: var(--fg); background: var(--bg); line-height: 1.6;
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+    header {
+      border-bottom: 1px solid var(--line); background: var(--panel);
+      padding: 14px 20px; display: flex; flex-wrap: wrap; gap: 10px;
+      align-items: baseline; justify-content: space-between;
+    }
+    header a.brand { font-weight: 700; color: var(--fg); text-decoration: none; font-size: 17px; }
+    header .links a { color: var(--accent); text-decoration: none; margin-left: 14px; font-size: 14px; }
+    header .links a:hover { text-decoration: underline; }
+    main { max-width: 52rem; margin: 0 auto; padding: 26px 20px 60px; }
+    nav.guides {
+      max-width: 52rem; margin: 0 auto; padding: 0 20px;
+      display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px;
+    }
+    nav.guides a { color: var(--muted); text-decoration: none; }
+    nav.guides a[aria-current="page"] { color: var(--fg); font-weight: 700; }
+    nav.guides a:hover { color: var(--accent); }
+    h1 { font-size: 30px; margin: 26px 0 10px; line-height: 1.25; }
+    h2 { font-size: 22px; margin: 34px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
+    h3 { font-size: 18px; margin: 26px 0 6px; }
+    h4 { font-size: 16px; margin: 20px 0 4px; }
+    p, li, td, th { overflow-wrap: break-word; }
+    a { color: var(--accent); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+    code { background: var(--panel); color: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 92%; }
+    pre { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; overflow: auto; }
+    pre code { background: none; padding: 0; font-size: 13.5px; }
+    table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 14.5px; display: block; overflow-x: auto; }
+    th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--panel); }
+    blockquote { margin: 16px 0; padding: 2px 14px; border-left: 4px solid var(--line); color: var(--muted); }
+    hr { border: none; border-top: 1px solid var(--line); margin: 30px 0; }
+    pre.mermaid { background: var(--bg); border: none; text-align: center; display: block; }
+    footer {
+      border-top: 1px solid var(--line); color: var(--muted); font-size: 14px;
+      max-width: 52rem; margin: 0 auto; padding: 18px 20px 40px;
+    }
+    footer a { color: var(--accent); }
+    .highlight pre, pre.highlight { margin: 0; }
+    .highlight table pre { margin: 0; }
+  </style>
+</head>
+<body>
+<header>
+  <a class="brand" href="{{ site.baseurl }}/">QForge documentation</a>
+  <span class="links">
+    <a href="https://github.com/CharafeddineMechalikh/QForge">Repository</a>
+    <a href="https://github.com/CharafeddineMechalikh/QForge#readme">README</a>
+    <a href="https://github.com/CharafeddineMechalikh/QForge/blob/main/CHANGELOG.md">Changelog</a>
+    <a href="https://github.com/CharafeddineMechalikh/QForge/blob/main/LICENSE">MIT license</a>
+  </span>
+</header>
+{% assign ordered = site.pages | sort: "order" %}
+{% if ordered.size > 1 %}
+<nav class="guides" aria-label="Documentation guides">
+  {% for p in ordered %}
+  {% if p.order %}<a href="{{ site.baseurl }}{{ p.url | remove: 'index.html' }}"{% if p.url == page.url %} aria-current="page"{% endif %}>{{ p.nav | default: p.title }}</a>{% endif %}
+  {% endfor %}
+</nav>
+{% endif %}
+<main>
+{{ content }}
+</main>
+<footer>
+  QForge is an open source quantum computing library written in pure Java 17, published under the
+  <a href="https://github.com/CharafeddineMechalikh/QForge/blob/main/LICENSE">MIT license</a>.
+  These guides are generated from the
+  <a href="https://github.com/CharafeddineMechalikh/QForge/tree/main/docs">docs folder</a> of the
+  repository.
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+(function () {
+  var blocks = Array.prototype.slice.call(document.querySelectorAll('div.language-mermaid, pre.language-mermaid'));
+  blocks.forEach(function (block) {
+    var source = block.textContent;
+    var holder = document.createElement('pre');
+    holder.className = 'mermaid';
+    holder.textContent = source;
+    block.parentNode.replaceChild(holder, block);
+  });
+  if (window.mermaid) {
+    window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral' });
+    window.mermaid.run({ querySelector: '.mermaid' });
+  }
+})();
+</script>
+</body>
+</html>

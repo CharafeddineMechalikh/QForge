@@ -1,6 +1,13 @@
+---
+title: "Getting started"
+nav: "01 Getting started"
+order: 1
+description: "Install, build and run QForge: Maven commands, the first Bell circuit, the algorithm demos and JSON circuit loading."
+---
+
 # Getting started
 
-This guide takes you from a empty folder to a running quantum circuit simulation, first through
+This guide takes you from an empty folder to a running quantum circuit simulation, first through
 the command line and then through the Java API.
 
 ## Prerequisites

@@ -16,6 +16,7 @@ walks, a quantum neural network, and a quantum kernel classifier.
 [![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-97.7%25-brightgreen)](docs/08-development.md#coverage)
 [![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-91.8%25-green)](docs/08-development.md#coverage)
 [![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/02-architecture.md)
+[![Documentation site](https://img.shields.io/badge/docs-GitHub%20Pages-informational)](https://charafeddinemechalikh.github.io/QForge/)
 
 ```bash
 git clone https://github.com/CharafeddineMechalikh/QForge.git
@@ -126,7 +127,9 @@ Full details, including the lifecycle state machine and the event ordering rules
 
 ## Documentation
 
-The guides are numbered in reading order. [docs/README.md](docs/README.md) has the full map.
+The guides are numbered in reading order. [docs/README.md](docs/README.md) has the full map, and the
+same guides are published as a website at
+[https://charafeddinemechalikh.github.io/QForge/](https://charafeddinemechalikh.github.io/QForge/).
 
 | # | Guide | Covers | Read time |
 | --- | --- | --- | --- |

@@ -1,0 +1,28 @@
+title: QForge documentation
+description: >-
+  Guides for the QForge quantum circuit simulator in Java: architecture, configuration, gates,
+  measurement and noise, algorithms, extension points and the development workflow.
+url: https://charafeddinemechalikh.github.io
+baseurl: /QForge
+markdown: kramdown
+kramdown:
+  input: GFM
+  auto_ids: true
+  syntax_highlighter: rouge
+  hard_wrap: false
+permalink: pretty
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: true
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+      lang: en
+exclude:
+  - Gemfile
+  - gemfiles
+  - vendor

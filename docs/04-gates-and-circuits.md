@@ -1,3 +1,10 @@
+---
+title: "Gates and circuits"
+nav: "04 Gates"
+order: 4
+description: "The gate catalog, the qubit ordering convention, controlled gates, rotations, custom gates and the circuit JSON format."
+---
+
 # Gates and circuits
 
 Gates are pure data: a name, a unitary matrix, the qubits it touches, and a duration. The backend

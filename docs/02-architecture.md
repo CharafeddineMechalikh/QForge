@@ -1,3 +1,10 @@
+---
+title: "Architecture"
+nav: "02 Architecture"
+order: 2
+description: "How the engine works: simulator lifecycle, event queue ordering, the dispatch pipeline, state representations and backend choice."
+---
+
 # Architecture
 
 QForge is an event-driven simulator. Circuits are not compiled into a static instruction list;

@@ -1,3 +1,10 @@
+---
+title: "Algorithms"
+nav: "06 Algorithms"
+order: 6
+description: "Grover, QFT, phase estimation, VQE, QNN, QSVM, the Shor code, QAOA, Trotterization and quantum walks, with demo commands and pass criteria."
+---
+
 # Algorithms
 
 Ten algorithm circuits ship as runnable demos, and every one of them checks a quantitative

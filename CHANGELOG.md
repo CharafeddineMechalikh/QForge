@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT license: a `LICENSE` file, a `<licenses>` entry in `pom.xml`, and `license: MIT` in
   `CITATION.cff`.
 
+- A documentation site published with GitHub Pages from the `docs` folder on `main`, at
+  <https://charafeddinemechalikh.github.io/QForge/>. It adds `docs/_config.yml`, a
+  `docs/_layouts/default.html` page shell with the guide navigation, per page titles and
+  descriptions and in-browser Mermaid rendering, and front matter on all nine guides.
+
 ### Changed
 
 - Renamed the project from QuantLab to QForge. The Eclipse project name, README, docs, citation

@@ -1,3 +1,11 @@
+---
+title: "QForge documentation"
+nav: "Overview"
+order: 0
+permalink: "/"
+description: "Documentation hub for QForge, an event-driven quantum circuit simulator in pure Java 17, with the guides in reading order."
+---
+
 # QForge documentation
 
 QForge is an event-driven quantum computing library that simulates circuits in pure Java 17. These
@@ -57,8 +65,14 @@ flowchart TD
 
 ## Other documentation sources
 
-- [Project README](../README.md) for the feature overview and quick start.
-- [CHANGELOG](../CHANGELOG.md) for release notes.
+- This guide set is published as a website at
+  [https://charafeddinemechalikh.github.io/QForge/](https://charafeddinemechalikh.github.io/QForge/).
+  It is built from the `docs` folder on every push to `main`, so the site and these files stay in
+  sync.
+- [Project README](https://github.com/CharafeddineMechalikh/QForge#readme) for the feature overview
+  and quick start.
+- [CHANGELOG](https://github.com/CharafeddineMechalikh/QForge/blob/main/CHANGELOG.md) for release
+  notes.
 - Generated Javadoc: run `mvn javadoc:javadoc` and open
   `target/site/apidocs/index.html`. Every public type in the simulator packages and the example
   programs is documented.

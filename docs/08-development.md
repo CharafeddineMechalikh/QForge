@@ -1,3 +1,10 @@
+---
+title: "Development"
+nav: "08 Development"
+order: 8
+description: "Repository layout, the test suite, coverage gates, Javadoc, the GitHub Pages documentation site, coding conventions and the release process."
+---
+
 # Development
 
 How to build, test, document and release QForge, and the conventions the codebase follows.
@@ -135,6 +142,27 @@ Conventions that keep the build clean:
   does not document `@throws Exception`.
 - Documentation describes what the code does, including the negative cases: unenforced timeouts,
   placeholder control rules and unexposed types are documented as such rather than glossed over.
+
+## Documentation site
+
+The `docs/` folder is also a GitHub Pages site, published from the `main` branch at
+[https://charafeddinemechalikh.github.io/QForge/](https://charafeddinemechalikh.github.io/QForge/).
+Pages runs Jekyll over `docs/` on every push, so there is no build step and no local dependency to
+install: committing a guide is enough to publish it.
+
+Two files support the site:
+
+- `docs/_config.yml` sets the site title, description and base path, and selects kramdown with GFM,
+  Rouge highlighting and the `jekyll-relative-links` plugin.
+- `docs/_layouts/default.html` renders the header, the guide navigation, per-page titles and meta
+  descriptions, canonical links, light and dark styles, and the Mermaid renderer that turns the
+  `mermaid` code fences into diagrams in the browser.
+
+Every guide carries front matter with `title`, `nav`, `order` and `description`. The navigation is
+sorted by `order`, so a new guide needs a number between its neighbours; `docs/README.md` uses
+`order: 0` and `permalink: "/"` to serve as the site home page. Relative links between guides are
+written as plain `.md` paths, which GitHub renders in the repository and Jekyll rewrites to the
+pretty site URLs, so the same text works in both places.
 
 ## Coding conventions
 

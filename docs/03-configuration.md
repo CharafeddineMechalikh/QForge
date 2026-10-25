@@ -1,3 +1,10 @@
+---
+title: "Configuration"
+nav: "03 Configuration"
+order: 3
+description: "SimulationConfig fields and defaults, the JSON schema, validation rules, resource limits and noise profiles."
+---
+
 # Configuration
 
 `SimulationConfig` is the single object that decides what a simulator can do: how many qubits it
