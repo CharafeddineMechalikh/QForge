@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CITATION.cff`, so GitHub can render a "Cite this repository" entry, plus `url` and `scm`
   metadata in `pom.xml`.
 
+- An expanded unit test suite, 272 tests in total, raising JaCoCo instruction coverage to 91.8
+  percent and branch coverage to 84.6 percent, with a `verify` rule that fails below 70 percent
+  instruction coverage.
+
 - No `LICENSE` file is in the repository yet, so no license is granted. Adding one is the next
   planned change.
 

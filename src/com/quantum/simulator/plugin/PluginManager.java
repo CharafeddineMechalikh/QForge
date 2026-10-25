@@ -100,24 +100,35 @@ public class PluginManager {
             // Create class loader for this plugin
             URL[] urls = { jarFile.toURI().toURL() };
             URLClassLoader classLoader = new URLClassLoader(urls, pluginClassLoader);
-            
-            // Load plugin class
-            Class<?> clazz = classLoader.loadClass(pluginClass);
-            if (!Plugin.class.isAssignableFrom(clazz)) {
-                throw new PluginException("Plugin class does not implement Plugin interface: " + pluginClass);
+            boolean registered = false;
+            try {
+                // Load plugin class
+                Class<?> clazz = classLoader.loadClass(pluginClass);
+                if (!Plugin.class.isAssignableFrom(clazz)) {
+                    throw new PluginException("Plugin class does not implement Plugin interface: " + pluginClass);
+                }
+
+                // Instantiate plugin
+                Constructor<?> constructor = clazz.getConstructor();
+                Plugin plugin = (Plugin) constructor.newInstance();
+
+                // Initialize plugin
+                plugin.initialize(new PluginContext(pluginName, pluginVersion, jarFile.getParent()));
+
+                // Register plugin
+                registerLoadedPlugin(plugin);
+                registered = true;
+
+                return true;
+            } finally {
+                if (!registered) {
+                    try {
+                        classLoader.close();
+                    } catch (IOException e) {
+                        // The loader is being discarded, so a close failure has no further effect.
+                    }
+                }
             }
-            
-            // Instantiate plugin
-            Constructor<?> constructor = clazz.getConstructor();
-            Plugin plugin = (Plugin) constructor.newInstance();
-            
-            // Initialize plugin
-            plugin.initialize(new PluginContext(pluginName, pluginVersion, jarFile.getParent()));
-            
-            // Register plugin
-            registerLoadedPlugin(plugin);
-            
-            return true;
             
         } catch (Exception e) {
             throw new PluginException("Failed to load JAR plugin: " + jarFile.getAbsolutePath(), e);
@@ -148,24 +159,35 @@ public class PluginManager {
             // Add directory to classpath
             URL[] urls = { directory.toURI().toURL() };
             URLClassLoader classLoader = new URLClassLoader(urls, pluginClassLoader);
-            
-            // Load plugin class
-            Class<?> clazz = classLoader.loadClass(pluginClass);
-            if (!Plugin.class.isAssignableFrom(clazz)) {
-                throw new PluginException("Plugin class does not implement Plugin interface: " + pluginClass);
+            boolean registered = false;
+            try {
+                // Load plugin class
+                Class<?> clazz = classLoader.loadClass(pluginClass);
+                if (!Plugin.class.isAssignableFrom(clazz)) {
+                    throw new PluginException("Plugin class does not implement Plugin interface: " + pluginClass);
+                }
+
+                // Instantiate plugin
+                Constructor<?> constructor = clazz.getConstructor();
+                Plugin plugin = (Plugin) constructor.newInstance();
+
+                // Initialize plugin
+                plugin.initialize(new PluginContext(pluginName, pluginVersion, directory.getAbsolutePath()));
+
+                // Register plugin
+                registerLoadedPlugin(plugin);
+                registered = true;
+
+                return true;
+            } finally {
+                if (!registered) {
+                    try {
+                        classLoader.close();
+                    } catch (IOException e) {
+                        // The loader is being discarded, so a close failure has no further effect.
+                    }
+                }
             }
-            
-            // Instantiate plugin
-            Constructor<?> constructor = clazz.getConstructor();
-            Plugin plugin = (Plugin) constructor.newInstance();
-            
-            // Initialize plugin
-            plugin.initialize(new PluginContext(pluginName, pluginVersion, directory.getAbsolutePath()));
-            
-            // Register plugin
-            registerLoadedPlugin(plugin);
-            
-            return true;
             
         } catch (Exception e) {
             throw new PluginException("Failed to load directory plugin: " + directory.getAbsolutePath(), e);

@@ -64,7 +64,7 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 
 ## Test suite
 
-42 tests, all passing on the current tree.
+272 tests, all passing on the current tree.
 
 | Class | Tests | Covers |
 | --- | --- | --- |
@@ -77,6 +77,17 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 | `QuantumSimulationTest` | 2 | end-to-end Bell state, event ordering |
 | `VqeTest` | 1 | convergence of the H2 loop against exact diagonalization |
 | `PluginTest` | 1 | registration, hook dispatch, cleanup on shutdown |
+| `MeasurementCoverageTest` | 46 | observables, partial collapse, sampling statistics, helpers |
+| `StateCoverageTest` | 35 | vector and density-matrix arithmetic, gates, collapse, fidelity |
+| `MathCoverageTest` | 35 | complex arithmetic, matrices, eigen decomposition, parameters |
+| `NoiseCoverageTest` | 24 | noise profiles, Kraus channels, error reports, statistics |
+| `ClassicalCoverageTest` | 24 | VQE, controls, decision rules, event-driven classical actions |
+| `ObserverCoverageTest` | 15 | metrics, reports, visualization images and history limits |
+| `EventsCoverageTest` | 14 | event ordering, queue accounting, dispatcher lifecycles |
+| `PluginCoverageTest` | 13 | JAR and directory loading, metadata validation, hooks |
+| `CoreCoverageTest` | 9 | configuration, time resolutions, context, simulator lifecycle |
+| `ResourcesCoverageTest` | 8 | constraint validation, allocation and release accounting |
+| `OperationsCoverageTest` | 7 | gate construction, matrix copies, gate library |
 
 `TestSupport` holds shared helpers such as `event(id, operation, qubits...)`. Tests are plain JUnit
 5 with no mocks: they drive the real dispatch path, because a stubbed simulator would not detect a
@@ -86,13 +97,14 @@ broken pipeline.
 
 JaCoCo 0.8.13 is bound to the `test` phase and writes `target/site/jacoco/index.html` and
 `target/site/jacoco/jacoco.csv`. The `example` package is excluded, because those classes are
-runnable demos rather than library code. Print the totals from the CSV:
+runnable demos rather than library code. A `check` rule fails `mvn verify` when instruction
+coverage drops below 70 percent. Print the totals from the CSV:
 
 ```bash
 awk -F, 'NR>1 {im+=$4; ic+=$5; bm+=$6; bc+=$7} END {printf "instruction %.1f%%, branch %.1f%%\n", 100*ic/(ic+im), 100*bc/(bc+bm)}' target/site/jacoco/jacoco.csv
 ```
 
-At the 1.0.0 release that command reports 35.7 percent instruction coverage and 28.3 percent branch
+On the 1.0.0 tree that command reports 91.8 percent instruction coverage and 84.6 percent branch
 coverage over 97 classes. No coverage service is connected, so the README badges carry that
 measurement as static Shields images dated 2026-10-25; update both badges when the number moves.
 

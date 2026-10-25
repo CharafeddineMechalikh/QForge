@@ -5,6 +5,7 @@ import com.quantum.simulator.state.Qubit;
 import com.quantum.simulator.state.StateVector;
 import com.quantum.simulator.math.Complex;
 import com.quantum.simulator.math.ComplexMatrix;
+import java.util.Objects;
 
 /**
  * Gate that acts on exactly one target qubit and has no control qubits.
@@ -42,7 +43,8 @@ public class SingleQubitGate extends QuantumGate {
      *         {@code null}
      */
     public SingleQubitGate(String name, ComplexMatrix matrix, Qubit targetQubit, double duration) {
-        super(name, matrix, new Qubit[]{targetQubit}, new Qubit[0], duration);
+        super(name, matrix, new Qubit[]{Objects.requireNonNull(targetQubit, "targetQubit")},
+            new Qubit[0], duration);
         
         if (matrix.rows() != 2 || matrix.cols() != 2) {
             throw new IllegalArgumentException("Single-qubit gate matrix must be 2x2");

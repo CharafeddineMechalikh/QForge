@@ -12,10 +12,10 @@ It is a **quantum computing** library, not a quantitative finance library.
 [![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen)](docs/08-development.md)
+[![Tests](https://img.shields.io/badge/tests-272%20passing-brightgreen)](docs/08-development.md)
 [![Travis CI](https://app.travis-ci.com/CharafeddineMechalikh/QuantLab.svg?branch=main)](https://app.travis-ci.com/github/CharafeddineMechalikh/QuantLab)
-[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-35.7%25-orange)](docs/08-development.md#coverage)
-[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-28.3%25-orange)](docs/08-development.md#coverage)
+[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-91.8%25-brightgreen)](docs/08-development.md#coverage)
+[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-84.6%25-green)](docs/08-development.md#coverage)
 [![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/02-architecture.md)
 
 ```bash
@@ -326,7 +326,7 @@ mvn -o test
 ```
 
 The `-o` flag uses the local Maven cache; remove it if dependencies need to be downloaded. The
-suite runs 42 tests across gates, measurement, noise, algorithms, JSON loading, metrics, plugins,
+suite runs 272 tests across gates, measurement, noise, algorithms, JSON loading, metrics, plugins,
 and VQE convergence.
 
 Generate the API documentation:
