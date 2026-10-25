@@ -4,22 +4,23 @@ QuantLab is an event-driven quantum circuit simulator written in pure Java 17. T
 explain how to build circuits, pick a backend, add noise, measure qubits, run quantum
 algorithms, and extend the simulator with plugins.
 
-If you want a two-minute introduction, start with [Getting started](getting-started.md). If you
-want to know how the engine works internally, start with
-[Architecture](architecture.md).
+The file names carry a numeric prefix, and that number is the suggested reading order: install and
+run first, then the engine internals, then the details of each subsystem. If you want a two-minute
+introduction, start with [Getting started](01-getting-started.md). If you want to know how the
+engine works internally, start with [Architecture](02-architecture.md).
 
 ## Guides
 
-| Guide | What it covers | Read time |
-| --- | --- | --- |
-| [Getting started](getting-started.md) | Install, build, run the demos, write your first circuit, load a JSON circuit | 10 min |
-| [Architecture](architecture.md) | Simulator lifecycle, event queue ordering, execution pipeline, state representations, backend choice | 15 min |
-| [Configuration](configuration.md) | `SimulationConfig` fields and defaults, JSON schema, validation rules, resource limits, noise profiles | 10 min |
-| [Gates and circuits](gates-and-circuits.md) | Gate catalog, qubit ordering convention, controlled gates, rotations, custom gates, circuit JSON | 12 min |
-| [Measurement and noise](measurement-and-noise.md) | Projective measurement, state collapse, observables, Kraus channels, quantum trajectories, fidelity | 12 min |
-| [Algorithms](algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, quantum walks, with demo commands and pass criteria | 15 min |
-| [Extending QuantLab](extending.md) | Plugins, observers, custom gates, custom noise, classical feed-forward control | 12 min |
-| [Development](development.md) | Repository layout, tests, Javadoc, coding conventions, release process | 8 min |
+| # | Guide | What it covers | Read time |
+| --- | --- | --- | --- |
+| 1 | [Getting started](01-getting-started.md) | Install, build, run the demos, write your first circuit, load a JSON circuit | 10 min |
+| 2 | [Architecture](02-architecture.md) | Simulator lifecycle, event queue ordering, execution pipeline, state representations, backend choice | 15 min |
+| 3 | [Configuration](03-configuration.md) | `SimulationConfig` fields and defaults, JSON schema, validation rules, resource limits, noise profiles | 10 min |
+| 4 | [Gates and circuits](04-gates-and-circuits.md) | Gate catalog, qubit ordering convention, controlled gates, rotations, custom gates, circuit JSON | 12 min |
+| 5 | [Measurement and noise](05-measurement-and-noise.md) | Projective measurement, state collapse, observables, Kraus channels, quantum trajectories, fidelity | 12 min |
+| 6 | [Algorithms](06-algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, quantum walks, with demo commands and pass criteria | 15 min |
+| 7 | [Extending QuantLab](07-extending.md) | Plugins, observers, custom gates, custom noise, classical feed-forward control | 12 min |
+| 8 | [Development](08-development.md) | Repository layout, tests, Javadoc, coding conventions, release process | 8 min |
 
 ## Which guide do I need?
 
@@ -31,14 +32,14 @@ flowchart TD
     Q --> C["Add noise or measure"]
     Q --> D["Add my own gate or plugin"]
 
-    A --> A1["getting-started.md"]
-    A1 --> A2["Then configuration.md for JSON options"]
-    B --> B1["architecture.md"]
-    B1 --> B2["Then measurement-and-noise.md for semantics"]
-    C --> C1["measurement-and-noise.md"]
-    C1 --> C2["Then gates-and-circuits.md for the gate set"]
-    D --> D1["extending.md"]
-    D1 --> D2["Then development.md to build and test"]
+    A --> A1["01-getting-started.md"]
+    A1 --> A2["Then 03-configuration.md for JSON options"]
+    B --> B1["02-architecture.md"]
+    B1 --> B2["Then 05-measurement-and-noise.md for semantics"]
+    C --> C1["05-measurement-and-noise.md"]
+    C1 --> C2["Then 04-gates-and-circuits.md for the gate set"]
+    D --> D1["07-extending.md"]
+    D1 --> D2["Then 08-development.md to build and test"]
 ```
 
 ## Conventions used in these guides
@@ -49,7 +50,7 @@ flowchart TD
 - Qubit index `0` is the most significant bit of a basis-state index, so `|01>` means qubit 0 in
   state 0 and qubit 1 in state 1.
 - Gate matrices order their qubits as controls first, then targets. See
-  [Gates and circuits](gates-and-circuits.md#qubit-ordering-convention).
+  [Gates and circuits](04-gates-and-circuits.md#qubit-ordering-convention).
 - Angle parameters are in radians.
 - Shell examples use Windows classpath separators (`;`). On Linux or macOS use `:`.
 

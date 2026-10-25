@@ -82,7 +82,7 @@ Parsing details worth remembering:
 - A negative `maxSteps` or `timeoutSeconds` is rejected before any field is assigned.
 - `noiseProfile` clears the current profile and then loads what it can parse.
 - A single config file cannot define a circuit; circuits live in their own document, see
-  [Gates and circuits](gates-and-circuits.md#circuit-json-schema).
+  [Gates and circuits](04-gates-and-circuits.md#circuit-json-schema).
 
 `saveToFile(String)` writes all of the fields above except the gate library. An empty noise profile
 is serialized as `{}`.
@@ -141,7 +141,7 @@ Error handling is not uniform, and it is worth knowing before you debug a silent
   rest of the profile still loads.
 - In the simple layout, an unknown `noise_type` or a non-numeric probability throws.
 - `NoiseProfile` is applied after every gate, and never twice for one gate. See
-  [Measurement and noise](measurement-and-noise.md#where-noise-is-applied).
+  [Measurement and noise](05-measurement-and-noise.md#where-noise-is-applied).
 
 ## Time resolution
 
@@ -183,7 +183,7 @@ The controller ships three default rules, and they are honest placeholders:
 | `AdaptiveNoiseRule` | measurement variance above `0.1` | returns `null` |
 
 Useful behavior is available now through the memory and history APIs, and real feed-forward needs a
-custom rule. See [Extending QuantLab](extending.md#classical-feed-forward-control).
+custom rule. See [Extending QuantLab](07-extending.md#classical-feed-forward-control).
 
 ```java
 ClassicalController controller = simulator.getClassicalController();
@@ -210,6 +210,6 @@ if (!config.validate()) {
 
 ## Related guides
 
-- [Architecture](architecture.md#stop-conditions) for how `maxSteps` ends a run.
-- [Measurement and noise](measurement-and-noise.md) for profile semantics.
-- [Getting started](getting-started.md#3-run-a-json-circuit) for running a configured circuit.
+- [Architecture](02-architecture.md#stop-conditions) for how `maxSteps` ends a run.
+- [Measurement and noise](05-measurement-and-noise.md) for profile semantics.
+- [Getting started](01-getting-started.md#3-run-a-json-circuit) for running a configured circuit.

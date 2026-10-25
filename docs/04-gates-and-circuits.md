@@ -274,7 +274,7 @@ Loading notes for `CircuitRunner`:
 - Because the fallback and the library both build controls before targets, `CNOT` with
   `"controlQubits": [0], "targetQubits": [1]` is the standard ordering.
 - Measurement is not part of this schema. Add measurement events in Java, see
-  [Measurement and noise](measurement-and-noise.md).
+  [Measurement and noise](05-measurement-and-noise.md).
 
 ## Limits
 
@@ -287,6 +287,6 @@ Loading notes for `CircuitRunner`:
 
 ## Related guides
 
-- [Architecture](architecture.md#event-ordering) for dispatch order.
-- [Measurement and noise](measurement-and-noise.md) for what happens after the gates.
-- [Algorithms](algorithms.md) for circuits assembled from these gates.
+- [Architecture](02-architecture.md#event-ordering) for dispatch order.
+- [Measurement and noise](05-measurement-and-noise.md) for what happens after the gates.
+- [Algorithms](06-algorithms.md) for circuits assembled from these gates.

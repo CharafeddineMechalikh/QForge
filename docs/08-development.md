@@ -188,5 +188,5 @@ be updated in the same change.
 
 ## Related guides
 
-- [Architecture](architecture.md) for the internals the tests lock down.
-- [Extending QuantLab](extending.md) for the seams a new feature would use.
+- [Architecture](02-architecture.md) for the internals the tests lock down.
+- [Extending QuantLab](07-extending.md) for the seams a new feature would use.

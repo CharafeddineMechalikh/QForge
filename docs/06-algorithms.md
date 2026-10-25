@@ -73,7 +73,7 @@ flowchart TD
 `QuantumAlgorithmsDemo` uses the `CircuitFactory` version, which is the forward transform with the
 final SWAP layer, so `|000>` maps to the uniform superposition. That is the demo that the `QFT`
 selector runs. The JSON `qft` demo name has no bundled circuit file, see
-[Getting started](getting-started.md#3-run-a-json-circuit).
+[Getting started](01-getting-started.md#3-run-a-json-circuit).
 
 ## Phase estimation
 
@@ -263,6 +263,6 @@ qubits each. Keep registers small when you replicate those loops.
 
 ## Related guides
 
-- [Gates and circuits](gates-and-circuits.md) for the gates these builders emit.
-- [Measurement and noise](measurement-and-noise.md) for adding decoherence to an algorithm.
-- [Development](development.md) for the tests that lock these behaviors.
+- [Gates and circuits](04-gates-and-circuits.md) for the gates these builders emit.
+- [Measurement and noise](05-measurement-and-noise.md) for adding decoherence to an algorithm.
+- [Development](08-development.md) for the tests that lock these behaviors.

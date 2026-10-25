@@ -12,11 +12,11 @@ It is a **quantum computing** library, not a quantitative finance library.
 [![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen)](docs/development.md)
+[![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen)](docs/08-development.md)
 [![Travis CI](https://app.travis-ci.com/CharafeddineMechalikh/QuantLab.svg?branch=main)](https://app.travis-ci.com/github/CharafeddineMechalikh/QuantLab)
-[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-35.7%25-orange)](docs/development.md#coverage)
-[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-28.3%25-orange)](docs/development.md#coverage)
-[![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/architecture.md)
+[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-35.7%25-orange)](docs/08-development.md#coverage)
+[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-28.3%25-orange)](docs/08-development.md#coverage)
+[![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/02-architecture.md)
 
 ```bash
 git clone https://github.com/CharafeddineMechalikh/QuantLab.git
@@ -121,21 +121,22 @@ flowchart LR
 ```
 
 Full details, including the lifecycle state machine and the event ordering rules, are in
-[docs/architecture.md](docs/architecture.md).
+[docs/02-architecture.md](docs/02-architecture.md).
 
 ## Documentation
 
-| Guide | Covers | Read time |
-| --- | --- | --- |
-| [Getting started](docs/getting-started.md) | Install, build, run demos, first circuit, JSON loading | 10 min |
-| [Architecture](docs/architecture.md) | Lifecycle, event ordering, dispatch pipeline, state representations | 15 min |
-| [Configuration](docs/configuration.md) | `SimulationConfig` fields, validation, noise profiles, resource limits | 10 min |
-| [Gates and circuits](docs/gates-and-circuits.md) | Gate catalog, qubit ordering, custom gates, circuit JSON | 12 min |
-| [Measurement and noise](docs/measurement-and-noise.md) | Collapse, observables, Kraus channels, trajectories, fidelity | 12 min |
-| [Algorithms](docs/algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, walks | 15 min |
-| [Extending QuantLab](docs/extending.md) | Plugins, observers, custom gates and noise, feed-forward control | 12 min |
-| [Development](docs/development.md) | Repo layout, tests, Javadoc, conventions, releases | 8 min |
-| [Documentation index](docs/README.md) | Guide map and writing conventions | 2 min |
+The guides are numbered in reading order. [docs/README.md](docs/README.md) has the full map.
+
+| # | Guide | Covers | Read time |
+| --- | --- | --- | --- |
+| 1 | [Getting started](docs/01-getting-started.md) | Install, build, run demos, first circuit, JSON loading | 10 min |
+| 2 | [Architecture](docs/02-architecture.md) | Lifecycle, event ordering, dispatch pipeline, state representations | 15 min |
+| 3 | [Configuration](docs/03-configuration.md) | `SimulationConfig` fields, validation, noise profiles, resource limits | 10 min |
+| 4 | [Gates and circuits](docs/04-gates-and-circuits.md) | Gate catalog, qubit ordering, custom gates, circuit JSON | 12 min |
+| 5 | [Measurement and noise](docs/05-measurement-and-noise.md) | Collapse, observables, Kraus channels, trajectories, fidelity | 12 min |
+| 6 | [Algorithms](docs/06-algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, walks | 15 min |
+| 7 | [Extending QuantLab](docs/07-extending.md) | Plugins, observers, custom gates and noise, feed-forward control | 12 min |
+| 8 | [Development](docs/08-development.md) | Repo layout, tests, Javadoc, conventions, releases | 8 min |
 
 API reference: run `mvn javadoc:javadoc`, then open `target/site/apidocs/index.html`.
 
@@ -211,7 +212,7 @@ The criteria below are the ones the code actually checks.
 | `QUANTUM_WALK` | Continuous-time walk on a 3-node line | 3 | Probability above 0.1 on both neighbouring sites |
 
 The Shor demo is encoding only (no syndrome extraction or recovery loop), and the QNN and QSVM code
-is educational, not production machine learning. [docs/algorithms.md](docs/algorithms.md) gives the
+is educational, not production machine learning. [docs/06-algorithms.md](docs/06-algorithms.md) gives the
 formulas, the circuit builders, and the limits for each one.
 
 ## Programmatic use
@@ -357,7 +358,7 @@ with it.
 
 1. Run `mvn -o test` before you start; the suite must stay green.
 2. Add a JUnit test for every behavior change, following the conventions in
-   [docs/development.md](docs/development.md).
+   [docs/08-development.md](docs/08-development.md).
 3. Keep the documentation honest: if a feature is unimplemented, document that instead of implying
    support.
 4. Open an issue first for anything larger than a bug fix.
@@ -373,7 +374,7 @@ with it.
 - Visualization uses Java2D and local PNG and GIF files; there is no interactive UI.
 - No tensor-network, stabilizer, or path-integral backend.
 - The configured `timeoutSeconds` value and the three default control rules are recorded but not
-  enforced by the engine; see [docs/configuration.md](docs/configuration.md).
+  enforced by the engine; see [docs/03-configuration.md](docs/03-configuration.md).
 
 ## Citation
 

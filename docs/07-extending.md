@@ -81,7 +81,7 @@ events until the engine calls them.
 
 | Method | Output |
 | --- | --- |
-| `getAllMetrics()` | live map with the keys listed in [Getting started](getting-started.md#6-read-the-metrics) |
+| `getAllMetrics()` | live map with the keys listed in [Getting started](01-getting-started.md#6-read-the-metrics) |
 | `getOperationCounts()` | per-operation-name counts |
 | `getErrorCounts()` | per-error-type counts |
 | `getMeasurementHistory()` | timestamp, observable name, expectation, variance, shots per measurement |
@@ -179,7 +179,7 @@ convention rather than a dispatch mechanism.
 
 ## Custom gates
 
-See [Gates and circuits](gates-and-circuits.md#custom-gates) for `QuantumGate.CustomGate` and
+See [Gates and circuits](04-gates-and-circuits.md#custom-gates) for `QuantumGate.CustomGate` and
 `GateLibrary.registerFactory`. A factory is the only way to make a new gate available to JSON
 circuits, and `config.getGateLibrary()` is the library `CircuitRunner` consults only when it builds
 a fresh `GateLibrary` internally. That means a custom factory registered on your configuration is
@@ -315,6 +315,6 @@ interactive window and no WebGL.
 
 ## Related guides
 
-- [Architecture](architecture.md#package-map) for where each seam sits.
-- [Measurement and noise](measurement-and-noise.md) for Kraus semantics your channel must satisfy.
-- [Development](development.md) for tests and the Javadoc build.
+- [Architecture](02-architecture.md#package-map) for where each seam sits.
+- [Measurement and noise](05-measurement-and-noise.md) for Kraus semantics your channel must satisfy.
+- [Development](08-development.md) for tests and the Javadoc build.

@@ -69,7 +69,7 @@ directory:
 
 Only the Bell pair ships both files. The `grover`, `qft` and `teleport` demo names are wired into
 `CircuitRunner` but their circuit resources are not in the repository, so pass your own files for
-those, or run the Java builders described in [Algorithms](algorithms.md).
+those, or run the Java builders described in [Algorithms](06-algorithms.md).
 
 You can also point the runner at any config and circuit pair:
 
@@ -160,7 +160,7 @@ for (MeasurementResult mr : measured.getMeasurements()) {
 
 `SimulationResult.getMeasurements()` returns every recorded result, and
 `getMeasurement("measure_q0")` looks one up by observable name. See
-[Measurement and noise](measurement-and-noise.md) for collapse semantics and the non-destructive
+[Measurement and noise](05-measurement-and-noise.md) for collapse semantics and the non-destructive
 mode.
 
 ## 6. Read the metrics
@@ -177,10 +177,10 @@ placeholders: `state_updates`, `events_scheduled`, `steps_executed`, `measuremen
 
 ## 7. Next steps
 
-- Choose a backend and set limits: [Configuration](configuration.md).
-- Build bigger circuits: [Gates and circuits](gates-and-circuits.md).
-- Run a published algorithm: [Algorithms](algorithms.md).
-- Attach plugins and observers: [Extending QuantLab](extending.md).
+- Choose a backend and set limits: [Configuration](03-configuration.md).
+- Build bigger circuits: [Gates and circuits](04-gates-and-circuits.md).
+- Run a published algorithm: [Algorithms](06-algorithms.md).
+- Attach plugins and observers: [Extending QuantLab](07-extending.md).
 
 ## Troubleshooting
 

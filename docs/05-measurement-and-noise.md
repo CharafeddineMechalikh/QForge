@@ -254,6 +254,6 @@ gap is deterministic instead of sampled because the backend is a density matrix.
 
 ## Related guides
 
-- [Architecture](architecture.md#one-dispatch-end-to-end) for where the pipeline applies noise.
-- [Configuration](configuration.md#noise-profile-formats) for JSON noise definitions.
-- [Algorithms](algorithms.md) for circuits that report fidelity against an ideal state.
+- [Architecture](02-architecture.md#one-dispatch-end-to-end) for where the pipeline applies noise.
+- [Configuration](03-configuration.md#noise-profile-formats) for JSON noise definitions.
+- [Algorithms](06-algorithms.md) for circuits that report fidelity against an ideal state.

@@ -250,6 +250,6 @@ recommendation, so the ceilings are enforced at initialization rather than at al
 
 ## Related guides
 
-- [Configuration](configuration.md) for what `validate()` accepts.
-- [Measurement and noise](measurement-and-noise.md) for collapse and trajectory semantics.
-- [Extending QuantLab](extending.md) for plugins, observers and classical control.
+- [Configuration](03-configuration.md) for what `validate()` accepts.
+- [Measurement and noise](05-measurement-and-noise.md) for collapse and trajectory semantics.
+- [Extending QuantLab](07-extending.md) for plugins, observers and classical control.
