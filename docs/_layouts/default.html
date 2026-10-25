@@ -126,13 +126,19 @@
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
 (function () {
-  var blocks = Array.prototype.slice.call(document.querySelectorAll('div.language-mermaid, pre.language-mermaid'));
-  blocks.forEach(function (block) {
-    var source = block.textContent;
+  var codes = Array.prototype.slice.call(document.querySelectorAll('code.language-mermaid'));
+  codes.forEach(function (code) {
+    var source = code.textContent;
+    var block = code.parentNode;
+    while (block && block.nodeName !== 'PRE' && block.nodeName !== 'DIV') { block = block.parentNode; }
+    if (block && block.nodeName === 'PRE' && block.parentNode && block.parentNode.nodeName === 'DIV') {
+      block = block.parentNode;
+    }
+    if (!block) { return; }
     var holder = document.createElement('pre');
     holder.className = 'mermaid';
     holder.textContent = source;
-    block.parentNode.replaceChild(holder, block);
+    if (block.parentNode) { block.parentNode.replaceChild(holder, block); } else { block.replaceWith(holder); }
   });
   if (window.mermaid) {
     window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral' });
