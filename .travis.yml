@@ -1,0 +1,13 @@
+language: java
+
+jdk:
+  - openjdk17
+
+dist: jammy
+
+cache:
+  directories:
+    - $HOME/.m2
+
+script:
+  - mvn -B clean verify

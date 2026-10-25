@@ -13,6 +13,9 @@ It is a **quantum computing** library, not a quantitative finance library.
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen)](docs/development.md)
+[![Travis CI](https://app.travis-ci.com/CharafeddineMechalikh/QuantLab.svg?branch=main)](https://app.travis-ci.com/github/CharafeddineMechalikh/QuantLab)
+[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-35.7%25-orange)](docs/development.md#coverage)
+[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-28.3%25-orange)](docs/development.md#coverage)
 [![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/architecture.md)
 
 ```bash

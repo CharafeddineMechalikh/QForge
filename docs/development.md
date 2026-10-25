@@ -57,9 +57,9 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 | --- | --- | --- | --- |
 | `com.fasterxml.jackson.core:jackson-databind` | 2.13.3 | compile | JSON config, circuit and result serialization |
 | `com.fasterxml.jackson.core:jackson-core` | 2.13.3 | compile | parser features, including comment tolerance |
-| `org.slf4j:slf4j-api` and `slf4j-simple` | 1.7.36 | compile and runtime | logging facade used by the library |
-| `org.apache.commons:commons-math3` | 3.6.1 | compile | numeric helpers |
-| `org.jetbrains:annotations` | 23.0.0 | compile | nullability annotations |
+| `org.slf4j:slf4j-api` and `slf4j-simple` | 1.7.36 | compile and runtime | declared, no source imports it |
+| `org.apache.commons:commons-math3` | 3.6.1 | compile | declared, no source imports it |
+| `org.jetbrains:annotations` | 23.0.0 | compile | declared, no source imports it |
 | `org.junit.jupiter:junit-jupiter-api` and `junit-jupiter-engine` | 5.8.2 | test | the test suite |
 
 ## Test suite
@@ -81,6 +81,20 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 `TestSupport` holds shared helpers such as `event(id, operation, qubits...)`. Tests are plain JUnit
 5 with no mocks: they drive the real dispatch path, because a stubbed simulator would not detect a
 broken pipeline.
+
+### Coverage
+
+JaCoCo 0.8.13 is bound to the `test` phase and writes `target/site/jacoco/index.html` and
+`target/site/jacoco/jacoco.csv`. The `example` package is excluded, because those classes are
+runnable demos rather than library code. Print the totals from the CSV:
+
+```bash
+awk -F, 'NR>1 {im+=$4; ic+=$5; bm+=$6; bc+=$7} END {printf "instruction %.1f%%, branch %.1f%%\n", 100*ic/(ic+im), 100*bc/(bc+bm)}' target/site/jacoco/jacoco.csv
+```
+
+At the 1.0.0 release that command reports 35.7 percent instruction coverage and 28.3 percent branch
+coverage over 97 classes. No coverage service is connected, so the README badges carry that
+measurement as static Shields images dated 2026-10-25; update both badges when the number moves.
 
 ### Adding a test
 
@@ -135,6 +149,11 @@ advance. Add it to the badge row in `README.md` as:
 Replace `PROJECT_TOKEN` with the token Codacy displays, then check that the image URL returns
 HTTP 200 before committing. Until then, the local quality gate is `mvn -o test` plus the Javadoc
 build described above.
+
+Continuous integration is configured in `.travis.yml`: JDK 17 on Jammy, the Maven cache, and
+`mvn -B clean verify`, which runs the tests and the JaCoCo report. The Travis badge in `README.md`
+points at the `main` branch and reports `unknown` until the repository is activated on
+[travis-ci.com](https://app.travis-ci.com).
 
 ## Release process
 
