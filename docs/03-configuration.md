@@ -183,7 +183,7 @@ The controller ships three default rules, and they are honest placeholders:
 | `AdaptiveNoiseRule` | measurement variance above `0.1` | returns `null` |
 
 Useful behavior is available now through the memory and history APIs, and real feed-forward needs a
-custom rule. See [Extending QuantLab](07-extending.md#classical-feed-forward-control).
+custom rule. See [Extending QForge](07-extending.md#classical-feed-forward-control).
 
 ```java
 ClassicalController controller = simulator.getClassicalController();

@@ -1,5 +1,5 @@
 /**
- * Runnable demonstrations and helpers for the QuantLab quantum circuit simulator.
+ * Runnable demonstrations and helpers for the QForge quantum circuit simulator.
  *
  * <p>The programs in this package build circuits from
  * {@link com.quantum.simulator.events.QuantumEvent} instances, schedule them on a

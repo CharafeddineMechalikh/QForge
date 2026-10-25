@@ -1,6 +1,6 @@
-# QuantLab documentation
+# QForge documentation
 
-QuantLab is an event-driven quantum circuit simulator written in pure Java 17. These guides
+QForge is an event-driven quantum circuit simulator written in pure Java 17. These guides
 explain how to build circuits, pick a backend, add noise, measure qubits, run quantum
 algorithms, and extend the simulator with plugins.
 
@@ -19,7 +19,7 @@ engine works internally, start with [Architecture](02-architecture.md).
 | 4 | [Gates and circuits](04-gates-and-circuits.md) | Gate catalog, qubit ordering convention, controlled gates, rotations, custom gates, circuit JSON | 12 min |
 | 5 | [Measurement and noise](05-measurement-and-noise.md) | Projective measurement, state collapse, observables, Kraus channels, quantum trajectories, fidelity | 12 min |
 | 6 | [Algorithms](06-algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, quantum walks, with demo commands and pass criteria | 15 min |
-| 7 | [Extending QuantLab](07-extending.md) | Plugins, observers, custom gates, custom noise, classical feed-forward control | 12 min |
+| 7 | [Extending QForge](07-extending.md) | Plugins, observers, custom gates, custom noise, classical feed-forward control | 12 min |
 | 8 | [Development](08-development.md) | Repository layout, tests, Javadoc, coding conventions, release process | 8 min |
 
 ## Which guide do I need?
@@ -44,8 +44,8 @@ flowchart TD
 
 ## Conventions used in these guides
 
-- All code targets JDK 17 and the Maven artifact `com.quantlab:quantlab`.
-- Java packages stay under `com.quantum.simulator.*`; the artifact name changed to QuantLab, the
+- All code targets JDK 17 and the Maven artifact `com.qforge:qforge`.
+- Java packages stay under `com.quantum.simulator.*`; the artifact name changed to QForge, the
   package names did not.
 - Qubit index `0` is the most significant bit of a basis-state index, so `|01>` means qubit 0 in
   state 0 and qubit 1 in state 1.

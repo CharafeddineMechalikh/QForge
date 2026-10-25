@@ -1,6 +1,6 @@
-# Contributing to QuantLab
+# Contributing to QForge
 
-QuantLab is a teaching and research simulator, so contributions are judged on correctness,
+QForge is a teaching and research simulator, so contributions are judged on correctness,
 clarity, and honesty before speed. Small, well-tested changes with matching documentation are the
 easiest to review.
 
@@ -29,8 +29,8 @@ smaller issues and land them one at a time.
 - [x] Plugin API with lifecycle hooks
 - [x] Ten quantum algorithm demos with pass criteria
 - [x] Javadoc for every public type and numbered guides `01` to `08`
-- [x] 272-test JUnit 5 suite with 91.8 percent instruction and 84.6 percent branch coverage
-- [x] JaCoCo coverage check that fails `mvn verify` below 70 percent instruction coverage
+- [x] 338-test JUnit 5 suite with 97.7 percent instruction and 91.8 percent branch coverage
+- [x] JaCoCo coverage check that fails `mvn verify` below 90 percent instruction and branch coverage
 - [x] Travis CI and Codacy configuration files, plus `CITATION.cff` and repository metadata
 
 ### Planned
@@ -40,7 +40,7 @@ smaller issues and land them one at a time.
 - [ ] Add a `LICENSE` file, since no license is granted yet
 - [ ] Activate the repository on travis-ci.com and replace the `unknown` badge
 - [ ] Import the repository into Codacy and add the tokenized grade badge
-- [ ] Publish `com.quantlab:quantlab` to Maven Central or JitPack
+- [ ] Publish `com.qforge:qforge` to Maven Central or JitPack
 
 **Interoperability**
 
@@ -86,7 +86,7 @@ smaller issues and land them one at a time.
 
 - Add a JUnit 5 test for every behavior change. Tests drive the real dispatch path; mocks would not
   catch a broken pipeline.
-- Keep instruction coverage above 70 percent. `mvn verify` enforces the threshold.
+- Keep instruction and branch coverage above 90 percent. `mvn verify` enforces both thresholds.
 - Update the Javadoc when a public type, method, field, or failure mode changes.
 - Update the README, the relevant guide under `docs/`, and `CHANGELOG.md` when behavior changes.
 - Keep the documentation honest: if a feature is unimplemented, say so instead of implying support.

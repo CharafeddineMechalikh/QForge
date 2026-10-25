@@ -1,7 +1,7 @@
 # Measurement and noise
 
 Measurement turns amplitudes into numbers, and noise turns pure states into mixed ones. Both are
-operations in QuantLab, so both are scheduled as events and both feed the same metrics pipeline.
+operations in QForge, so both are scheduled as events and both feed the same metrics pipeline.
 
 ## Measurement paths
 

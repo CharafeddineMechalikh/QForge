@@ -1,6 +1,6 @@
-# QuantLab: Event-Driven Quantum Circuit Simulator in Java
+# QForge: Event-Driven Quantum Circuit Simulator in Java
 
-**QuantLab is a quantum circuit simulator written in pure Java 17.** It simulates quantum circuits
+**QForge is a quantum circuit simulator written in pure Java 17.** It simulates quantum circuits
 with a state vector or a density matrix, applies realistic quantum noise (depolarizing, dephasing,
 amplitude damping), measures arbitrary Hermitian observables, and ships runnable implementations of
 Grover's algorithm, the Quantum Fourier Transform, quantum phase estimation, VQE, QAOA, Trotterized
@@ -12,15 +12,15 @@ It is a **quantum computing** library, not a quantitative finance library.
 [![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-272%20passing-brightgreen)](docs/08-development.md)
-[![Travis CI](https://app.travis-ci.com/CharafeddineMechalikh/QuantLab.svg?branch=main)](https://app.travis-ci.com/github/CharafeddineMechalikh/QuantLab)
-[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-91.8%25-brightgreen)](docs/08-development.md#coverage)
-[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-84.6%25-green)](docs/08-development.md#coverage)
+[![Tests](https://img.shields.io/badge/tests-338%20passing-brightgreen)](docs/08-development.md)
+[![Travis CI](https://app.travis-ci.com/CharafeddineMechalikh/QForge.svg?branch=main)](https://app.travis-ci.com/github/CharafeddineMechalikh/QForge)
+[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-97.7%25-brightgreen)](docs/08-development.md#coverage)
+[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-91.8%25-green)](docs/08-development.md#coverage)
 [![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/02-architecture.md)
 
 ```bash
-git clone https://github.com/CharafeddineMechalikh/QuantLab.git
-cd QuantLab
+git clone https://github.com/CharafeddineMechalikh/QForge.git
+cd QForge
 mvn -o compile
 java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo ALL
 ```
@@ -29,7 +29,7 @@ No GPU, no C++ toolchain, no Python environment. One JDK and Maven are enough.
 
 ## Contents
 
-- [Why QuantLab](#why-quantlab)
+- [Why QForge](#why-qforge)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
 - [Documentation](#documentation)
@@ -45,7 +45,7 @@ No GPU, no C++ toolchain, no Python environment. One JDK and Maven are enough.
 - [Limitations](#limitations)
 - [Citation](#citation)
 
-## Why QuantLab
+## Why QForge
 
 | Reason | What it means in practice |
 | --- | --- |
@@ -136,7 +136,7 @@ The guides are numbered in reading order. [docs/README.md](docs/README.md) has t
 | 4 | [Gates and circuits](docs/04-gates-and-circuits.md) | Gate catalog, qubit ordering, custom gates, circuit JSON | 12 min |
 | 5 | [Measurement and noise](docs/05-measurement-and-noise.md) | Collapse, observables, Kraus channels, trajectories, fidelity | 12 min |
 | 6 | [Algorithms](docs/06-algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, walks | 15 min |
-| 7 | [Extending QuantLab](docs/07-extending.md) | Plugins, observers, custom gates and noise, feed-forward control | 12 min |
+| 7 | [Extending QForge](docs/07-extending.md) | Plugins, observers, custom gates and noise, feed-forward control | 12 min |
 | 8 | [Development](docs/08-development.md) | Repo layout, tests, Javadoc, conventions, releases | 8 min |
 
 API reference: run `mvn javadoc:javadoc`, then open `target/site/apidocs/index.html`.
@@ -283,7 +283,7 @@ round-trippable configuration.
 
 ## FAQ
 
-**Is QuantLab a quantum computer emulator or a simulator?**
+**Is QForge a quantum computer emulator or a simulator?**
 A simulator. It computes the exact state evolution of a circuit on a classical CPU. There is no QPU
 backend.
 
@@ -327,7 +327,7 @@ mvn -o test
 ```
 
 The `-o` flag uses the local Maven cache; remove it if dependencies need to be downloaded. The
-suite runs 272 tests across gates, measurement, noise, algorithms, JSON loading, metrics, plugins,
+suite runs 338 tests across gates, measurement, noise, algorithms, JSON loading, metrics, plugins,
 and VQE convergence.
 
 Generate the API documentation:
@@ -350,7 +350,7 @@ src/test/java/               JUnit 5 tests
 docs/                        user and developer guides
 ```
 
-The Maven coordinates are `com.quantlab:quantlab`; the Java packages are
+The Maven coordinates are `com.qforge:qforge`; the Java packages are
 `com.quantum.simulator.*`. The canonical algorithm entry point is
 `example.QuantumAlgorithmsDemo`; older demo programs are kept as additional examples but overlap
 with it.
@@ -383,15 +383,15 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 - [x] Plugin API with lifecycle hooks
 - [x] Ten quantum algorithm demos with pass criteria
 - [x] Javadoc for every public type and numbered guides `01` to `08`
-- [x] 272-test JUnit 5 suite with 91.8 percent instruction and 84.6 percent branch coverage
-- [x] JaCoCo coverage check that fails `mvn verify` below 70 percent instruction coverage
+- [x] 338-test JUnit 5 suite with 97.7 percent instruction and 91.8 percent branch coverage
+- [x] JaCoCo coverage check that fails `mvn verify` below 90 percent instruction and branch coverage
 - [x] Travis CI and Codacy configuration files, plus `CITATION.cff` and repository metadata
 
 **Planned**
 
 - [ ] Add a `LICENSE` file, since no license is granted yet
 - [ ] Activate Travis CI and Codacy on their hosted services and turn on their badges
-- [ ] Publish `com.quantlab:quantlab` to Maven Central or JitPack
+- [ ] Publish `com.qforge:qforge` to Maven Central or JitPack
 - [ ] Import and export OpenQASM 2 and 3
 - [ ] Add a Qiskit JSON adapter
 - [ ] Add a stabilizer (Clifford) backend for thousands of qubits
@@ -424,15 +424,15 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 
 ## Citation
 
-If QuantLab helps your work, cite the repository:
+If QForge helps your work, cite the repository:
 
 ```bibtex
-@software{quantlab2026,
-  title   = {QuantLab: An Event-Driven Quantum Circuit Simulator in Java},
+@software{qforge2026,
+  title   = {QForge: An Event-Driven Quantum Circuit Simulator in Java},
   author  = {Mechalikh, Charafeddine},
   year    = {2026},
   version = {1.0.0},
-  url     = {https://github.com/CharafeddineMechalikh/QuantLab}
+  url     = {https://github.com/CharafeddineMechalikh/QForge}
 }
 ```
 

@@ -1,4 +1,4 @@
-# Extending QuantLab
+# Extending QForge
 
 Four extension seams exist, and they differ in how much of the engine they can reach:
 

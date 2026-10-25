@@ -1,6 +1,6 @@
 # Architecture
 
-QuantLab is an event-driven simulator. Circuits are not compiled into a static instruction list;
+QForge is an event-driven simulator. Circuits are not compiled into a static instruction list;
 they are collections of timed `QuantumEvent` objects that a dispatcher drains in order, applying
 one operation to one state object at a time.
 
@@ -252,4 +252,4 @@ recommendation, so the ceilings are enforced at initialization rather than at al
 
 - [Configuration](03-configuration.md) for what `validate()` accepts.
 - [Measurement and noise](05-measurement-and-noise.md) for collapse and trajectory semantics.
-- [Extending QuantLab](07-extending.md) for plugins, observers and classical control.
+- [Extending QForge](07-extending.md) for plugins, observers and classical control.

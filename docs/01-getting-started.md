@@ -15,14 +15,14 @@ the command line and then through the Java API.
 ## 1. Build the project
 
 ```bash
-git clone https://github.com/CharafeddineMechalikh/QuantLab.git
-cd QuantLab
+git clone https://github.com/CharafeddineMechalikh/QForge.git
+cd QForge
 mvn -o compile
 mvn -o test
 ```
 
 The `-o` flag keeps Maven offline and uses the local cache. Drop it when a dependency is missing.
-The current suite contains 272 tests across gates, measurement, noise, algorithms, JSON loading,
+The current suite contains 338 tests across gates, measurement, noise, algorithms, JSON loading,
 metrics, plugins and VQE convergence, and the Javadoc plugin requires one online run before it can
 work offline.
 
@@ -180,7 +180,7 @@ placeholders: `state_updates`, `events_scheduled`, `steps_executed`, `measuremen
 - Choose a backend and set limits: [Configuration](03-configuration.md).
 - Build bigger circuits: [Gates and circuits](04-gates-and-circuits.md).
 - Run a published algorithm: [Algorithms](06-algorithms.md).
-- Attach plugins and observers: [Extending QuantLab](07-extending.md).
+- Attach plugins and observers: [Extending QForge](07-extending.md).
 
 ## Troubleshooting
 

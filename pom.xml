@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.quantlab</groupId>
-  <artifactId>quantlab</artifactId>
+  <groupId>com.qforge</groupId>
+  <artifactId>qforge</artifactId>
   <version>1.0.0</version>
-  <name>QuantLab</name>
+  <name>QForge</name>
   <description>Event-driven quantum circuit simulator with state-vector and density-matrix backends</description>
-  <url>https://github.com/CharafeddineMechalikh/QuantLab</url>
+  <url>https://github.com/CharafeddineMechalikh/QForge</url>
   <scm>
-    <connection>scm:git:https://github.com/CharafeddineMechalikh/QuantLab.git</connection>
-    <developerConnection>scm:git:git@github.com:CharafeddineMechalikh/QuantLab.git</developerConnection>
-    <url>https://github.com/CharafeddineMechalikh/QuantLab</url>
+    <connection>scm:git:https://github.com/CharafeddineMechalikh/QForge.git</connection>
+    <developerConnection>scm:git:git@github.com:CharafeddineMechalikh/QForge.git</developerConnection>
+    <url>https://github.com/CharafeddineMechalikh/QForge</url>
     <tag>v1.0.0</tag>
   </scm>
    <properties>
@@ -138,7 +138,12 @@
                     <limit>
                       <counter>INSTRUCTION</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.70</minimum>
+                      <minimum>0.90</minimum>
+                    </limit>
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.90</minimum>
                     </limit>
                   </limits>
                 </rule>
