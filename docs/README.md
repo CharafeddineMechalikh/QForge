@@ -44,7 +44,7 @@ flowchart TD
 
 ## Conventions used in these guides
 
-- All code targets JDK 17 and the Maven artifact `com.qforge:qforge`.
+- All code targets JDK 17 and the Maven artifact `com.mechalikh:qforge`.
 - Java packages stay under `com.quantum.simulator.*`; the artifact name changed to QForge, the
   package names did not.
 - Qubit index `0` is the most significant bit of a basis-state index, so `|01>` means qubit 0 in

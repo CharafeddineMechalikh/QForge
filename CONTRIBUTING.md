@@ -40,7 +40,7 @@ smaller issues and land them one at a time.
 
 - [ ] Activate the repository on travis-ci.com and replace the `unknown` badge
 - [ ] Import the repository into Codacy and add the tokenized grade badge
-- [ ] Publish `com.qforge:qforge` to Maven Central or JitPack
+- [ ] Publish `com.mechalikh:qforge` to Maven Central or JitPack
 
 **Interoperability**
 

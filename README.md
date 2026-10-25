@@ -350,7 +350,7 @@ src/test/java/               JUnit 5 tests
 docs/                        user and developer guides
 ```
 
-The Maven coordinates are `com.qforge:qforge`; the Java packages are
+The Maven coordinates are `com.mechalikh:qforge`; the Java packages are
 `com.quantum.simulator.*`. The canonical algorithm entry point is
 `example.QuantumAlgorithmsDemo`; older demo programs are kept as additional examples but overlap
 with it.
@@ -391,7 +391,7 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 **Planned**
 
 - [ ] Activate Travis CI and Codacy on their hosted services and turn on their badges
-- [ ] Publish `com.qforge:qforge` to Maven Central or JitPack
+- [ ] Publish `com.mechalikh:qforge` to Maven Central or JitPack
 - [ ] Import and export OpenQASM 2 and 3
 - [ ] Add a Qiskit JSON adapter
 - [ ] Add a stabilizer (Clifford) backend for thousands of qubits
