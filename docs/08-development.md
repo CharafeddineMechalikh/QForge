@@ -188,7 +188,8 @@ Honest list, in the order people usually hit it:
 - The `Graph` class in `src/example/algorithms/QuantumWalk.java` is package-private, so external
   code cannot build a custom graph.
 - No OpenQASM or Qiskit import or export.
-- No CI workflow: build and test locally with the commands above.
+- Travis CI is configured but not activated, and Codacy is not connected, so no hosted checks or
+  service badges run yet.
 - The `grover`, `qft` and `teleport` names in `CircuitRunner` have no bundled circuit JSON.
 - Eigenvalue routines are dense and unoptimized, which caps fidelity and entropy computations at
   small registers.

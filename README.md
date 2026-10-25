@@ -41,6 +41,7 @@ No GPU, no C++ toolchain, no Python environment. One JDK and Maven are enough.
 - [Requirements and build](#requirements-and-build)
 - [Project layout](#project-layout)
 - [Contributing](#contributing)
+- [Roadmap](#roadmap)
 - [Limitations](#limitations)
 - [Citation](#citation)
 
@@ -356,12 +357,57 @@ with it.
 
 ## Contributing
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and the detailed roadmap. In short:
+
 1. Run `mvn -o test` before you start; the suite must stay green.
 2. Add a JUnit test for every behavior change, following the conventions in
    [docs/08-development.md](docs/08-development.md).
 3. Keep the documentation honest: if a feature is unimplemented, document that instead of implying
    support.
 4. Open an issue first for anything larger than a bug fix.
+
+## Roadmap
+
+Checked items are implemented. Unchecked items are open, and the full list with known gaps lives in
+[CONTRIBUTING.md](CONTRIBUTING.md#roadmap).
+
+**Implemented**
+
+- [x] Event-driven execution with `STATE_VECTOR` and `DENSITY_MATRIX` backends
+- [x] Gate set with control-first matrix ordering, including Toffoli, multi-controlled `Z`, and
+  controlled `SWAP`
+- [x] Projective measurement with state collapse, observables, expectation values, and variance
+- [x] Depolarizing, dephasing, and amplitude-damping noise with Kraus channels and JSON profiles
+- [x] JSON configuration and circuit loading
+- [x] Observer callbacks, metrics, and Java2D visualization
+- [x] Plugin API with lifecycle hooks
+- [x] Ten quantum algorithm demos with pass criteria
+- [x] Javadoc for every public type and numbered guides `01` to `08`
+- [x] 272-test JUnit 5 suite with 91.8 percent instruction and 84.6 percent branch coverage
+- [x] JaCoCo coverage check that fails `mvn verify` below 70 percent instruction coverage
+- [x] Travis CI and Codacy configuration files, plus `CITATION.cff` and repository metadata
+
+**Planned**
+
+- [ ] Add a `LICENSE` file, since no license is granted yet
+- [ ] Activate Travis CI and Codacy on their hosted services and turn on their badges
+- [ ] Publish `com.quantlab:quantlab` to Maven Central or JitPack
+- [ ] Import and export OpenQASM 2 and 3
+- [ ] Add a Qiskit JSON adapter
+- [ ] Add a stabilizer (Clifford) backend for thousands of qubits
+- [ ] Add a tensor-network or matrix-product-state backend for low-entanglement circuits
+- [ ] Add time-based noise: T1 and T2 relaxation, idle noise, crosstalk, and readout error
+- [ ] Add error mitigation: zero-noise extrapolation and readout mitigation
+- [ ] Make quantum trajectories reproducible with recorded seeds
+- [ ] Cross-validate outputs against Qiskit and add property-based circuit tests
+- [ ] Add JMH performance benchmarks to CI
+- [ ] Add notebook integration and a step-through execution mode
+- [ ] Add an interactive visualization UI
+- [ ] Add BB84 and E91 protocol demos with eavesdropper models
+- [ ] Enforce `timeoutSeconds`, wire the default control rules into the engine, and dispatch the
+  declared observer callbacks
+- [ ] Expose the quantum-walk `Graph` API and bundle JSON circuits for the `grover`, `qft`, and
+  `teleport` names
 
 ## Limitations
 
