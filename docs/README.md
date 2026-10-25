@@ -1,7 +1,7 @@
 # QForge documentation
 
-QForge is an event-driven quantum circuit simulator written in pure Java 17. These guides
-explain how to build circuits, pick a backend, add noise, measure qubits, run quantum
+QForge is an event-driven quantum computing library that simulates circuits in pure Java 17. These
+guides explain how to build circuits, pick a backend, add noise, measure qubits, run quantum
 algorithms, and extend the simulator with plugins.
 
 The file names carry a numeric prefix, and that number is the suggested reading order: install and
@@ -13,7 +13,7 @@ engine works internally, start with [Architecture](02-architecture.md).
 
 | # | Guide | What it covers | Read time |
 | --- | --- | --- | --- |
-| 1 | [Getting started](01-getting-started.md) | Install, build, run the demos, write your first circuit, load a JSON circuit | 10 min |
+| 1 | [Getting started](01-getting-started.md) | Tutorial: install, build, run the demos, write your first circuit, load a JSON circuit | 10 min |
 | 2 | [Architecture](02-architecture.md) | Simulator lifecycle, event queue ordering, execution pipeline, state representations, backend choice | 15 min |
 | 3 | [Configuration](03-configuration.md) | `SimulationConfig` fields and defaults, JSON schema, validation rules, resource limits, noise profiles | 10 min |
 | 4 | [Gates and circuits](04-gates-and-circuits.md) | Gate catalog, qubit ordering convention, controlled gates, rotations, custom gates, circuit JSON | 12 min |

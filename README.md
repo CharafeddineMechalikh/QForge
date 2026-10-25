@@ -1,11 +1,11 @@
 # QForge: Event-Driven Quantum Circuit Simulator in Java
 
-**QForge is a quantum circuit simulator written in pure Java 17.** It simulates quantum circuits
-with a state vector or a density matrix, applies realistic quantum noise (depolarizing, dephasing,
-amplitude damping), measures arbitrary Hermitian observables, and ships runnable implementations of
-Grover's algorithm, the Quantum Fourier Transform, quantum phase estimation, VQE, QAOA, Trotterized
-time evolution, the Shor code, quantum walks, a quantum neural network, and a quantum kernel
-classifier.
+**QForge is an open source quantum computing library written in pure Java 17, with no native
+dependencies.** It simulates quantum circuits with a state vector or a density matrix, applies
+realistic quantum noise (depolarizing, dephasing, amplitude damping), measures arbitrary Hermitian
+observables, and ships runnable implementations of Grover's algorithm, the Quantum Fourier
+Transform, quantum phase estimation, VQE, QAOA, Trotterized time evolution, the Shor code, quantum
+walks, a quantum neural network, and a quantum kernel classifier.
 
 [![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -130,7 +130,7 @@ The guides are numbered in reading order. [docs/README.md](docs/README.md) has t
 
 | # | Guide | Covers | Read time |
 | --- | --- | --- | --- |
-| 1 | [Getting started](docs/01-getting-started.md) | Install, build, run demos, first circuit, JSON loading | 10 min |
+| 1 | [Getting started](docs/01-getting-started.md) | Tutorial: install, build, run demos, first circuit, JSON loading | 10 min |
 | 2 | [Architecture](docs/02-architecture.md) | Lifecycle, event ordering, dispatch pipeline, state representations | 15 min |
 | 3 | [Configuration](docs/03-configuration.md) | `SimulationConfig` fields, validation, noise profiles, resource limits | 10 min |
 | 4 | [Gates and circuits](docs/04-gates-and-circuits.md) | Gate catalog, qubit ordering, custom gates, circuit JSON | 12 min |
@@ -444,7 +444,8 @@ See [CHANGELOG.md](CHANGELOG.md) for release notes. This project adheres to
 
 ## License
 
-Distributed under the MIT License. You may use, modify and redistribute it, in source or binary
-form, as long as the copyright notice and the license text travel with it. There is no warranty.
-The full text is in [LICENSE](LICENSE), the terms are also declared in `pom.xml` and
-`CITATION.cff`, and `Copyright (c) 2026 Charafeddine Mechalikh` is the notice to keep in copies.
+QForge is open source software distributed under the MIT License. You may use, modify and
+redistribute it, in source or binary form, as long as the copyright notice and the license text
+travel with it. There is no warranty. The full text is in [LICENSE](LICENSE), the terms are also
+declared in `pom.xml` and `CITATION.cff`, and `Copyright (c) 2026 Charafeddine Mechalikh` is the
+notice to keep in copies.
