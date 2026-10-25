@@ -117,6 +117,25 @@ Conventions that keep the build clean:
   `on*` on observer and plugin callbacks.
 - No new dependency without a reason the standard library cannot cover.
 
+## Code quality
+
+Static analysis settings live in `.codacy.yaml`: build output, `lib/`, `docs/` and Markdown files are
+excluded, and the Checkstyle and PMD engines are enabled. Codacy is **not connected to this
+repository yet**, so no Codacy grade exists to report.
+
+After importing the repository at [app.codacy.com](https://app.codacy.com) and letting the first
+analysis finish, Codacy shows the badge for the project under Settings, Integrations, Badges. The
+badge URL carries a per-project token that only exists after the import, so it cannot be written in
+advance. Add it to the badge row in `README.md` as:
+
+```markdown
+[![Codacy grade](https://app.codacy.com/project/badge/Grade/PROJECT_TOKEN)](https://app.codacy.com/gh/CharafeddineMechalikh/QuantLab/dashboard)
+```
+
+Replace `PROJECT_TOKEN` with the token Codacy displays, then check that the image URL returns
+HTTP 200 before committing. Until then, the local quality gate is `mvn -o test` plus the Javadoc
+build described above.
+
 ## Release process
 
 1. Land the functional change with its test.

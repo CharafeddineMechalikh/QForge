@@ -1,0 +1,17 @@
+# Codacy configuration. These settings take effect when the repository is imported
+# at app.codacy.com; the badge is added to the README once Codacy issues the
+# project token, because the badge URL contains that per-project token.
+---
+exclude_paths:
+  - "target/**"
+  - "bin/**"
+  - "output/**"
+  - "lib/**"
+  - "docs/**"
+  - "**/*.md"
+
+engines:
+  checkstyle:
+    enabled: true
+  pmd:
+    enabled: true
