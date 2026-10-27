@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A GitHub Actions workflow (`.github/workflows/ci.yml`) that builds on JDK 17 and runs the tests
+  plus the JaCoCo gates on every push and pull request to `main`, replacing the never-activated
+  Travis pipeline.
+
 - `CITATION.cff`, so GitHub can render a "Cite this repository" entry, plus `url` and `scm`
   metadata in `pom.xml`.
 

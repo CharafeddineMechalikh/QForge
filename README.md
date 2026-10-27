@@ -12,7 +12,7 @@ walks, a quantum neural network, and a quantum kernel classifier.
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-338%20passing-brightgreen)](docs/08-development.md)
-[![Travis CI](https://app.travis-ci.com/CharafeddineMechalikh/QForge.svg?branch=main)](https://app.travis-ci.com/github/CharafeddineMechalikh/QForge)
+[![CI](https://github.com/CharafeddineMechalikh/QForge/actions/workflows/ci.yml/badge.svg)](https://github.com/CharafeddineMechalikh/QForge/actions/workflows/ci.yml)
 [![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-97.7%25-brightgreen)](docs/08-development.md#coverage)
 [![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-91.8%25-green)](docs/08-development.md#coverage)
 [![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/02-architecture.md)

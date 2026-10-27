@@ -194,10 +194,10 @@ Replace `PROJECT_TOKEN` with the token Codacy displays, then check that the imag
 HTTP 200 before committing. Until then, the local quality gate is `mvn -o test` plus the Javadoc
 build described above.
 
-Continuous integration is configured in `.travis.yml`: JDK 17 on Jammy, the Maven cache, and
-`mvn -B clean verify`, which runs the tests and the JaCoCo report. The Travis badge in `README.md`
-points at the `main` branch and reports `unknown` until the repository is activated on
-[travis-ci.com](https://app.travis-ci.com).
+Continuous integration runs on GitHub Actions in `.github/workflows/ci.yml`: JDK 17 on Ubuntu, the
+Maven cache, and `mvn -B clean verify`, which runs the tests and enforces the JaCoCo gates. The workflow
+triggers on every push and pull request to `main`, and the CI badge in `README.md` reports its
+latest result. A legacy `.travis.yml` is kept in the tree but is no longer the active pipeline.
 
 ## Release process
 
@@ -220,8 +220,7 @@ Honest list, in the order people usually hit it:
 - The `Graph` class in `src/example/algorithms/QuantumWalk.java` is package-private, so external
   code cannot build a custom graph.
 - No OpenQASM or Qiskit import or export.
-- Travis CI is configured but not activated, and Codacy is not connected, so no hosted checks or
-  service badges run yet.
+- Codacy is not connected, so there is no hosted code-quality grade or Codacy badge yet.
 - The `grover`, `qft` and `teleport` names in `CircuitRunner` have no bundled circuit JSON.
 - Eigenvalue routines are dense and unoptimized, which caps fidelity and entropy computations at
   small registers.

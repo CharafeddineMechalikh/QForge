@@ -31,14 +31,14 @@ smaller issues and land them one at a time.
 - [x] Javadoc for every public type and numbered guides `01` to `08`
 - [x] 338-test JUnit 5 suite with 97.7 percent instruction and 91.8 percent branch coverage
 - [x] JaCoCo coverage check that fails `mvn verify` below 90 percent instruction and branch coverage
-- [x] Travis CI and Codacy configuration files, plus `CITATION.cff` and repository metadata
+- [x] GitHub Actions CI and Codacy configuration files, plus `CITATION.cff` and repository metadata
 - [x] MIT license, declared in `pom.xml` and `CITATION.cff`
 
 ### Planned
 
 **Release and infrastructure**
 
-- [ ] Activate the repository on travis-ci.com and replace the `unknown` badge
+- [x] Run CI on GitHub Actions for every push and pull request, with a live status badge in `README.md`
 - [ ] Import the repository into Codacy and add the tokenized grade badge
 - [ ] Publish `com.mechalikh:qforge` to Maven Central or JitPack
 
