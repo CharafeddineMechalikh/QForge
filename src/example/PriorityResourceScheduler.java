@@ -201,8 +201,7 @@ public class PriorityResourceScheduler {
     private static String findCompletedTask(Map<String, Future<SimulationResult>> futures, 
                                           Future<SimulationResult> completed) {
         for (Map.Entry<String, Future<SimulationResult>> entry : futures.entrySet()) {
-            if (entry.getValue() == completed || 
-                (entry.getValue().isDone() && completed.isDone())) {
+            if (entry.getValue() == completed) {
                 return entry.getKey();
             }
         }

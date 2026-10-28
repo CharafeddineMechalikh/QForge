@@ -211,13 +211,14 @@ The criteria below are the ones the code actually checks.
 | `QNN` | 2-qubit variational classifier, 60 epochs | 2 | 100 percent accuracy on the four training samples |
 | `QSVM` | ZZ feature map, swap-test kernel, kernel perceptron | 5 | Training and test predictions all correct |
 | `SHOR_CODE` | 9-qubit encoding of logical `\|0>` | 9 | Probability mass above 0.999 on the eight codewords |
-| `QAOA` | MaxCut on a triangle, one layer | 3 | Amplitude concentrated on the maximum cuts |
+| `QAOA` | MaxCut on a triangle, one layer, fixed angles | 3 | Prints the state and the expected cut size (0.5258 of 2); the angles are not optimized |
 | `TROTTER` | Heisenberg `XX + YY + ZZ`, 4 steps, `t = 0.5` | 2 | Trotter state matches the exact matrix-exponential evolution |
 | `QUANTUM_WALK` | Continuous-time walk on a 3-node line | 3 | Probability above 0.1 on both neighbouring sites |
 
 The Shor demo is encoding only (no syndrome extraction or recovery loop), and the QNN and QSVM code
 is educational, not production machine learning. [docs/06-algorithms.md](docs/06-algorithms.md) gives the
-formulas, the circuit builders, and the limits for each one.
+formulas, the circuit builders, and the limits for each one. Every runnable example, with captured
+output and diagrams, is indexed in [src/example/README.md](src/example/README.md).
 
 ## Programmatic use
 

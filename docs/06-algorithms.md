@@ -34,7 +34,7 @@ java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo GROVER
 | `QNN` | 2-qubit variational classifier, 60 epochs | 2 | state vector | 100 percent accuracy on the four training samples |
 | `QSVM` | ZZ feature map, swap-test kernel, kernel perceptron | 5 | state vector | training and test predictions all correct |
 | `SHOR_CODE` | 9-qubit encoding of logical `|0>` | 9 | state vector | probability mass above 0.999 on the eight codewords |
-| `QAOA` | MaxCut on a triangle, one layer | 3 | state vector | amplitude concentrated on maximum cuts |
+| `QAOA` | MaxCut on a triangle, one layer, fixed angles | 3 | state vector | prints the state and expected cut size; the angles are not optimized, so there is no pass criterion |
 | `TROTTER` | Heisenberg `XX + YY + ZZ`, 4 steps, `t = 0.5` | 2 | state vector | Trotter state matches the exact matrix-exponential evolution |
 | `QUANTUM_WALK` | Continuous-time walk on a 3-node line | 3 | state vector | probability above 0.1 on both neighbouring sites |
 

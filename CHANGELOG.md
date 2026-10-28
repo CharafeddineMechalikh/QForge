@@ -46,6 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   under the new prefix. The `example` demo packages are unchanged. Imports in your own code and in
   the guides must use the new prefix; the Maven coordinates did not change again.
 
+### Fixed
+
+- `PriorityResourceScheduler` now reports the task whose future actually completed, instead of the
+  first task in the map that had finished, so the completion order names are correct.
+
 ## [1.0.0] - 2026-10-25
 
 First stable release. The event-driven engine, both backends, the gate set, measurement with state
