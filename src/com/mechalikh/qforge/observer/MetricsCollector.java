@@ -554,14 +554,15 @@ public class MetricsCollector implements SimulationObserver {
      * Reports whether the collector can derive distance and fidelity for a state.
      *
      * <p>Only states exposing amplitudes or a density matrix can be compared. A
-     * stabilizer tableau stores neither, so transitions involving it update the step
+     * stabilizer tableau stores neither, and a matrix product state above the dense
+     * access limit exposes no array, so transitions involving them update the step
      * counters without a distance or fidelity sample.</p>
      *
      * @param state the state to inspect
      * @return {@code true} when the state supports the state metrics
      */
     private static boolean supportsStateMetrics(QuantumState state) {
-        return state instanceof AmplitudeAccess;
+        return state instanceof AmplitudeAccess && ((AmplitudeAccess) state).hasDenseAccess();
     }
     
     /**

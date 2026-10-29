@@ -29,8 +29,10 @@ import java.util.Locale;
  *
  * <p>Two-qubit gates on non-adjacent qubits are implemented with explicit SWAP gates that
  * move one qubit next to the other. The swaps are undone after the gate, so the logical
- * qubit order is unchanged and no dense vector is formed. Dense accessors work up to
- * twenty four qubits; larger states must be sampled.</p>
+ * qubit order is unchanged and no dense vector is formed. Dense accessors, measurement and
+ * the fidelity metrics need an amplitude array and therefore work up to twenty four qubits;
+ * above that limit a state can be evolved but not measured or read out by basis-state
+ * probability.</p>
  */
 public class MPSState extends QuantumState implements AmplitudeAccess {
     private static final int MAX_DENSE_QUBITS = 24;
@@ -569,6 +571,11 @@ public class MPSState extends QuantumState implements AmplitudeAccess {
      * @throws UnsupportedOperationException if the state has more than twenty four qubits
      */
     @Override
+    public boolean hasDenseAccess() {
+        return numQubits <= MAX_DENSE_QUBITS;
+    }
+
+    @Override
     public Complex getAmplitude(int basisState) {
         requireDenseAccess();
         if (basisState < 0 || basisState >= (1 << numQubits)) {
@@ -664,7 +671,8 @@ public class MPSState extends QuantumState implements AmplitudeAccess {
         if (numQubits > MAX_DENSE_QUBITS) {
             throw new UnsupportedOperationException(
                 "Dense amplitude access is available only up to " + MAX_DENSE_QUBITS
-                    + " qubits for the matrix product state backend; sample the state instead");
+                    + " qubits for the matrix product state backend; above that limit the "
+                    + "state can be evolved but not measured or read out");
         }
     }
 

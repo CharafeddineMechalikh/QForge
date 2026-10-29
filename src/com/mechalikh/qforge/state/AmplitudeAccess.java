@@ -14,6 +14,21 @@ import com.mechalikh.qforge.math.Complex;
  */
 public interface AmplitudeAccess {
     /**
+     * Reports whether the full amplitude array is available without exceeding a backend limit.
+     *
+     * <p>State vectors and density matrices always return {@code true}. The matrix product state
+     * backend returns {@code false} above twenty four qubits, where a dense array would be
+     * enormous; its single-entry accessors and {@link #getProbabilities()} throw in that
+     * regime. Consumers that only need a summary, such as the metrics collector, should check
+     * this method before requesting the array.</p>
+     *
+     * @return {@code true} when the dense accessors are usable
+     */
+    default boolean hasDenseAccess() {
+        return true;
+    }
+
+    /**
      * Returns the backend representation of one computational basis state.
      *
      * @param basisState basis-state index in {@code [0, 2^numQubits)}

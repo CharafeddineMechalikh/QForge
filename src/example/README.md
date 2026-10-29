@@ -16,7 +16,10 @@ or macOS, replace the `;` classpath separator with `:`.
 ```mermaid
 flowchart TD
     TOP["src/example<br/>runnable demos"] --> ALG["algorithms<br/>circuit builders + focused examples"]
+    TOP --> BACK["backends<br/>stabilizer and tensor network"]
     TOP --> BENCH["benchmarks<br/>four-backend timing and limits"]
+    TOP --> QASM["qasm<br/>OpenQASM import and export"]
+    TOP --> NOISE["noise<br/>idle, crosstalk, readout"]
     TOP --> JSON["circuits and config<br/>JSON-driven run"]
     TOP --> PLUG["plugins<br/>extension points"]
     TOP --> VIZ["visualization<br/>PNG and GIF gallery"]
@@ -36,6 +39,10 @@ flowchart TD
 | `algorithms.QuantumArithmeticComplete` | exhaustive adder, multiplier and exponentiation checks | 16/16, 64/64, 49/49 and 225/225 cases pass |
 | `algorithms.AmplitudeAmplificationComplete` | Grover amplification for 1, 2 and 3 marked items | success probabilities match the analytic values within 4.77e-15 |
 | `algorithms.QuantumClassifierDemo` | variational classifier on thirty Iris flowers | training 0.8000 and test 0.8000 accuracy |
+| `backends.StabilizerExample` | 200-qubit GHZ, sampling, exact marginal, `T` rejection | 60.3 ms after warm-up, sample split 0.4740 / 0.5260 |
+| `backends.TensorNetworkExample` | bond-dimension sweep against exact probabilities, then hard limits | exact at bond 8, Toffoli and 30-qubit readout rejected |
+| `qasm.QasmInterchange` | OpenQASM file to simulator, emitter round trip, 200 shots | 10 operations in and out, text stable, `out=1` in every shot |
+| `noise.DeviceNoiseExample` | idle relaxation, crosstalk, readout confusion, each isolated | `P(q0=1)` matches `exp(-t/T1)`, `<X>` falls by the crosstalk rate |
 | `benchmarks.BackendBenchmark` | four backends, scaling and measured limits | see [benchmarks/README.md](benchmarks/README.md) |
 | `CircuitRunner` | JSON circuit and config on the command line | Bell state from `bell_state_circuit.json` |
 | `ComprehensiveSimulationExample` | noise, teleportation, resources, plugins, VQE | five demos, all complete |
@@ -129,6 +136,44 @@ Times GHZ circuits on all four backends, scales the state vector and tensor netw
 qubits, scales the stabilizer from 100 to 1000 qubits, and measures the two documented limits (the
 stabilizer rejects `T`, and tensor-network truncation error falls as the bond dimension grows). The
 full tables are in [benchmarks/README.md](benchmarks/README.md).
+
+### QasmInterchange
+
+```bash
+java -cp "target/classes;lib/*" example.qasm.QasmInterchange
+```
+
+Reads [qasm/teleportation.qasm](qasm/teleportation.qasm), schedules the parsed operations, prints
+the single-run register values, emits the program back to OpenQASM 2.0, reparses the emitted text,
+and checks that a second emission is identical. Two hundred shots of the reparsed circuit all
+record `out=1`, the teleported payload. A QASM 3.0 declaration block is accepted and a `reset`
+instruction is rejected with a line and column. The subset and the full emitted text are in
+[qasm/README.md](qasm/README.md).
+
+### DeviceNoiseExample
+
+```bash
+java -cp "target/classes;lib/*" example.noise.DeviceNoiseExample
+```
+
+Measures idle relaxation on a density matrix (`P(q0=1) = 0.606530660` against
+`exp(-1000/2000)`), crosstalk dephasing of an idle neighbour (`<X>` falls from 1.0 to 0.7 at rate
+0.3), and readout confusion over 4000 seeded shots. Each effect is configured alone. The event
+timing, formulas and the measured histogram are in [noise/README.md](noise/README.md).
+
+### Stabilizer and tensor-network examples
+
+```bash
+java -cp "target/classes;lib/*" example.backends.StabilizerExample
+java -cp "target/classes;lib/*" example.backends.TensorNetworkExample
+```
+
+The stabilizer program prepares a 200-qubit GHZ state, samples five qubits, compares an exact
+marginal with the analytic 0.5 / 0.5 split, cross-checks eight qubits against the state vector, and
+shows the `T`-gate rejection. The tensor-network program sweeps the bond dimension from 1 to 64 on
+a twelve-qubit entangling circuit and reports the maximum probability error against the exact
+state, then shows the three-qubit-gate and 24-qubit dense-access limits. Tables and caveats are in
+[backends/README.md](backends/README.md).
 
 ### CircuitRunner
 
@@ -231,9 +276,12 @@ the state at `0.5`/`0.5` after the full run and a completed step.
 ## Directory guides
 
 - [algorithms/README.md](algorithms/README.md): the circuit builders, the ten selectors and the four standalone demos
+- [backends/README.md](backends/README.md): stabilizer sampling, tensor-network truncation and backend limits
 - [benchmarks/README.md](benchmarks/README.md): backend timings, scaling and measured limits
+- [qasm/README.md](qasm/README.md): OpenQASM import, emission, round trip and the supported subset
 - [bb84/README.md](algorithms/bb84/README.md): key distribution with and without an eavesdropper
-- [noise/README.md](algorithms/noise/README.md): depolarizing fidelity sweep
+- [algorithms/noise/README.md](algorithms/noise/README.md): depolarizing fidelity sweep
+- [noise/README.md](noise/README.md): device noise (idle relaxation, crosstalk, readout)
 - [oracle/README.md](algorithms/oracle/README.md): Deutsch, Deutsch-Jozsa, and Bernstein-Vazirani
 - [shor/README.md](algorithms/shor/README.md): order finding that factors 15
 - [teleportation/README.md](algorithms/teleportation/README.md): feed-forward corrections and all four branches

@@ -20,10 +20,11 @@ flowchart TD
     R --> D["docs/ (these guides)"]
     R --> C["CHANGELOG.md, README.md"]
     S --> S1["com/mechalikh/qforge/ (14 packages, including qasm)"]
-    S --> S2["example/ (demos, algorithm builders, benchmarks, JSON resources)"]
+    S --> S2["example/ (demos, algorithms, backends, qasm, noise, benchmarks)"]
     S2 --> S3["example/config/*.json"]
     S2 --> S4["example/circuits/*.json"]
     S2 --> S5["example/benchmarks/BackendBenchmark.java"]
+    S2 --> S6["example/qasm/teleportation.qasm"]
 ```
 
 Maven maps `src` to the main source root and `src/test/java` to the test root, which is unusual:
@@ -34,7 +35,7 @@ copies every `**/*.json` and `**/*.properties` under `src` into `target/classes`
 | Path | Contents |
 | --- | --- |
 | `src/com/mechalikh/qforge/` | the library: `core`, `config`, `events`, `operations`, `state`, `strategy`, `measurement`, `noise`, `observer`, `plugin`, `classical`, `qasm`, `resources`, `math` |
-| `src/example/` | runners, `algorithms`, `benchmarks`, `plugins`, `visualization`, JSON resources |
+| `src/example/` | runners, `algorithms`, `backends`, `qasm`, `noise`, `benchmarks`, `plugins`, `visualization`, JSON and QASM resources |
 | `src/test/java/com/mechalikh/qforge/` | JUnit 5 tests and `TestSupport` |
 | `lib/` | `jackson-annotations`, `jackson-core`, `jackson-databind` |
 | `target/`, `bin/`, `output/` | build and demo artifacts, git-ignored |
@@ -74,7 +75,7 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 
 ## Test suite
 
-510 tests, all passing on the current tree.
+511 tests, all passing on the current tree.
 
 | Class | Tests | Covers |
 | --- | --- | --- |
@@ -108,7 +109,7 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 | `QasmBranchCoverageTest` | 30 | parser rejection paths and emitter branches |
 | `StabilizerTest` | 10 | Clifford gates, GHZ and entanglement, sampling, rejection of T |
 | `StabilizerBranchCoverageTest` | 13 | tableau edge cases, measurement and unsupported operations |
-| `MPSStateTest` | 15 | tensor construction, canonicalization, truncation accounting, probabilities |
+| `MPSStateTest` | 16 | tensor construction, canonicalization, truncation accounting, probabilities |
 | `MPSBranchCoverageTest` | 50 | bond dimensions, gate application paths, truncation and state accessors |
 | `CrossBackendValidationTest` | 6 | the same circuits on state vector, density matrix, stabilizer and tensor network |
 | `example.AlgorithmValidationTest` | 4 | QAOA optimizer, arithmetic, amplitude amplification and classifier results |
@@ -129,7 +130,7 @@ awk -F, 'NR>1 {im+=$4; ic+=$5; bm+=$6; bc+=$7} END {printf "instruction %.1f%%, 
 ```
 
 On the current tree that command reports 98.0 percent instruction coverage and 92.9 percent branch
-coverage over 129 classes. No coverage service is connected, so the README badges carry that
+coverage over 130 classes. No coverage service is connected, so the README badges carry that
 measurement as static Shields images dated 2026-10-29; update both badges when the number moves.
 
 ### Adding a test
@@ -234,9 +235,11 @@ Honest list, in the order people usually hit it:
 - The stabilizer backend accepts Clifford gates only, rejects every Kraus channel, caps a
   `MeasurementResult` at 16 measured targets, and does not implement fidelity or entropy.
 - The tensor-network backend applies at most two qubits per gate, rejects noise channels, and
-  builds dense probabilities, fidelity and entropy only for at most 24 qubits, so it is not a
-  replacement for the state vector at small widths. Truncation reports a relative discarded weight
-  but no rigorous error bound.
+  performs measurement, fidelity, entropy and dense probability extraction only for at most 24
+  qubits. Above that limit a circuit still runs and the metrics collector keeps its step counters,
+  but the final state exposes only bond dimensions, purity and discarded weight, so gate-only
+  evolution is the only use above 24 qubits. Truncation reports a relative discarded weight but no
+  rigorous error bound.
 - QASM import covers the documented subset. `reset`, `opaque`, loops, nested conditions and
   vendor-specific gates are rejected rather than approximated.
 - The exchange format is OpenQASM text. There is no Python Qiskit bridge, so a Qiskit circuit must

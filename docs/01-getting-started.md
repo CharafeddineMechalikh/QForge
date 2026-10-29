@@ -29,7 +29,7 @@ mvn -o test
 ```
 
 The `-o` flag keeps Maven offline and uses the local cache. Drop it when a dependency is missing.
-The current suite contains 510 tests across gates, measurement, noise, algorithms, JSON loading,
+The current suite contains 511 tests across gates, measurement, noise, algorithms, JSON loading,
 backends, OpenQASM, classical control, metrics and plugins, and the Javadoc plugin requires one
 online run before it can work offline.
 
@@ -45,7 +45,11 @@ Each demo prints a `SUCCESS` or `FAILED` line for the property it checks, so a d
 reach its target says so instead of hiding the result. Four further demos have their own entry
 points (`QaoaMaxCut`, `QuantumArithmeticComplete`, `AmplitudeAmplificationComplete` and
 `QuantumClassifierDemo`) and need the Maven dependency classpath; see
-[Algorithms](06-algorithms.md#demo-commands).
+[Algorithms](06-algorithms.md#demo-commands). Device noise, OpenQASM interchange, and the stabilizer
+and tensor-network backends also have standalone examples under `src/example/noise`,
+`src/example/qasm` and `src/example/backends`; the
+[example index](https://github.com/CharafeddineMechalikh/QForge/blob/main/src/example/README.md)
+lists every entry point with its measured output.
 
 ## 3. Run a JSON circuit
 

@@ -41,11 +41,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `example.benchmarks.BackendBenchmark` with its README: four-backend GHZ timings, density-matrix
   scaling, state-vector versus tensor-network scaling from 10 to 20 qubits, stabilizer scaling from
   100 to 1000 qubits, and measured backend limits.
+- Four runnable examples with measured READMEs for the new capabilities:
+  `example.qasm.QasmInterchange` (file import, simulation, emission, stable round trip and 200
+  shots), `example.noise.DeviceNoiseExample` (idle relaxation, crosstalk and readout confusion,
+  each isolated), `example.backends.StabilizerExample` (200-qubit GHZ, sampling, exact marginal
+  and `T` rejection), and `example.backends.TensorNetworkExample` (bond-dimension sweep against
+  exact probabilities, then the gate and dense-access limits).
 
 ### Changed
 
-- The test suite grew to 510 tests, raising JaCoCo coverage to 98.0 percent instruction and 92.9
-  percent branch over 129 classes.
+- The test suite grew to 511 tests, raising JaCoCo coverage to 98.0 percent instruction and 92.9
+  percent branch over 130 classes.
 - `SingleQubitGate.createS` and `createT` now emit the canonical names `S` and `T`, so the
   stabilizer backend can dispatch phase gates by name instead of rejecting a parametric `P` name.
 - `SimulationConfig` gained `deviceNoise`, `classicalRegisters` and `maxBondDimension`, and the
@@ -59,6 +65,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MPSState` truncation diagnostics now report the relative fraction of singular-value weight
   discarded at each truncation, instead of an unnormalized sum that could exceed one and was
   non-zero for separable circuits.
+- `MetricsCollector` now checks the new `AmplitudeAccess.hasDenseAccess()` capability before
+  requesting a probability array, so a matrix product state above 24 qubits runs instead of
+  failing inside the fidelity metric. Above that width the state reports bond dimensions, purity
+  and discarded weight, but not basis-state probabilities or measurement.
 
 ## [1.1.0] - 2026-10-29
 

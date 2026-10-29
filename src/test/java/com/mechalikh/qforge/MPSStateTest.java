@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
+import com.mechalikh.qforge.core.QuantumSimulator;
+import com.mechalikh.qforge.events.QuantumEvent;
 import com.mechalikh.qforge.math.Complex;
 import com.mechalikh.qforge.math.ComplexMatrix;
 import com.mechalikh.qforge.math.ComplexSvd;
@@ -20,6 +24,7 @@ import com.mechalikh.qforge.state.Qubit;
 import com.mechalikh.qforge.state.StateVector;
 import com.mechalikh.qforge.strategy.StateVectorStrategy;
 import com.mechalikh.qforge.strategy.TensorNetworkStrategy;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -290,6 +295,36 @@ class MPSStateTest {
             () -> strategy.applyNoise(state, null, new Qubit[]{new Qubit(0)}));
         assertThrows(IllegalArgumentException.class,
             () -> new TensorNetworkStrategy(0));
+    }
+
+    @Test
+    void denseAccessEndsAtTwentyFourQubitsAndTheSimulatorStillRuns() throws Exception {
+        assertTrue(new MPSState(4, 8).hasDenseAccess());
+
+        SimulationConfig config = new SimulationConfig();
+        config.setNumQubits(25);
+        config.setBackend(SimulationBackend.TENSOR_NETWORK);
+        config.setMaxBondDimension(4);
+        QuantumSimulator simulator = new QuantumSimulator();
+        simulator.initialize(config);
+        simulator.scheduleEvent(event("h_0",
+            SingleQubitGate.createHadamard(new Qubit(0, "q0")), 0));
+        for (int qubit = 1; qubit < 25; qubit++) {
+            simulator.scheduleEvent(event("cx_" + qubit,
+                MultiQubitGate.createCNOT(new Qubit(qubit - 1), new Qubit(qubit)), qubit));
+        }
+
+        MPSState state = (MPSState) simulator.run().getFinalState();
+        assertFalse(state.hasDenseAccess());
+        assertThrows(UnsupportedOperationException.class, state::getProbabilities);
+        assertThrows(UnsupportedOperationException.class, () -> state.getProbability(0));
+    }
+
+    private static QuantumEvent event(String name, QuantumGate gate, int step) {
+        return new QuantumEvent.Builder(name)
+            .withScheduledTime(Instant.now().plusMillis(step))
+            .withOperation(gate)
+            .build();
     }
 
     @Test
