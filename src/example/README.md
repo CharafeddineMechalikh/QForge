@@ -15,11 +15,13 @@ or macOS, replace the `;` classpath separator with `:`.
 
 ```mermaid
 flowchart TD
-    TOP["src/example<br/>runnable demos"] --> ALG["algorithms<br/>circuit builders + 5 focused examples"]
+    TOP["src/example<br/>runnable demos"] --> ALG["algorithms<br/>circuit builders + focused examples"]
+    TOP --> BENCH["benchmarks<br/>four-backend timing and limits"]
     TOP --> JSON["circuits and config<br/>JSON-driven run"]
     TOP --> PLUG["plugins<br/>extension points"]
     TOP --> VIZ["visualization<br/>PNG and GIF gallery"]
     ALG --> DEMO["QuantumAlgorithmsDemo<br/>10 algorithms"]
+    ALG --> STAND["QaoaMaxCut, arithmetic,<br/>amplification, classifier"]
 ```
 
 ## Runnable demos
@@ -30,6 +32,11 @@ flowchart TD
 | `SimpleQuantumSimulationApp` | one qubit, a Bell pair, and 2-qubit Grover | Bell `\|00>`/`\|11>` at 0.5, Grover `\|11>` at 1.0 |
 | `QuantumSimulationApp` | five introductory demos with `[OK]` checks | all five checks pass |
 | `QuantumAlgorithmsDemo` | ten algorithms, selectable by name | ten sections, nine explicit `SUCCESS` verdicts |
+| `algorithms.QaoaMaxCut` | QAOA optimized by Nelder-Mead on a five-node Max-Cut | depth 1 ratio 0.727, depth 2 ratio 0.852 against exact cut 4.5 |
+| `algorithms.QuantumArithmeticComplete` | exhaustive adder, multiplier and exponentiation checks | 16/16, 64/64, 49/49 and 225/225 cases pass |
+| `algorithms.AmplitudeAmplificationComplete` | Grover amplification for 1, 2 and 3 marked items | success probabilities match the analytic values within 4.77e-15 |
+| `algorithms.QuantumClassifierDemo` | variational classifier on thirty Iris flowers | training 0.8000 and test 0.8000 accuracy |
+| `benchmarks.BackendBenchmark` | four backends, scaling and measured limits | see [benchmarks/README.md](benchmarks/README.md) |
 | `CircuitRunner` | JSON circuit and config on the command line | Bell state from `bell_state_circuit.json` |
 | `ComprehensiveSimulationExample` | noise, teleportation, resources, plugins, VQE | five demos, all complete |
 | `MachineLearningQuantumControl` | heuristic feedback control loop | best fidelity 0.8125, model not converged |
@@ -92,7 +99,36 @@ java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo VQE
 ```
 
 See [algorithms/README.md](algorithms/README.md) for the measured result of each selector and the
-five focused examples in their own directories.
+focused examples in their own directories.
+
+### Standalone algorithm demos
+
+Four algorithms have their own entry points and need the Maven dependency classpath, because the
+QAOA and classifier demos use the commons-math3 optimizer:
+
+```bash
+mvn -B -q dependency:build-classpath -Dmdep.outputFile=target/classpath.txt
+CP="target/classes;$(cat target/classpath.txt)"
+java -cp "$CP" example.algorithms.QaoaMaxCut
+java -cp "$CP" example.algorithms.QuantumArithmeticComplete
+java -cp "$CP" example.algorithms.AmplitudeAmplificationComplete
+java -cp "$CP" example.algorithms.QuantumClassifierDemo
+```
+
+The measured tables are in [algorithms/README.md](algorithms/README.md#standalone-demos). The
+classifier reaches 0.8000 test accuracy, not 1.0, and the QAOA depth-two run samples fewer optimal
+cuts than depth one despite a higher expected cut; both results are reported as measured.
+
+### BackendBenchmark
+
+```bash
+java -cp "target/classes;$(cat target/classpath.txt)" example.benchmarks.BackendBenchmark
+```
+
+Times GHZ circuits on all four backends, scales the state vector and tensor network from 10 to 20
+qubits, scales the stabilizer from 100 to 1000 qubits, and measures the two documented limits (the
+stabilizer rejects `T`, and tensor-network truncation error falls as the bond dimension grows). The
+full tables are in [benchmarks/README.md](benchmarks/README.md).
 
 ### CircuitRunner
 
@@ -194,12 +230,13 @@ the state at `0.5`/`0.5` after the full run and a completed step.
 
 ## Directory guides
 
-- [algorithms/README.md](algorithms/README.md): the circuit builders and the ten algorithm demos
+- [algorithms/README.md](algorithms/README.md): the circuit builders, the ten selectors and the four standalone demos
+- [benchmarks/README.md](benchmarks/README.md): backend timings, scaling and measured limits
 - [bb84/README.md](algorithms/bb84/README.md): key distribution with and without an eavesdropper
 - [noise/README.md](algorithms/noise/README.md): depolarizing fidelity sweep
 - [oracle/README.md](algorithms/oracle/README.md): Deutsch, Deutsch-Jozsa, and Bernstein-Vazirani
 - [shor/README.md](algorithms/shor/README.md): order finding that factors 15
-- [teleportation/README.md](algorithms/teleportation/README.md): all four teleportation branches
+- [teleportation/README.md](algorithms/teleportation/README.md): feed-forward corrections and all four branches
 - [plugins/README.md](plugins/README.md): plugin lifecycle, extension points, and limits
 - [visualization/README.md](visualization/README.md): the PNG and GIF gallery under `output/quantum_viz/`
 - [circuits/README.md](circuits/README.md): the JSON circuit format

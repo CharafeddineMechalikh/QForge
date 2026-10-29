@@ -241,7 +241,33 @@ Add instances to a profile with `NoiseProfile.addNoise(qubit, model)` or
 
 ## Classical feed-forward control
 
-Enable it with `config.setClassicalControlEnabled(true)`, then replace the placeholder rules.
+Mid-circuit feed-forward is a supported engine path. Declare a classical register on the
+configuration, point a measurement at it, and schedule a `ConditionalOperation` that tests the
+register in the same shot:
+
+```java
+config.addClassicalRegister("alice", 2);
+
+MeasurementOperator measure = MeasurementOperator.computationalBasis(new Qubit[]{ q0 }, 1)
+    .withClassicalTarget("alice", 0);
+MeasurementOperator measureBell = MeasurementOperator.computationalBasis(new Qubit[]{ q1 }, 1)
+    .withClassicalTarget("alice", 1);
+
+ConditionalOperation correctX = new ConditionalOperation(
+    SingleQubitGate.createPauliX(bob), "alice", 2L, 2L);
+```
+
+`ShotRunner.run(config, factory, shots)` repeats the circuit with a fresh simulator per shot and
+returns the per-shot register values plus a histogram. The event-time model and the register
+packing are described in
+[Architecture](02-architecture.md#classical-control-and-feed-forward), and a complete measured
+protocol is in
+[the teleportation README](https://github.com/CharafeddineMechalikh/QForge/blob/main/src/example/algorithms/teleportation/README.md).
+
+## Rule-based controller
+
+The `ClassicalController` below is a separate, older extension mechanism. Enable it with
+`config.setClassicalControlEnabled(true)`, then replace the placeholder rules.
 
 ```java
 import com.mechalikh.qforge.classical.ClassicalController;

@@ -1,5 +1,6 @@
 package com.mechalikh.qforge.config;
 
+import com.mechalikh.qforge.noise.DeviceNoiseModel;
 import com.mechalikh.qforge.noise.NoiseProfile;
 import com.mechalikh.qforge.operations.GateLibrary;
 import com.fasterxml.jackson.core.JsonParser;
@@ -43,6 +44,9 @@ public class SimulationConfig {
     private double timeoutSeconds;
     private boolean classicalControlEnabled;
     private Map<String, Object> customParameters;
+    private final Map<String, Integer> classicalRegisters;
+    private DeviceNoiseModel deviceNoise;
+    private int maxBondDimension;
     
     /**
      * Creates a configuration with the defaults described in the class documentation.
@@ -60,6 +64,9 @@ public class SimulationConfig {
         this.timeoutSeconds = 0; // No timeout
         this.classicalControlEnabled = false;
         this.customParameters = new HashMap<>();
+        this.classicalRegisters = new LinkedHashMap<>();
+        this.deviceNoise = DeviceNoiseModel.disabled(0);
+        this.maxBondDimension = 64;
     }
     
     /**
@@ -111,6 +118,17 @@ public class SimulationConfig {
         
         if (timeoutSeconds < 0) {
             return false;
+        }
+        
+        if (maxBondDimension < 1) {
+            return false;
+        }
+        
+        for (Map.Entry<String, Integer> register : classicalRegisters.entrySet()) {
+            if (register.getKey() == null || register.getValue() == null
+                || register.getValue() <= 0) {
+                return false;
+            }
         }
         
         // Validate resource constraints based on backend
@@ -200,6 +218,23 @@ public class SimulationConfig {
             this.noiseProfile.loadFromMap(data.noiseProfile);
         }
         
+        if (data.deviceNoise != null && !data.deviceNoise.isEmpty()) {
+            this.deviceNoise = DeviceNoiseModel.fromMap(data.deviceNoise);
+        }
+        
+        if (data.classicalRegisters != null) {
+            this.classicalRegisters.clear();
+            for (Map.Entry<String, Integer> entry : data.classicalRegisters.entrySet()) {
+                if (entry.getValue() != null && entry.getValue() > 0) {
+                    this.classicalRegisters.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        
+        if (data.maxBondDimension > 0) {
+            this.maxBondDimension = data.maxBondDimension;
+        }
+        
         if (data.customParameters != null) {
             this.customParameters.putAll(data.customParameters);
         }
@@ -238,6 +273,9 @@ public class SimulationConfig {
         data.maxCPUs = resourceConstraints.getMaxCPUs();
         data.maxGPUs = resourceConstraints.getMaxGPUs();
         data.noiseProfile = noiseProfile.toMap();
+        data.deviceNoise = deviceNoise != null ? deviceNoise.toMap() : new LinkedHashMap<>();
+        data.classicalRegisters = new LinkedHashMap<>(classicalRegisters);
+        data.maxBondDimension = maxBondDimension;
         data.maxSteps = maxSteps;
         data.timeoutSeconds = timeoutSeconds;
         data.classicalControlEnabled = classicalControlEnabled;
@@ -295,6 +333,16 @@ public class SimulationConfig {
                 // (2^numQubits)^2 elements
                 long matrixSize = (long) Math.pow(2, numQubits);
                 return matrixSize * matrixSize * 16L + 2048;
+                
+            case STABILIZER:
+                // Two rows per qubit, each with 2n + 2 bits stored as longs
+                long stabilizerWords = ((long) numQubits * 4L + 2L) / 64L + 1L;
+                return numQubits * numQubits * stabilizerWords * 8L + 4096L;
+                
+            case TENSOR_NETWORK:
+                // n tensors, each with a bond-dimension squared block per physical index
+                long bondElements = (long) numQubits * maxBondDimension * maxBondDimension * 2L;
+                return bondElements * 16L + 4096L;
                 
             default:
                 return 1024L * 1024L * 10; // 10MB default
@@ -533,6 +581,71 @@ public class SimulationConfig {
         return customParameters.get(key);
     }
     
+    /**
+     * Returns the classical registers created at initialization, in declaration order.
+     *
+     * @return an unmodifiable map from register name to width
+     */
+    public Map<String, Integer> getClassicalRegisters() {
+        return Collections.unmodifiableMap(classicalRegisters);
+    }
+    
+    /**
+     * Declares a classical register. A later call with the same name replaces the width.
+     *
+     * @param name register name, which must be unique per configuration
+     * @param size register width, positive
+     * @return this configuration, for chaining
+     * @throws NullPointerException if {@code name} is {@code null}
+     * @throws IllegalArgumentException if {@code size} is not positive
+     */
+    public SimulationConfig addClassicalRegister(String name, int size) {
+        if (name == null) {
+            throw new NullPointerException("Register name cannot be null");
+        }
+        if (size <= 0) {
+            throw new IllegalArgumentException("Register size must be positive");
+        }
+        classicalRegisters.put(name, size);
+        return this;
+    }
+    
+    /**
+     * Returns the device noise parameters used for idle relaxation, crosstalk and readout.
+     *
+     * @return the device noise model, inert (never {@code null}) by default
+     */
+    public DeviceNoiseModel getDeviceNoise() {
+        return deviceNoise;
+    }
+    
+    /**
+     * Replaces the device noise parameters.
+     *
+     * @param deviceNoise device noise model; {@code null} is treated as inert
+     */
+    public void setDeviceNoise(DeviceNoiseModel deviceNoise) {
+        this.deviceNoise = deviceNoise != null ? deviceNoise : DeviceNoiseModel.disabled(0);
+    }
+    
+    /**
+     * Returns the bond dimension cap used by the tensor network backend.
+     *
+     * @return the maximum bond dimension, 64 by default
+     */
+    public int getMaxBondDimension() {
+        return maxBondDimension;
+    }
+    
+    /**
+     * Sets the bond dimension cap used by the tensor network backend.
+     *
+     * @param maxBondDimension bond dimension, positive; {@link #validate()} rejects smaller values
+     */
+    public void setMaxBondDimension(int maxBondDimension) {
+        this.maxBondDimension = maxBondDimension;
+    }
+    
     // Inner class for JSON serialization
     private static class ConfigData {
         public String name;
@@ -544,6 +657,9 @@ public class SimulationConfig {
         public int maxCPUs;
         public int maxGPUs;
         public Map<String, Object> noiseProfile;
+        public Map<String, Object> deviceNoise;
+        public Map<String, Integer> classicalRegisters;
+        public int maxBondDimension;
         public int maxSteps;
         public double timeoutSeconds;
         public boolean classicalControlEnabled;

@@ -1,21 +1,24 @@
 # QForge: Event-Driven Quantum Circuit Simulator in Java
 
 **QForge is an open source quantum computing library written in pure Java 17, with no native
-dependencies.** It simulates quantum circuits with a state vector or a density matrix, applies
-realistic quantum noise (depolarizing, dephasing, amplitude damping), measures arbitrary Hermitian
-observables, and ships runnable implementations of Grover's algorithm, the Quantum Fourier
-Transform, quantum phase estimation, VQE, QAOA, Trotterized time evolution, the Shor code, quantum
-walks, a quantum neural network, and a quantum kernel classifier.
+dependencies.** It simulates circuits with four backends (state vector, density matrix, Clifford
+stabilizer, and matrix product state), applies device noise (T1/T2 relaxation, idle noise,
+crosstalk, readout error, and Kraus channels), enforces measurement-driven feed-forward through
+classical registers, imports and exports an OpenQASM 2.0/3.0 subset, and ships runnable
+implementations of Grover's algorithm, the Quantum Fourier Transform, quantum phase estimation,
+VQE, QAOA (including an optimizer-driven Max-Cut instance), complete arithmetic circuits,
+amplitude amplification, Trotterized time evolution, the Shor code, quantum walks, a quantum
+neural network, and a quantum kernel classifier.
 
 [![Java 17](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-338%20passing-brightgreen)](docs/08-development.md)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-510%20passing-brightgreen)](docs/08-development.md)
 [![CI](https://github.com/CharafeddineMechalikh/QForge/actions/workflows/ci.yml/badge.svg)](https://github.com/CharafeddineMechalikh/QForge/actions/workflows/ci.yml)
-[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-97.7%25-brightgreen)](docs/08-development.md#coverage)
-[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-91.8%25-green)](docs/08-development.md#coverage)
-[![Backends](https://img.shields.io/badge/backends-state%20vector%20%2B%20density%20matrix-lightgrey)](docs/02-architecture.md)
+[![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-98.0%25-brightgreen)](docs/08-development.md#coverage)
+[![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-92.9%25-green)](docs/08-development.md#coverage)
+[![Backends](https://img.shields.io/badge/backends-state%20vector%2C%20density%20matrix%2C%20stabilizer%2C%20MPS-lightgrey)](docs/02-architecture.md)
 [![Documentation site](https://img.shields.io/badge/docs-GitHub%20Pages-informational)](https://charafeddinemechalikh.github.io/QForge/)
 
 ```bash
@@ -50,16 +53,18 @@ No GPU, no C++ toolchain, no Python environment. One JDK and Maven are enough.
 
 | Reason | What it means in practice |
 | --- | --- |
-| Real quantum noise | Kraus-operator channels, deterministic on the density matrix, quantum trajectories on the state vector |
-| Two exact backends | `STATE_VECTOR` up to 30 qubits, `DENSITY_MATRIX` up to 12 qubits |
+| Four backends | `STATE_VECTOR` to 30 qubits, `DENSITY_MATRIX` to 12, an exact Clifford `STABILIZER` tableau to 2000, and a truncated `TENSOR_NETWORK` MPS backend |
+| Real quantum noise | Kraus channels, T1/T2 thermal relaxation, idle relaxation between events, crosstalk, and readout confusion |
+| Feed-forward | Mid-circuit measurement writes classical registers and `ConditionalOperation` applies corrections when the condition holds, evaluated by the engine per shot |
 | Observable-driven measurement | Projective collapse, eigenvalues, expectation value, variance, standard error |
-| Time-ordered execution | Circuits are scheduled `QuantumEvent` objects, so mid-circuit measurement and feed-forward are natural |
-| Algorithm reference code | Ten algorithm demos, each with a quantitative pass criterion and a test |
+| OpenQASM interchange | QASM 2.0 and a QASM 3.0 subset import and export, including conditional `if(c==n)` statements |
+| Time-ordered execution | Circuits are scheduled `QuantumEvent` objects, so measurement, idle noise, and conditional gates follow event time |
+| Algorithm reference code | Runnable algorithm and protocol demos, each with a quantitative pass criterion and a test |
 | JSON first | Circuits and noisy configurations are plain JSON files that may contain comments |
 | Extensible | Plugin API, observer callbacks, custom gates, custom noise channels |
 | Visualized | Java2D state renderings, density matrices, circuit diagrams, timelines, animated GIFs |
 | Documented | Nine guides plus full Javadoc on every public type in the simulator and the examples |
-| Self-contained math | Complex arithmetic, tensor products, and eigen routines live in-repo, with no numerical library dependency |
+| Self-contained math | Complex arithmetic, tensor products, SVD, and eigen routines live in-repo, with no numerical library dependency |
 
 ## Quick start
 
@@ -138,7 +143,7 @@ same guides are published as a website at
 | 3 | [Configuration](docs/03-configuration.md) | `SimulationConfig` fields, validation, noise profiles, resource limits | 10 min |
 | 4 | [Gates and circuits](docs/04-gates-and-circuits.md) | Gate catalog, qubit ordering, custom gates, circuit JSON | 12 min |
 | 5 | [Measurement and noise](docs/05-measurement-and-noise.md) | Collapse, observables, Kraus channels, trajectories, fidelity | 12 min |
-| 6 | [Algorithms](docs/06-algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, walks | 15 min |
+| 6 | [Algorithms](docs/06-algorithms.md) | Grover, amplitude amplification, QFT, QPE, VQE, QNN, QSVM, Shor code, optimizer QAOA, arithmetic, Trotter, walks | 15 min |
 | 7 | [Extending QForge](docs/07-extending.md) | Plugins, observers, custom gates and noise, feed-forward control | 12 min |
 | 8 | [Development](docs/08-development.md) | Repo layout, tests, Javadoc, conventions, releases | 8 min |
 
@@ -150,12 +155,20 @@ API reference: run `mvn javadoc:javadoc`, then open `target/site/apidocs/index.h
 
 | Backend | State size | Qubit ceiling | Best for |
 | --- | --- | --- | --- |
-| `STATE_VECTOR` | `2^n` complex amplitudes | 30, limited by heap | Pure states, algorithms, larger circuits |
+| `STATE_VECTOR` | `2^n` complex amplitudes | 30, limited by heap | Pure states, algorithms, noise trajectories |
 | `DENSITY_MATRIX` | `2^n x 2^n` complex matrix | 12 | Noise, mixed states, decoherence studies |
+| `STABILIZER` | `2n` tableau rows of `2n + 2` bits | 2000 | Clifford circuits; exact outcome probabilities for up to 16 measured targets |
+| `TENSOR_NETWORK` | matrix product state, bond dimension capped by `maxBondDimension` | 100 at a modest bond dimension; dense probabilities capped at 24 | Low-entanglement circuits with many qubits |
+
+The stabilizer backend rejects non-Clifford gates and Kraus channels. The tensor-network backend
+applies at most two-qubit gates, rejects noise, and truncates the bond dimension with a reported
+relative discarded weight. The state vector and density matrix backends are the ones to use with a
+device noise model.
 
 A 12-qubit density matrix alone is about 256 MiB. `SimulationConfig.validate()` estimates the
 memory requirement before the simulation starts, so an impossible configuration fails early instead
-of exhausting the heap mid-run.
+of exhausting the heap mid-run. The measured timings and backend limits are in
+[the backend benchmark](src/example/benchmarks/README.md).
 
 ### Gates
 
@@ -292,21 +305,26 @@ A simulator. It computes the exact state evolution of a circuit on a classical C
 backend.
 
 **How many qubits can I simulate?**
-Up to 30 with `STATE_VECTOR` and up to 12 with `DENSITY_MATRIX`, in practice limited by available
-heap. Raise it with `-Xmx`, for example `-Xmx8g`.
+Up to 30 with `STATE_VECTOR`, 12 with `DENSITY_MATRIX`, 2000 with the Clifford `STABILIZER`
+backend, and 100 with `TENSOR_NETWORK` at a modest bond dimension. The exact backends are limited
+by available heap; raise it with `-Xmx`, for example `-Xmx8g`.
 
 **Does it support quantum noise?**
-Yes: depolarizing, dephasing, and amplitude damping channels with Kraus operators, configurable per
-qubit or globally through JSON and applied after every gate. On the state-vector backend noise is
-sampled as quantum trajectories, so a single run is stochastic.
+Yes: depolarizing, dephasing, and amplitude damping channels with Kraus operators, plus device
+noise comprising T1/T2 thermal relaxation after every gate, idle relaxation proportional to the time
+an event waits, scalar crosstalk dephasing on idle neighbours, and readout confusion. All of it is
+configurable per qubit or globally through JSON.
 
 **Can I measure in the middle of a circuit?**
-Yes. A mid-circuit measurement collapses the state and later gates act on the collapsed state, which
-is what feed-forward experiments need.
+Yes. A mid-circuit measurement collapses the state, writes its outcome into a classical register,
+and later `ConditionalOperation` events apply gates only when the register matches the expected
+bits. `ShotRunner` repeats the whole circuit so each shot follows its own branch.
 
 **Is it OpenQASM compatible?**
-Not yet. Circuits are built in Java or in the project's own JSON schema, with no QASM import or
-export.
+Yes, for a documented subset. `QasmParser` reads OpenQASM 2.0 and a QASM 3.0 subset (including
+`if(c==n)` conditionals and classical registers) into `QasmProgram`, and `QasmEmitter` writes a
+scheduled circuit back to QASM 2.0. Gates outside the supported set raise `QasmException` rather
+than being dropped.
 
 **Does it run on Windows, Linux, and macOS?**
 Yes. It is plain Java, and the visualization writes PNG and GIF files through Java2D. There is no
@@ -314,8 +332,9 @@ interactive UI.
 
 **Is this production grade?**
 It is an educational and research-prototyping simulator. The math is exact for the supported
-backends, but the density-matrix eigen routines are dense and the noise model is gate-based rather
-than time-based. See [Limitations](#limitations).
+backends, the four backends cover different simulation regimes, and the negative results are
+documented, but the density-matrix eigen routines are dense and the noise model stops short of a
+continuous-time Lindblad solver. See [Limitations](#limitations).
 
 **Which license applies?**
 MIT. The full text is in [LICENSE](LICENSE); see [License](#license).
@@ -331,8 +350,8 @@ mvn -o test
 ```
 
 The `-o` flag uses the local Maven cache; remove it if dependencies need to be downloaded. The
-suite runs 338 tests across gates, measurement, noise, algorithms, JSON loading, metrics, plugins,
-and VQE convergence.
+suite runs 510 tests across gates, measurement, noise, backends, OpenQASM, classical control,
+algorithms, JSON loading, metrics, plugins, and VQE convergence.
 
 Generate the API documentation:
 
@@ -377,33 +396,39 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 
 **Implemented**
 
-- [x] Event-driven execution with `STATE_VECTOR` and `DENSITY_MATRIX` backends
+- [x] Event-driven execution with `STATE_VECTOR`, `DENSITY_MATRIX`, `STABILIZER`, and
+  `TENSOR_NETWORK` backends
 - [x] Gate set with control-first matrix ordering, including Toffoli, multi-controlled `Z`, and
   controlled `SWAP`
 - [x] Projective measurement with state collapse, observables, expectation values, and variance
 - [x] Depolarizing, dephasing, and amplitude-damping noise with Kraus channels and JSON profiles
+- [x] Device noise: T1/T2 thermal relaxation, idle relaxation by event time, crosstalk, and readout
+  confusion
+- [x] Classical registers, conditional operations, and the per-shot `ShotRunner`
+- [x] OpenQASM 2.0 export and OpenQASM 2.0/3.0-subset import, including conditionals
 - [x] JSON configuration and circuit loading
 - [x] Observer callbacks, metrics, and Java2D visualization
 - [x] Plugin API with lifecycle hooks
-- [x] Ten quantum algorithm demos with pass criteria
+- [x] Algorithm demos with pass criteria, including optimizer QAOA Max-Cut, complete arithmetic,
+  amplitude amplification, and QNN/QSVM classifiers
+- [x] Cross-backend and analytic validation tests (state vector against stabilizer, density matrix,
+  MPS, and closed-form GHZ, W, QFT, and Grover references)
+- [x] A measured backend benchmark covering runtime, correctness, Clifford limits, and MPS
+  truncation
 - [x] Javadoc for every public type and numbered guides `01` to `08`
-- [x] 338-test JUnit 5 suite with 97.7 percent instruction and 91.8 percent branch coverage
+- [x] 510-test JUnit 5 suite with 98.0 percent instruction and 92.9 percent branch coverage
 - [x] JaCoCo coverage check that fails `mvn verify` below 90 percent instruction and branch coverage
-- [x] Travis CI and Codacy configuration files, plus `CITATION.cff` and repository metadata
+- [x] GitHub Actions CI running tests and coverage gates on every push and pull request
 - [x] MIT license, declared in `pom.xml` and `CITATION.cff`
 
 **Planned**
 
-- [ ] Activate Travis CI and Codacy on their hosted services and turn on their badges
 - [ ] Publish `com.mechalikh:qforge` to Maven Central or JitPack
-- [ ] Import and export OpenQASM 2 and 3
-- [ ] Add a Qiskit JSON adapter
-- [ ] Add a stabilizer (Clifford) backend for thousands of qubits
-- [ ] Add a tensor-network or matrix-product-state backend for low-entanglement circuits
-- [ ] Add time-based noise: T1 and T2 relaxation, idle noise, crosstalk, and readout error
+- [ ] Add a Qiskit JSON adapter and round-trip the QASM 3 circuit features that are still rejected
 - [ ] Add error mitigation: zero-noise extrapolation and readout mitigation
+- [ ] Noise channels for the MPS backend and a Pauli-frame simulator
 - [ ] Make quantum trajectories reproducible with recorded seeds
-- [ ] Cross-validate outputs against Qiskit and add property-based circuit tests
+- [ ] Cross-validate against Qiskit itself rather than only closed-form references
 - [ ] Add JMH performance benchmarks to CI
 - [ ] Add notebook integration and a step-through execution mode
 - [ ] Add an interactive visualization UI
@@ -415,14 +440,20 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 
 ## Limitations
 
-- No OpenQASM import or export; circuits are built in Java or JSON.
-- Noise in configuration mode is gate-based, not time-based idle noise.
-- State-vector noise is trajectory-based and therefore stochastic.
+- OpenQASM support is a documented subset: the import accepts the gate set the simulator can run,
+  and the emitter writes QASM 2.0 only. A QASM 3 document with features outside the subset is
+  rejected with the offending token.
+- Device noise is gate- and event-time-based, not a continuous-time Lindblad evolution.
+- State-vector noise is trajectory-based and therefore stochastic; the density matrix is
+  deterministic.
+- The stabilizer backend accepts Clifford gates only and computes exact outcome probabilities for at
+  most 16 measured qubits.
+- The tensor network backend truncates at the configured bond dimension, rejects Kraus noise, and
+  reports its accumulated relative discarded weight.
 - Multi-qubit depolarizing is limited to 4 target qubits because the channel requires `4^n - 1`
   Kraus operators; independent multi-qubit dephasing and damping are limited to 8 targets.
 - Density-matrix simulation is exact but expensive, and the eigen routines are dense.
 - Visualization uses Java2D and local PNG and GIF files; there is no interactive UI.
-- No tensor-network, stabilizer, or path-integral backend.
 - The configured `timeoutSeconds` value and the three default control rules are recorded but not
   enforced by the engine; see [docs/03-configuration.md](docs/03-configuration.md).
 
@@ -435,7 +466,7 @@ If QForge helps your work, cite the repository:
   title   = {QForge: An Event-Driven Quantum Circuit Simulator in Java},
   author  = {Mechalikh, Charafeddine},
   year    = {2026},
-  version = {1.1.0},
+  version = {2.0.0},
   url     = {https://github.com/CharafeddineMechalikh/QForge}
 }
 ```

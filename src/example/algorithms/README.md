@@ -1,9 +1,11 @@
 # Quantum algorithm examples
 
 The builders in this package assemble circuits and return them as arrays or lists of `QuantumEvent`;
-none of them schedules or runs a simulation. `example.QuantumAlgorithmsDemo` is the runner: it
+none of them schedules or runs a simulation. `example.QuantumAlgorithmsDemo` is the main runner: it
 builds the qubits, schedules the events on a `QuantumSimulator`, runs the circuit, and prints the
-final state with a `SUCCESS` or `FAILED` verdict where it can check one.
+final state with a `SUCCESS` or `FAILED` verdict where it can check one. Four further demos have
+their own `main` methods, because they report measured tables or a trained model rather than one
+banner.
 
 Five algorithms have their own directory and README with a deeper analysis, because they either
 need more circuit structure or deserve a distribution plot:
@@ -22,9 +24,21 @@ java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo ALL
 java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo VQE
 ```
 
-On Linux or macOS use `:` instead of `;`. The optional first argument is case insensitive:
+On Linux and macOS use `:` instead of `;`. The optional first argument is case insensitive:
 `GROVER`, `QFT`, `QPE`, `VQE`, `QNN`, `QSVM`, `SHOR_CODE`, `QAOA`, `TROTTER`, `QUANTUM_WALK`, or
 `ALL`.
+
+The standalone demos need the Maven dependency classpath because two of them use the
+commons-math3 optimizer:
+
+```bash
+mvn -B -q dependency:build-classpath -Dmdep.outputFile=target/classpath.txt
+CP="target/classes;$(cat target/classpath.txt)"
+java -cp "$CP" example.algorithms.QaoaMaxCut
+java -cp "$CP" example.algorithms.QuantumArithmeticComplete
+java -cp "$CP" example.algorithms.AmplitudeAmplificationComplete
+java -cp "$CP" example.algorithms.QuantumClassifierDemo
+```
 
 ```mermaid
 flowchart LR
@@ -58,6 +72,23 @@ zero-cut states `|000>` and `|111>`; the printed expected cut size is 0.5258 aga
 The demo prints that note itself. Treat it as an unoptimized example of the circuit, not as evidence
 that QAOA finds the maximum cut.
 
+## Standalone demos
+
+| Demo | What it measures | Captured result |
+| --- | --- | --- |
+| `QaoaMaxCut` | QAOA angles optimized by Nelder-Mead on a five-node weighted graph, exact cut 4.5 | depth 1 expected cut 3.272756 (ratio 0.727279), depth 2 3.835804 (ratio 0.852401); 714/2000 and 435/2000 sampled shots reach the optimum |
+| `QuantumArithmeticComplete` | In-place adder, modular multiplier and modular exponentiation, every input pair | adder 16/16 and 64/64 cases, multiplier 49/49 and 225/225, exponentiation 49/49 and 225/225, all with probability 1.000000 |
+| `AmplitudeAmplificationComplete` | Grover amplification for `k = 1, 2, 3` marked items in `N = 16` | success 0.961318970, 0.945312500, 0.949218750, matching `sin^2((2m+1)theta)` to at most 4.77e-15 |
+| `QuantumClassifierDemo` | Two-qubit variational classifier on thirty Iris flowers, fixed hold-out | training accuracy 0.8000 (16/20), test accuracy 0.8000 (8/10), training MSE 0.158525 |
+
+The QAOA depth-two run has the higher expected cut but a lower fraction of sampled optimal shots,
+and its most frequent outcome has cut 4.0. The classifier does not reach 100 percent on the held-out
+flowers and says so in its output. Both negative details are kept in the READMEs on purpose.
+
+The arithmetic demo is verified exhaustively for the widths it claims: the adder uses `3n + 1`
+qubits, the multiplier and exponentiation use `2n` qubits for a modulus of `n` bits, and the
+exponentiation is one dense `2^(2n) x 2^(2n)` permutation, so no modulus above 15 is claimed.
+
 ## What each builder does
 
 - **`GroversAlgorithm`** (`createGroversCircuit`): Hadamards, then
@@ -81,22 +112,34 @@ that QAOA finds the maximum cut.
   type. The demo starts in the middle and checks that both neighbours receive probability.
 - **`VQEAlgorithm`**: the ansatz builder behind the variational eigensolver demo. The optimizer
   itself lives in `com.mechalikh.qforge.classical`.
+- **`QaoaMaxCut`**: the optimized QAOA builder. It returns the circuit for a supplied angle vector,
+  and its `optimize(depth, initialAngles)` method drives the Nelder-Mead loop over the exact cut
+  expectation.
+- **`QuantumArithmeticComplete`**: `createInPlaceAdder`, `createControlledMultiplier` and
+  `createModularExponentiation`, each returning a `QuantumEvent[]` that the demo runs exhaustively.
+- **`AmplitudeAmplificationComplete`**: per-item marking oracles, the diffusion operator and
+  `optimalIterations(numQubits, markedCount)`, with the measured success probability returned by
+  `amplify(...)`.
+- **`QuantumClassifierDemo`**: angle encoding, three `RY` plus CNOT layers, and a Nelder-Mead
+  training loop over a fixed Iris split. The measured accuracies are returned by
+  `trainAndEvaluate()`.
 
-## Builders without a demo
+## Older builders without a demo
 
-Two classes are reference material and are not exercised by `QuantumAlgorithmsDemo`:
+Two older classes remain as reference sketches and are not exercised by any runner:
 
 - **`QuantumAmplitudeAmplification.amplify(...)`** appends oracle and diffusion repetitions to a
   caller-supplied initialization circuit. Its multi-controlled Z inside the diffusion step is a
   simplified decomposition (CZ for two qubits, a short CNOT/RZ sequence for three, a CNOT cascade
-  above that), documented as simplified in the source. Because no demo runs it, there is no captured
-  output here; validate any circuit built with it against a known case before relying on it.
+  above that). `AmplitudeAmplificationComplete` is the independently implemented, measured
+  replacement; this class is kept for callers that already use its API.
 - **`QuantumArithmetic.createQuantumAdder(...)`** emits the carry and sum CNOTs of a partial
   ripple-carry adder and omits the remaining carry logic. `createQuantumMultiplier(...)` is a
-  placeholder that returns an empty circuit. These are sketches, not complete arithmetic.
+  placeholder that returns an empty circuit. `QuantumArithmeticComplete` is the verified
+  replacement and does not call this class.
 
-Neither class is claimed to be correct for arbitrary inputs. They are kept because they show the
-intended circuit shape for a future full implementation.
+Neither older class is claimed to be correct for arbitrary inputs. The complete implementations are
+the ones covered by the measured output above and by `AlgorithmValidationTest`.
 
 ## Notes
 

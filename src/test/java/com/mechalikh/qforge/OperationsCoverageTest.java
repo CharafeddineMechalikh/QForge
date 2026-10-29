@@ -77,12 +77,12 @@ class OperationsCoverageTest {
         assertEquals(-1.0 / Math.sqrt(2), h.getMatrix().get(1, 1).real(), 1e-12);
 
         QuantumGate s = library.createGate("S", Q0);
-        assertTrue(s.getName().startsWith("P("));
+        assertEquals("S", s.getName());
         assertEquals(0.0, s.getMatrix().get(1, 1).real(), 1e-12);
         assertEquals(1.0, s.getMatrix().get(1, 1).imag(), 1e-12);
 
         QuantumGate t = library.createGate("T", Q0);
-        assertTrue(t.getName().startsWith("P("));
+        assertEquals("T", t.getName());
         assertEquals(1.0 / Math.sqrt(2), t.getMatrix().get(1, 1).real(), 1e-12);
         assertEquals(1.0 / Math.sqrt(2), t.getMatrix().get(1, 1).imag(), 1e-12);
 

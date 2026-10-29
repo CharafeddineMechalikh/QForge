@@ -3,19 +3,22 @@ message: "If you use QForge in your work, please cite it as below."
 title: "QForge: An Event-Driven Quantum Circuit Simulator in Java"
 abstract: >-
   QForge is an exact quantum circuit simulator written in Java 17. It executes
-  time-ordered quantum events against a state-vector backend (up to 30 qubits) or a
-  density-matrix backend (up to 12 qubits), applies depolarizing, dephasing, and
-  amplitude-damping noise through Kraus operators, measures arbitrary Hermitian
-  observables with projective state collapse, and includes reference circuits for
-  Grover search, the quantum Fourier transform, phase estimation, VQE, QAOA,
-  Trotterized evolution, the Shor code, quantum walks, a quantum neural network, and
-  a swap-test kernel classifier.
+  time-ordered quantum events against a state-vector backend (up to 30 qubits), a
+  density-matrix backend (up to 12 qubits), an exact Clifford stabilizer tableau, or
+  a truncated matrix-product-state backend. It applies Kraus noise plus device noise
+  (T1/T2 relaxation, idle relaxation, crosstalk, and readout confusion), supports
+  classical registers with conditional feed-forward and per-shot execution, imports
+  and exports an OpenQASM 2.0/3.0 subset, measures arbitrary Hermitian observables
+  with projective state collapse, and includes reference circuits for Grover search,
+  the quantum Fourier transform, phase estimation, VQE, QAOA, arithmetic, amplitude
+  amplification, Trotterized evolution, the Shor code, quantum walks, a quantum neural
+  network, and a swap-test kernel classifier.
 type: software
 license: MIT
 authors:
   - family-names: Mechalikh
     given-names: Charafeddine
-version: 1.1.0
+version: 2.0.0
 date-released: 2026-10-29
 repository-code: "https://github.com/CharafeddineMechalikh/QForge"
 url: "https://github.com/CharafeddineMechalikh/QForge"
@@ -24,6 +27,9 @@ keywords:
   - quantum circuit simulator
   - state vector simulator
   - density matrix simulator
+  - stabilizer simulator
+  - tensor network simulator
+  - OpenQASM
   - quantum noise
   - Kraus operators
   - quantum algorithms

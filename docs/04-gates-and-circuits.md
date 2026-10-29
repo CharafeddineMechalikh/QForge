@@ -309,14 +309,74 @@ Loading notes for `CircuitRunner`:
 - Measurement is not part of this schema. Add measurement events in Java, see
   [Measurement and noise](05-measurement-and-noise.md).
 
+## OpenQASM interchange
+
+`QasmParser` reads OpenQASM 2.0 and a QASM 3.0 subset into a `QasmProgram`, and `QasmEmitter`
+writes a program back to QASM 2.0.
+
+```java
+QasmParser parser = new QasmParser();
+QasmProgram program = parser.parse(
+    "OPENQASM 2.0;\n"
+    + "include \"qelib1.inc\";\n"
+    + "qreg q[2];\n"
+    + "creg c[2];\n"
+    + "h q[0];\n"
+    + "cx q[0],q[1];\n"
+    + "measure q[0] -> c[0];\n"
+    + "if(c==1) x q[1];\n");
+
+SimulationConfig config = new SimulationConfig();
+config.setNumQubits(program.getNumQubits());
+for (Map.Entry<String, Integer> register : program.getRegisters().entrySet()) {
+    config.addClassicalRegister(register.getKey(), register.getValue());
+}
+
+QuantumSimulator simulator = new QuantumSimulator();
+simulator.initialize(config);
+for (QuantumOperation operation : program.getOperations()) {
+    simulator.scheduleEvent(new QuantumEvent.Builder("qasm_" + operation.getName())
+        .withScheduledTime(nextTimestamp())
+        .withOperation(operation)
+        .withTargetQubits(operation.getTargetQubits())
+        .withControlQubits(operation.getControlQubits())
+        .build());
+}
+double[] probabilities = simulator.run().getFinalState().getProbabilities();
+String text = new QasmEmitter().emit(program);
+```
+
+Supported on import:
+
+| Construct | Notes |
+| --- | --- |
+| `OPENQASM 2.0;`, `OPENQASM 3.0;` | optional `include "qelib1.inc"` or `"stdgates.inc"` |
+| `qreg`, `creg`, `qubit[n]`, `bit[n]` | sizes must be integer literals |
+| Gates | `x y z h s sdg t tdg id rx ry rz u1 u2 u3 cx cnot cz swap ccx cp cphase` |
+| Custom `gate` definitions | expanded inline, recursion limit 32, cycles rejected |
+| `measure` | single qubit or whole register |
+| `if(c==N)` | whole-register comparison, braced form in version 3 |
+| `barrier` | validated and discarded, the engine has no barrier |
+| Parameters | decimal literals, `pi`, gate parameters, and `+ - * /` with parentheses |
+
+Register-wide gate applications are expanded element by element and require equal widths.
+`reset`, opaque gates, custom instructions, loops, and nested conditions are rejected with a
+`QasmException` that names the offending token and position; nothing is silently dropped.
+
+On export, `QasmEmitter` maps the canonical gate names to QASM: `X` to `x`, `CNOT` to `cx`,
+`Toffoli` to `ccx`, parametric `RX`, `RY`, `RZ` keep their angles, a phase gate named `P(angle)`
+becomes `u1(angle)`, and `ConditionalOperation` becomes `if(c==N)`. A gate whose name cannot be
+expressed in QASM 2.0 raises `QasmException`. `QasmEmitter.Options` controls the `qelib1.inc`
+header, the fractional digits of printed angles, and the trailing newline.
+
 ## Limits
 
 | Limit | Where | Reason |
 | --- | --- | --- |
-| 30 qubits state vector, 12 density matrix | `SimulationConfig.validate()` | memory estimate and the recommended ceiling |
+| 30 qubits state vector, 12 density matrix, 2000 stabilizer, 100 tensor network | `SimulationConfig.validate()` | per-backend memory estimate and recommended ceiling |
 | Matrix size must match controls plus targets | `QuantumGate` constructor | expansion into the register |
 | `Toffoli`, `CSWAP`, multi-controlled `Z` grow as `2^n` | factory methods | dense matrices, so keep them small |
-| No OpenQASM or Qiskit import | whole project | circuits are Java or the JSON above |
+| QASM import accepts a subset | `QasmParser` | unsupported statements are rejected, never ignored |
 
 ## Related guides
 

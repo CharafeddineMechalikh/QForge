@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-29
+
+### Added
+
+- A stabilizer backend (`STABILIZER`) using the Aaronson-Gottesman tableau, with Clifford gate
+  application, Pauli sampling, and an exact outcome distribution for up to 16 measured targets.
+- A tensor-network backend (`TENSOR_NETWORK`) using a matrix product state with `maxBondDimension`
+  truncation, SVD canonicalization, bond-dimension diagnostics, and a relative discarded-weight
+  truncation metric.
+- `AmplitudeAccess`, a capability interface implemented by the state vector, density matrix and
+  tensor-network states, so metrics and probability queries skip states that cannot expose
+  amplitudes.
+- A device noise model attached through `SimulationConfig.setDeviceNoise` and the JSON
+  `deviceNoise` object: per-qubit `T1` and `T2` thermal relaxation on idle qubits between scheduled
+  events, per-gate dephasing crosstalk on idle neighbours, and per-qubit readout confusion
+  (`readout_p01`, `readout_p10`).
+- Classical registers and feed-forward execution: `SimulationConfig.addClassicalRegister`,
+  `MeasurementOperator.withClassicalTarget`, `ConditionalOperation`, and `ShotRunner` for repeated
+  shots of a circuit factory. The reported (post-readout) outcome is written to the register while
+  the state collapses onto the true outcome.
+- OpenQASM interchange in the new `qasm` package: `QasmParser` accepts a documented QASM 2.0 and
+  3.0 subset (standard gates, custom gate expansion, `measure`, `if(c==N)`), and `QasmEmitter`
+  exports QASM 2.0.
+- Four standalone algorithm demos with measured output: `QaoaMaxCut` (Nelder-Mead over the exact
+  cut expectation on a five-node graph), `QuantumArithmeticComplete` (exhaustive in-place adder,
+  modular multiplier and modular exponentiation), `AmplitudeAmplificationComplete` (multiple marked
+  items against the analytic success probability), and `QuantumClassifierDemo` (variational
+  classifier on an Iris subset).
+- `CrossBackendValidationTest`, comparing state vector, density matrix, stabilizer and tensor
+  network on the same Clifford and non-Clifford circuits, GHZ, W, QFT and Grover fixtures, and
+  branch coverage suites for QASM, the stabilizer and the tensor network.
+- `example.benchmarks.BackendBenchmark` with its README: four-backend GHZ timings, density-matrix
+  scaling, state-vector versus tensor-network scaling from 10 to 20 qubits, stabilizer scaling from
+  100 to 1000 qubits, and measured backend limits.
+
+### Changed
+
+- The test suite grew to 510 tests, raising JaCoCo coverage to 98.0 percent instruction and 92.9
+  percent branch over 129 classes.
+- `SingleQubitGate.createS` and `createT` now emit the canonical names `S` and `T`, so the
+  stabilizer backend can dispatch phase gates by name instead of rejecting a parametric `P` name.
+- `SimulationConfig` gained `deviceNoise`, `classicalRegisters` and `maxBondDimension`, and the
+  `SimulationBackend` enum exposes `STABILIZER` and `TENSOR_NETWORK` again with implementations
+  behind them.
+- The README, citation metadata and guides now describe four backends, device noise, feed-forward
+  execution, OpenQASM exchange and the expanded algorithm set. The version is 2.0.0.
+
+### Fixed
+
+- `MPSState` truncation diagnostics now report the relative fraction of singular-value weight
+  discarded at each truncation, instead of an unnormalized sum that could exceed one and was
+  non-zero for separable circuits.
+
 ## [1.1.0] - 2026-10-29
 
 ### Added

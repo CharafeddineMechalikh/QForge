@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.mechalikh</groupId>
   <artifactId>qforge</artifactId>
-  <version>1.1.0</version>
+  <version>2.0.0</version>
   <name>QForge</name>
   <description>Event-driven quantum circuit simulator with state-vector and density-matrix backends</description>
   <url>https://github.com/CharafeddineMechalikh/QForge</url>
@@ -17,7 +17,7 @@
     <connection>scm:git:https://github.com/CharafeddineMechalikh/QForge.git</connection>
     <developerConnection>scm:git:git@github.com:CharafeddineMechalikh/QForge.git</developerConnection>
     <url>https://github.com/CharafeddineMechalikh/QForge</url>
-    <tag>v1.1.0</tag>
+    <tag>v2.0.0</tag>
   </scm>
    <properties>
         <maven.compiler.source>17</maven.compiler.source>

@@ -189,7 +189,7 @@ class CoreCoverageTest {
         assertThrows(IllegalArgumentException.class, () -> {
             Path unknownBackend = tempDir.resolve("unknown-backend.json");
             Files.writeString(unknownBackend,
-                "{\"numQubits\": 1, \"backend\": \"TENSOR_NETWORK\"}");
+                "{\"numQubits\": 1, \"backend\": \"NO_SUCH_BACKEND\"}");
             new SimulationConfig().loadFromFile(unknownBackend.toString());
         });
     }

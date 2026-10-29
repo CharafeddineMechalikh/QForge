@@ -10,7 +10,9 @@ import com.mechalikh.qforge.resources.ResourceManager;
 import com.mechalikh.qforge.plugin.PluginManager;
 import com.mechalikh.qforge.strategy.DensityMatrixStrategy;
 import com.mechalikh.qforge.strategy.SimulationStrategy;
+import com.mechalikh.qforge.strategy.StabilizerStrategy;
 import com.mechalikh.qforge.strategy.StateVectorStrategy;
+import com.mechalikh.qforge.strategy.TensorNetworkStrategy;
 import com.mechalikh.qforge.classical.ClassicalController;
 import java.util.List;
 import java.util.ArrayList;
@@ -189,7 +191,8 @@ public class QuantumSimulator {
                 context.getCurrentState(),
                 context.getMeasurements(),
                 context.getMetrics(),
-                System.currentTimeMillis() - simulationStartTime
+                System.currentTimeMillis() - simulationStartTime,
+                context.getRegisterValues()
             );
             
             context.getMetrics().onCompleted(result);
@@ -403,6 +406,10 @@ public class QuantumSimulator {
                 return new StateVectorStrategy();
             case DENSITY_MATRIX:
                 return new DensityMatrixStrategy();
+            case STABILIZER:
+                return new StabilizerStrategy();
+            case TENSOR_NETWORK:
+                return new TensorNetworkStrategy(context.getConfig().getMaxBondDimension());
             default:
                 throw new SimulationError("Unsupported backend: " + backend);
         }

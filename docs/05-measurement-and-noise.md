@@ -27,6 +27,7 @@ flowchart TD
 | API | Collapses? | Works on | Use when |
 | --- | --- | --- | --- |
 | `MeasurementOperator(String, Observable, int shots, boolean destructive)` | only when `destructive` is `true` | any `QuantumState` | in-circuit measurement, mid-circuit feeds |
+| `measurement.withClassicalTarget(name, offset)` | follows the operator's own `destructive` flag | any `QuantumState` | write the reported outcome into a classical register for feed-forward |
 | `MeasurementOperator.measure(state)` | no | any `QuantumState` | statistics from a state you want to keep |
 | `SimulationStrategy.measure(state, qubits, shots)` | no | the strategy state type | Pauli Z sampling without an observable object |
 | `MeasurementHelper.measureInComputationalBasis(...)` | no | `StateVector` only | standalone sampling of a pure state |
@@ -230,6 +231,126 @@ Useful `NoiseProfile` methods: `getTotalErrorProbability(qubit)` sums the streng
 `combine(other)` merges profiles, `getAffectedQubits()` lists the targeted qubits,
 `toMap()` and `loadFromMap(...)` bridge to JSON, and `clearQubitNoise(qubit)` plus
 `clearGlobalNoise()` reset parts of the profile.
+
+## Device noise
+
+A `NoiseProfile` describes gate noise. `DeviceNoiseModel` describes a device: relaxation times,
+readout confusion, crosstalk, and a nominal gate duration. One model is attached with
+`config.setDeviceNoise(model)`, or with the `deviceNoise` object in a JSON configuration.
+
+| Field | Meaning | Applied to |
+| --- | --- | --- |
+| `t1_ns`, `t2_ns` | energy relaxation and coherence times, per qubit | every qubit that is idle between two scheduled events |
+| `readout_p01` | probability of reading `1` for a prepared `0`, per qubit | computational-basis measurements |
+| `readout_p10` | probability of reading `0` for a prepared `1`, per qubit | computational-basis measurements |
+| `crosstalk_rate` | phase damping strength on neighbours of a gate | nearest neighbours of the gate's target and control qubits |
+| `gate_time_ns` | nominal gate duration | exposed through `getGateTimeNanos()` for scheduling code; the engine itself does not alter timestamps |
+
+The constructor validates the model: all arrays must have the same length, readout probabilities
+must lie in `[0, 1]`, crosstalk must lie in `[0, 1]`, `gate_time_ns` cannot be negative, and a
+positive `T2` cannot exceed `2 * T1`. `fromMap(...)` reads the same six JSON keys, pads short
+arrays with zeros, and returns an inert model for a null or empty map.
+
+```mermaid
+flowchart TD
+    E["event at time t: gate, noise or measurement"] --> EL["elapsed = t - previous event time"]
+    EL --> ID["thermal relaxation on every qubit not targeted by this event"]
+    E --> G{"is it a gate?"}
+    G -- yes --> XT["dephasing on idle index-1 and index+1 neighbours"]
+    G -- no --> M{"is it a measurement?"}
+    XT --> M
+    M -- yes --> RO["draw the true outcome, collapse the state, then confuse the reported outcome"]
+    RO --> REG["write the reported outcome into the classical register"]
+```
+
+### Thermal relaxation
+
+`ThermalRelaxationModel` composes amplitude damping with pure dephasing over an exposure time `t`:
+
+- amplitude damping probability `p = 1 - exp(-t / T1)`
+- pure dephasing probability `p_phi = 1 - exp(-t / T_phi)`, where
+  `1 / T_phi = 1 / T2 - 1 / (2 T1)`
+
+The Kraus operators are the products of the two channels. A qubit with `T2 = T1` therefore keeps
+no extra phase noise beyond what amplitude damping already causes, and a qubit with `T2 = 2 T1`
+has `1 / T_phi = 0`, which is the physical coherence limit.
+
+The exposure time is the difference between the timestamp of the current event and the timestamp of
+the previous one, so put real times on your events when you want idle error to accumulate. The
+first event has no previous timestamp and is not relaxed. Qubits targeted by the current event are
+excluded, because their error is modelled by the gate itself.
+
+### Crosstalk
+
+After each gate, every qubit on the linear register adjacent to a target or control (index `i-1`
+and `i+1`) that is not itself involved in the gate receives one `DephasingNoise(crosstalk_rate)`
+application. Crosstalk is therefore local to the register ordering and per gate, not a function of
+idle duration.
+
+### Readout confusion
+
+`ReadoutErrorModel` transforms the exact outcome distribution with the per-qubit confusion
+probabilities and corrupts each sampled outcome independently. The order inside the measured
+observable matters: the last target in the observable is the least significant bit of the outcome
+index.
+
+The split between true and reported outcomes is deliberate. The state collapses onto the true
+sampled outcome (`MeasurementOutcome.getOutcome()`), while the reported result, its counts, and the
+classical register all carry the confused outcome. A classical register models what the device
+read out, not what the qubit actually did.
+
+Readout error only applies to observables diagonal in the computational basis. A Pauli `X` or `Y`
+measurement skips confusion, because the confusion matrix is defined for computational outcomes.
+
+### Trajectories and device noise
+
+On `STATE_VECTOR`, every relaxation and crosstalk channel samples one Kraus operator, so a single
+run is one quantum trajectory. On `DENSITY_MATRIX`, channels are applied as a deterministic sum and
+the state is the average over trajectories. The stabilizer and tensor-network backends do not
+implement noisy channels, so use the first two backends when a device model is attached.
+
+`ShotRunner` is the repeatable way to collect statistics for a device model: each shot
+re-initializes the simulator with the same configuration, runs the circuit factory, and records
+the final classical register values.
+
+```java
+SimulationConfig config = new SimulationConfig();
+config.setNumQubits(2);
+config.setBackend(SimulationBackend.STATE_VECTOR);
+config.addClassicalRegister("c", 2);
+config.setDeviceNoise(new DeviceNoiseModel(
+    new double[]{50_000.0, 60_000.0},
+    new double[]{70_000.0, 80_000.0},
+    new double[]{0.01, 0.02},
+    new double[]{0.03, 0.01},
+    0.002,
+    40.0));
+
+Qubit q0 = new Qubit(0, "q0");
+Qubit q1 = new Qubit(1, "q1");
+ShotStatistics statistics = ShotRunner.run(config, () -> List.of(
+    new QuantumEvent.Builder("h0")
+        .withOperation(SingleQubitGate.createHadamard(q0)).withTargetQubits(q0).build(),
+    new QuantumEvent.Builder("cx")
+        .withOperation(MultiQubitGate.createCNOT(q0, q1)).withTargetQubits(q0, q1).build(),
+    new QuantumEvent.Builder("m0")
+        .withOperation(MeasurementOperator.computationalBasis(new Qubit[]{q0}, 1)
+            .withClassicalTarget("c", 1))
+        .withTargetQubits(q0).build(),
+    new QuantumEvent.Builder("m1")
+        .withOperation(MeasurementOperator.computationalBasis(new Qubit[]{q1}, 1)
+            .withClassicalTarget("c", 0))
+        .withTargetQubits(q1).build()
+), 1000);
+System.out.println(statistics.getCounts("c"));
+```
+
+The register offsets follow the QASM convention used by the parser: qubit `i` writes bit `i`, so
+`q1` lands on offset 0 and `q0` on offset 1. A `ConditionalOperation` can then test the register
+inside the same shot, which is how feed-forward protocols are built. See
+[Classical control and feed-forward](02-architecture.md#classical-control-and-feed-forward) for the
+event-time model and
+[Configuration](03-configuration.md#classical-control) for the JSON form.
 
 ## Comparing states
 

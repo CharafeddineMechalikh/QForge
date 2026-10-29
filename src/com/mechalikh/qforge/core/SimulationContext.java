@@ -4,18 +4,24 @@ import com.mechalikh.qforge.config.SimulationConfig;
 import com.mechalikh.qforge.strategy.SimulationStrategy;
 import com.mechalikh.qforge.state.QuantumState;
 import com.mechalikh.qforge.state.Qubit;
+import com.mechalikh.qforge.noise.DeviceNoiseModel;
 import com.mechalikh.qforge.noise.ErrorManager;
 import com.mechalikh.qforge.noise.NoiseModel;
 import com.mechalikh.qforge.noise.NoiseProfile;
 import com.mechalikh.qforge.observer.MetricsCollector;
 import com.mechalikh.qforge.measurement.MeasurementResult;
+import com.mechalikh.qforge.operations.ConditionalOperation;
 import com.mechalikh.qforge.operations.QuantumGate;
 import com.mechalikh.qforge.operations.QuantumOperation;
+import com.mechalikh.qforge.classical.ClassicalRegister;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -45,7 +51,10 @@ public class SimulationContext {
     private final MetricsCollector metricsCollector;
     private final List<MeasurementResult> measurements;
     private final Map<String, Object> contextData;
+    private final Map<String, ClassicalRegister> registers;
     private Instant simulationStartTime;
+    private Instant lastOperationTime;
+    private Instant pendingEventTime;
     private long stepsExecuted;
     private boolean stopRequested;
     
@@ -68,9 +77,18 @@ public class SimulationContext {
         this.metricsCollector = new MetricsCollector();
         this.measurements = new CopyOnWriteArrayList<>();
         this.contextData = new HashMap<>();
+        this.registers = new LinkedHashMap<>();
         this.stepsExecuted = 0;
         this.stopRequested = false;
         initializeQubits();
+        initializeRegisters();
+    }
+    
+    private void initializeRegisters() {
+        for (Map.Entry<String, Integer> register : config.getClassicalRegisters().entrySet()) {
+            registers.put(register.getKey(), new ClassicalRegister(register.getKey(),
+                register.getValue()));
+        }
     }
     
     /**
@@ -90,6 +108,7 @@ public class SimulationContext {
         
         this.currentState = strategy.createInitialState(config.getNumQubits());
         this.simulationStartTime = Instant.now();
+        this.lastOperationTime = simulationStartTime;
         this.metricsCollector.recordStartTime(simulationStartTime);
     }
     
@@ -142,41 +161,184 @@ public class SimulationContext {
             throw new SimulationError("Quantum state not initialized");
         }
         
+        QuantumOperation effective = resolveConditional(operation);
+        if (effective == null) {
+            return;
+        }
+        
+        Instant operationTime = pendingEventTime != null ? pendingEventTime : Instant.now();
+        pendingEventTime = null;
+        double elapsedNanos = elapsedNanos(operationTime);
+        
         QuantumState newState;
         
-        if (operation instanceof QuantumGate) {
-            QuantumGate gate = (QuantumGate) operation;
+        if (effective instanceof QuantumGate) {
+            QuantumGate gate = (QuantumGate) effective;
             
-            // Use the strategy to apply the gate
-            newState = strategy.applyGate(currentState, gate, gate.getTargetQubits());
+            newState = applyIdleNoise(currentState, gate.getTargetQubits(), elapsedNanos);
+            newState = strategy.applyGate(newState, gate, gate.getTargetQubits());
             newState = applyConfiguredNoise(newState);
+            newState = applyCrosstalk(newState, gate);
             
-        } else if (operation instanceof com.mechalikh.qforge.noise.NoiseModel) {
+        } else if (effective instanceof com.mechalikh.qforge.noise.NoiseModel) {
             com.mechalikh.qforge.noise.NoiseModel noise = 
-                (com.mechalikh.qforge.noise.NoiseModel) operation;
+                (com.mechalikh.qforge.noise.NoiseModel) effective;
             
-            // Use the strategy to apply noise
-            newState = strategy.applyNoise(currentState, noise, noise.getTargetQubits());
+            newState = applyIdleNoise(currentState, noise.getTargetQubits(), elapsedNanos);
+            newState = strategy.applyNoise(newState, noise, noise.getTargetQubits());
             
-        } else if (operation instanceof com.mechalikh.qforge.measurement.MeasurementOperator) {
+        } else if (effective instanceof com.mechalikh.qforge.measurement.MeasurementOperator) {
             com.mechalikh.qforge.measurement.MeasurementOperator measurement = 
-                (com.mechalikh.qforge.measurement.MeasurementOperator) operation;
+                (com.mechalikh.qforge.measurement.MeasurementOperator) effective;
             
+            newState = applyIdleNoise(currentState, measurement.getTargetQubits(), elapsedNanos);
             com.mechalikh.qforge.measurement.MeasurementOperator.MeasurementOutcome outcome =
-                measurement.measureAndCollapse(currentState);
+                measurement.measureAndCollapse(newState, config.getDeviceNoise().getReadout());
             addMeasurementResult(outcome.getResult());
+            recordClassicalOutcome(measurement, outcome);
             newState = outcome.getCollapsedState();
             
         } else {
             throw new SimulationError("Unsupported operation type: " + 
-                operation.getClass().getName());
+                effective.getClass().getName());
         }
         
+        lastOperationTime = operationTime;
         updateState(newState);
         stepsExecuted++;
         metricsCollector.recordMetric("steps_executed", stepsExecuted);
         
         metricsCollector.recordOperation(operation);
+    }
+    
+    /**
+     * Resolves a conditional operation and returns the operation that should run.
+     *
+     * @param operation operation to resolve
+     * @return the guarded operation when the condition holds, the input operation when it is
+     *         not conditional, or {@code null} when the condition is false
+     * @throws SimulationError if the condition names a register that does not exist
+     */
+    private QuantumOperation resolveConditional(QuantumOperation operation) throws SimulationError {
+        if (!(operation instanceof ConditionalOperation)) {
+            return operation;
+        }
+        ConditionalOperation conditional = (ConditionalOperation) operation;
+        ClassicalRegister register = registers.get(conditional.getRegisterName());
+        if (register == null) {
+            throw new SimulationError(
+                "Unknown classical register: " + conditional.getRegisterName());
+        }
+        return conditional.test(register.read()) ? conditional.getGuardedOperation() : null;
+    }
+    
+    /**
+     * Writes a measurement outcome into its classical register.
+     *
+     * <p>The value written is the reported outcome, after any readout confusion, because a
+     * classical register models what the device read out rather than what the state
+     * collapsed to. The collapse itself always uses the true outcome.</p>
+     */
+    private void recordClassicalOutcome(
+            com.mechalikh.qforge.measurement.MeasurementOperator measurement,
+            com.mechalikh.qforge.measurement.MeasurementOperator.MeasurementOutcome outcome)
+            throws SimulationError {
+        String registerName = measurement.getRegisterName();
+        if (registerName == null) {
+            return;
+        }
+        ClassicalRegister register = registers.get(registerName);
+        if (register == null) {
+            throw new SimulationError("Unknown classical register: " + registerName);
+        }
+        int reported = outcome.getResult().getMostFrequentOutcome();
+        if (reported < 0) {
+            reported = outcome.getOutcome();
+        }
+        register.write(measurement.getRegisterOffset(), reported,
+            measurement.getTargetQubits().length);
+    }
+    
+    /**
+     * Records the logical time at which the next operation executes.
+     *
+     * <p>Events call this before applying their operation so that idle relaxation is computed
+     * from the scheduled time rather than from wall clock time. A direct
+     * {@link #applyOperation(QuantumOperation)} call without this hint uses
+     * {@link Instant#now()}.</p>
+     *
+     * @param time logical time of the next operation
+     */
+    public void advanceTo(Instant time) {
+        this.pendingEventTime = time;
+    }
+    
+    private double elapsedNanos(Instant operationTime) {
+        if (lastOperationTime == null || operationTime == null) {
+            return 0.0;
+        }
+        long nanos = java.time.Duration.between(lastOperationTime, operationTime).toNanos();
+        return Math.max(0.0, (double) nanos);
+    }
+    
+    private QuantumState applyIdleNoise(QuantumState state, Qubit[] activeQubits,
+                                        double elapsedNanos) throws SimulationError {
+        DeviceNoiseModel device = config.getDeviceNoise();
+        if (device == null || !device.hasRelaxation() || elapsedNanos <= 0.0) {
+            return state;
+        }
+        Set<Integer> active = indices(activeQubits);
+        QuantumState result = state;
+        for (Qubit qubit : qubits) {
+            if (active.contains(qubit.getIndex())) {
+                continue;
+            }
+            NoiseModel relaxation = device.relaxationFor(qubit.getIndex(), elapsedNanos);
+            if (relaxation != null) {
+                Qubit[] target = {qubit};
+                result = strategy.applyNoise(result, relaxation.withTargetQubits(target), target);
+            }
+        }
+        return result;
+    }
+    
+    private QuantumState applyCrosstalk(QuantumState state, QuantumGate gate)
+            throws SimulationError {
+        DeviceNoiseModel device = config.getDeviceNoise();
+        if (device == null || device.getCrosstalkRate() <= 0.0) {
+            return state;
+        }
+        Set<Integer> active = indices(gate.getTargetQubits());
+        active.addAll(indices(gate.getControlQubits()));
+        Set<Integer> neighbours = new LinkedHashSet<>();
+        for (int qubit : active) {
+            if (qubit > 0) {
+                neighbours.add(qubit - 1);
+            }
+            if (qubit + 1 < qubits.size()) {
+                neighbours.add(qubit + 1);
+            }
+        }
+        neighbours.removeAll(active);
+        
+        QuantumState result = state;
+        NoiseModel crosstalk = device.crosstalkForIdle();
+        if (crosstalk == null) {
+            return result;
+        }
+        for (int index : neighbours) {
+            Qubit[] target = {qubits.get(index)};
+            result = strategy.applyNoise(result, crosstalk.withTargetQubits(target), target);
+        }
+        return result;
+    }
+    
+    private static Set<Integer> indices(Qubit[] qubits) {
+        Set<Integer> result = new LinkedHashSet<>();
+        for (Qubit qubit : qubits) {
+            result.add(qubit.getIndex());
+        }
+        return result;
     }
     private QuantumState applyConfiguredNoise(QuantumState state) throws SimulationError {
         NoiseProfile profile = config.getNoiseProfile();
@@ -274,9 +436,14 @@ public class SimulationContext {
         }
         measurements.clear();
         contextData.clear();
+        for (ClassicalRegister register : registers.values()) {
+            register.reset();
+        }
         stepsExecuted = 0;
         stopRequested = false;
         simulationStartTime = Instant.now();
+        lastOperationTime = simulationStartTime;
+        pendingEventTime = null;
         metricsCollector.reset();
     }
     
@@ -370,6 +537,41 @@ public class SimulationContext {
      */
     public List<MeasurementResult> getMeasurements() {
         return new ArrayList<>(measurements);
+    }
+    
+    /**
+     * Returns the classical registers of this context, in declaration order.
+     *
+     * @return a new list of live registers; the register objects are not copies
+     */
+    public List<ClassicalRegister> getRegisters() {
+        return new ArrayList<>(registers.values());
+    }
+    
+    /**
+     * Returns one classical register.
+     *
+     * @param name register name
+     * @return the register, or {@code null} when no register has that name
+     */
+    public ClassicalRegister getRegister(String name) {
+        return registers.get(name);
+    }
+    
+    /**
+     * Returns a snapshot of the register values.
+     *
+     * <p>Each value packs the register bits so that register bit {@code i} is bit {@code i}
+     * of the returned integer, matching {@link ClassicalRegister#read()}.</p>
+     *
+     * @return a new map from register name to packed value
+     */
+    public Map<String, Long> getRegisterValues() {
+        Map<String, Long> values = new LinkedHashMap<>();
+        for (Map.Entry<String, ClassicalRegister> entry : registers.entrySet()) {
+            values.put(entry.getKey(), entry.getValue().read());
+        }
+        return values;
     }
     
     /**

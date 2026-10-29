@@ -29,9 +29,9 @@ mvn -o test
 ```
 
 The `-o` flag keeps Maven offline and uses the local cache. Drop it when a dependency is missing.
-The current suite contains 338 tests across gates, measurement, noise, algorithms, JSON loading,
-metrics, plugins and VQE convergence, and the Javadoc plugin requires one online run before it can
-work offline.
+The current suite contains 510 tests across gates, measurement, noise, algorithms, JSON loading,
+backends, OpenQASM, classical control, metrics and plugins, and the Javadoc plugin requires one
+online run before it can work offline.
 
 ## 2. Run the algorithm demos
 
@@ -42,7 +42,10 @@ java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo ALL
 Use `:` instead of `;` in the classpath on Linux or macOS. The accepted selectors are `GROVER`,
 `QFT`, `QPE`, `VQE`, `QNN`, `QSVM`, `SHOR_CODE`, `QAOA`, `TROTTER`, `QUANTUM_WALK`, and `ALL`.
 Each demo prints a `SUCCESS` or `FAILED` line for the property it checks, so a demo that does not
-reach its target says so instead of hiding the result.
+reach its target says so instead of hiding the result. Four further demos have their own entry
+points (`QaoaMaxCut`, `QuantumArithmeticComplete`, `AmplitudeAmplificationComplete` and
+`QuantumClassifierDemo`) and need the Maven dependency classpath; see
+[Algorithms](06-algorithms.md#demo-commands).
 
 ## 3. Run a JSON circuit
 

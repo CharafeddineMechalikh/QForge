@@ -137,12 +137,16 @@ public class SingleQubitGate extends QuantumGate {
      * @return a gate named {@code "P(angle)"} with the default duration
      */
     public static SingleQubitGate createPhase(double angle, Qubit target) {
+        return new SingleQubitGate("P(" + angle + ")", phaseMatrix(angle), target);
+    }
+
+    private static ComplexMatrix phaseMatrix(double angle) {
         ComplexMatrix matrix = new ComplexMatrix(2, 2);
         matrix.set(0, 0, Complex.ONE);
         matrix.set(0, 1, Complex.ZERO);
         matrix.set(1, 0, Complex.ZERO);
         matrix.set(1, 1, Complex.fromPolar(1.0, angle));
-        return new SingleQubitGate("P(" + angle + ")", matrix, target);
+        return matrix;
     }
     
     /**
@@ -212,20 +216,27 @@ public class SingleQubitGate extends QuantumGate {
     /**
      * Creates an S gate, equivalent to a phase gate with angle {@code Math.PI / 2}.
      *
+     * <p>The gate is named {@code "S"} rather than {@code "P(angle)"} so that backends which
+     * dispatch on the canonical gate name, such as the stabilizer backend, recognise it as a
+     * Clifford gate.</p>
+     *
      * @param target the target qubit
-     * @return the phase gate returned by {@link #createPhase(double, Qubit)}
+     * @return a gate named {@code "S"} with the default duration
      */
     public static SingleQubitGate createS(Qubit target) {
-        return createPhase(Math.PI / 2, target);
+        return new SingleQubitGate("S", phaseMatrix(Math.PI / 2), target);
     }
     
     /**
      * Creates a T gate, equivalent to a phase gate with angle {@code Math.PI / 4}.
      *
+     * <p>The gate is named {@code "T"} rather than {@code "P(angle)"} so that name-based
+     * dispatch sees the canonical non-Clifford name.</p>
+     *
      * @param target the target qubit
-     * @return the phase gate returned by {@link #createPhase(double, Qubit)}
+     * @return a gate named {@code "T"} with the default duration
      */
     public static SingleQubitGate createT(Qubit target) {
-        return createPhase(Math.PI / 4, target);
+        return new SingleQubitGate("T", phaseMatrix(Math.PI / 4), target);
     }
 }

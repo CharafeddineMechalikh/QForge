@@ -35,6 +35,7 @@ public class SimulationResult {
     private final MetricsCollector metrics;
     private final long totalRuntimeMs;
     private final Map<String, Object> additionalData;
+    private final Map<String, Long> registerValues;
     
     /**
      * Creates a result snapshot.
@@ -56,11 +57,43 @@ public class SimulationResult {
                           List<MeasurementResult> measurements,
                           MetricsCollector metrics,
                           long totalRuntimeMs) {
+        this(finalState, measurements, metrics, totalRuntimeMs, Map.of());
+    }
+    
+    /**
+     * Creates a result snapshot that also captures the classical registers.
+     *
+     * @param finalState final state of the simulation
+     * @param measurements measurements collected during the run
+     * @param metrics metrics collector of the run; may be null
+     * @param totalRuntimeMs runtime of the run in milliseconds
+     * @param registerValues packed classical register values, copied on construction
+     * @throws NullPointerException if {@code measurements} or {@code registerValues} is null
+     *         or contains a null element
+     */
+    public SimulationResult(QuantumState finalState,
+                          List<MeasurementResult> measurements,
+                          MetricsCollector metrics,
+                          long totalRuntimeMs,
+                          Map<String, Long> registerValues) {
         this.finalState = finalState;
         this.measurements = List.copyOf(measurements);
         this.metrics = metrics;
         this.totalRuntimeMs = totalRuntimeMs;
         this.additionalData = new HashMap<>();
+        this.registerValues = Map.copyOf(registerValues);
+    }
+    
+    /**
+     * Returns the packed classical register values at the end of the run.
+     *
+     * <p>Register bit {@code i} is bit {@code i} of the corresponding value. The map is empty
+     * when the configuration declared no registers.</p>
+     *
+     * @return an immutable map from register name to packed value
+     */
+    public Map<String, Long> getRegisterValues() {
+        return registerValues;
     }
     
     /**
@@ -205,6 +238,7 @@ public class SimulationResult {
         public final Map<String, Number> metrics;
         public final List<MeasurementSummary> measurements;
         public final Map<String, Object> additionalData;
+        public final Map<String, Long> registerValues;
         
         public ResultData(SimulationResult result) {
             this.simulationType = result.finalState.getClass().getSimpleName();
@@ -218,6 +252,7 @@ public class SimulationResult {
                 .map(MeasurementSummary::new)
                 .toList();
             this.additionalData = result.additionalData;
+            this.registerValues = result.registerValues;
         }
         
         private static class MeasurementSummary {

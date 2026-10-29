@@ -1,9 +1,11 @@
 package com.mechalikh.qforge.measurement;
 
 import java.util.Locale;
+import com.mechalikh.qforge.noise.ReadoutErrorModel;
 import com.mechalikh.qforge.operations.QuantumOperation;
 import com.mechalikh.qforge.state.QuantumState;
 import com.mechalikh.qforge.state.Qubit;
+import com.mechalikh.qforge.state.StabilizerState;
 
 /**
  * A {@link QuantumOperation} that measures a Hermitian {@link Observable}.
@@ -30,6 +32,8 @@ public class MeasurementOperator implements QuantumOperation {
     private final Observable observable;
     private final int shots;
     private final boolean destructive;
+    private final String registerName;
+    private final int registerOffset;
     
     /**
      * Creates a measurement operator with an explicit name and collapse policy.
@@ -41,10 +45,58 @@ public class MeasurementOperator implements QuantumOperation {
      *        {@code false} to leave the state untouched
      */
     public MeasurementOperator(String name, Observable observable, int shots, boolean destructive) {
+        this(name, observable, shots, destructive, null, 0);
+    }
+    
+    private MeasurementOperator(String name, Observable observable, int shots, boolean destructive,
+                                String registerName, int registerOffset) {
         this.name = name;
         this.observable = observable;
         this.shots = shots;
         this.destructive = destructive;
+        this.registerName = registerName;
+        this.registerOffset = registerOffset;
+    }
+    
+    /**
+     * Returns a copy of this operator that writes its outcome into a classical register.
+     *
+     * <p>The packed outcome bits are written most significant bit first, starting at
+     * {@code offset}. The register is looked up by
+     * {@link com.mechalikh.qforge.core.SimulationContext} after the measurement completes.</p>
+     *
+     * @param registerName name of the target classical register
+     * @param offset first register bit to write
+     * @return a new operator with the same measurement and a classical target
+     * @throws NullPointerException if {@code registerName} is {@code null}
+     * @throws IllegalArgumentException if {@code offset} is negative
+     */
+    public MeasurementOperator withClassicalTarget(String registerName, int offset) {
+        if (registerName == null) {
+            throw new NullPointerException("Register name cannot be null");
+        }
+        if (offset < 0) {
+            throw new IllegalArgumentException("Register offset cannot be negative");
+        }
+        return new MeasurementOperator(name, observable, shots, destructive, registerName, offset);
+    }
+    
+    /**
+     * Returns the name of the classical register that receives the outcome.
+     *
+     * @return the register name, or {@code null} when the outcome is not stored
+     */
+    public String getRegisterName() {
+        return registerName;
+    }
+    
+    /**
+     * Returns the first classical register bit that receives the outcome.
+     *
+     * @return the register bit offset, zero by default
+     */
+    public int getRegisterOffset() {
+        return registerOffset;
     }
     
     /**
@@ -115,6 +167,32 @@ public class MeasurementOperator implements QuantumOperation {
      *         the sampled outcome has zero probability in computational basis collapse
      */
     public MeasurementOutcome measureAndCollapse(QuantumState state) {
+        return measureAndCollapse(state, null);
+    }
+    
+    /**
+     * Samples the observable, collapses onto the true outcome, and applies readout error to the
+     * reported bits.
+     *
+     * <p>The collapse uses an uncorrupted sample, because readout error happens in the
+     * measurement device and does not change the quantum state. The recorded outcomes are passed
+     * through the per-qubit confusion of {@code readout}, and the reported probabilities are the
+     * confusion-transformed outcome distribution when the observable is diagonal in the
+     * computational basis. A {@code null} or empty readout model leaves every recorded outcome
+     * unchanged.</p>
+     *
+     * @param state the state to measure
+     * @param readout readout confusion to apply, or {@code null}
+     * @return the measurement result, the state after the collapse and the true outcome
+     * @throws IllegalArgumentException if the observable targets qubits outside {@code state},
+     *         or if the sampled outcome is outside the observable outcome range
+     * @throws IllegalStateException if the observable yields no measurement probability, or if
+     *         the sampled outcome has zero probability in computational basis collapse
+     */
+    public MeasurementOutcome measureAndCollapse(QuantumState state, ReadoutErrorModel readout) {
+        if (state instanceof StabilizerState && observable.isComputationalBasis()) {
+            return measureStabilizer((StabilizerState) state, readout);
+        }
         double[] probabilities = observable.getOutcomeProbabilities(state);
         int[] outcomes = observable.sampleOutcomes(probabilities, shots);
         
@@ -125,14 +203,84 @@ public class MeasurementOperator implements QuantumOperation {
             sampledOutcome = observable.sampleOutcomes(probabilities, 1)[0];
         }
         
+        boolean appliesReadout = readout != null && !readout.isEmpty()
+            && observable.isComputationalBasis();
+        double[] reportedProbabilities = probabilities;
+        int[] reportedOutcomes = outcomes;
+        if (appliesReadout) {
+            reportedProbabilities = readout.apply(probabilities, observable.getNumQubits());
+            reportedOutcomes = new int[outcomes.length];
+            for (int i = 0; i < outcomes.length; i++) {
+                reportedOutcomes[i] = corrupt(outcomes[i], readout);
+            }
+        }
+        
         MeasurementResult result = new MeasurementResult(
-            name, observable.getTargetQubits(), outcomes, probabilities,
+            name, observable.getTargetQubits(), reportedOutcomes, reportedProbabilities,
             observable.getOutcomeEigenvalues());
         QuantumState collapsedState = destructive
             ? observable.collapse(state, sampledOutcome)
             : state;
         
         return new MeasurementOutcome(result, collapsedState, sampledOutcome);
+    }
+    
+    private int corrupt(int outcome, ReadoutErrorModel readout) {
+        Qubit[] targets = observable.getTargetQubits();
+        int corrupted = outcome;
+        for (int j = 0; j < targets.length; j++) {
+            int bitPosition = targets.length - 1 - j;
+            boolean bit = ((outcome >> bitPosition) & 1) != 0;
+            double error = bit
+                ? readout.getP10(targets[j].getIndex())
+                : readout.getP01(targets[j].getIndex());
+            if (error > 0.0 && java.util.concurrent.ThreadLocalRandom.current().nextDouble() < error) {
+                corrupted ^= 1 << bitPosition;
+            }
+        }
+        return corrupted;
+    }
+    
+    private MeasurementOutcome measureStabilizer(StabilizerState state, ReadoutErrorModel readout) {
+        Qubit[] targets = observable.getTargetQubits();
+        double[] probabilities = state.outcomeProbabilitiesZ(targets);
+        int[] outcomes = new int[Math.max(0, shots)];
+        for (int i = 0; i < outcomes.length; i++) {
+            outcomes[i] = draw(probabilities);
+        }
+        int sampledOutcome = outcomes.length > 0 ? outcomes[0] : draw(probabilities);
+        
+        boolean appliesReadout = readout != null && !readout.isEmpty();
+        double[] reportedProbabilities = probabilities;
+        int[] reportedOutcomes = outcomes;
+        if (appliesReadout) {
+            reportedProbabilities = readout.apply(probabilities, targets.length);
+            reportedOutcomes = new int[outcomes.length];
+            for (int i = 0; i < outcomes.length; i++) {
+                reportedOutcomes[i] = corrupt(outcomes[i], readout);
+            }
+        }
+        
+        MeasurementResult result = new MeasurementResult(
+            name, targets, reportedOutcomes, reportedProbabilities,
+            observable.getOutcomeEigenvalues());
+        QuantumState collapsedState = state;
+        if (destructive) {
+            collapsedState = state.collapseZ(targets, sampledOutcome);
+        }
+        return new MeasurementOutcome(result, collapsedState, sampledOutcome);
+    }
+    
+    private static int draw(double[] probabilities) {
+        double draw = java.util.concurrent.ThreadLocalRandom.current().nextDouble();
+        double cumulative = 0.0;
+        for (int i = 0; i < probabilities.length; i++) {
+            cumulative += probabilities[i];
+            if (draw <= cumulative || i == probabilities.length - 1) {
+                return i;
+            }
+        }
+        return probabilities.length - 1;
     }
     
     /**

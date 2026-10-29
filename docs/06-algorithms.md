@@ -2,14 +2,17 @@
 title: "Algorithms"
 nav: "06 Algorithms"
 order: 6
-description: "Grover, QFT, phase estimation, VQE, QNN, QSVM, the Shor code, QAOA, Trotterization and quantum walks, with demo commands and pass criteria."
+description: "Grover, amplitude amplification, QFT, phase estimation, VQE, QNN, QSVM, the Shor code, optimizer QAOA, complete arithmetic, Trotterization and quantum walks, with measured demo output."
 ---
 
 # Algorithms
 
-Ten algorithm circuits ship as runnable demos, and every one of them checks a quantitative
-property and prints `SUCCESS` or `FAILED`. A `FAILED` line is a real result, not a broken
-installer: the demos keep honest negative checks rather than reporting a pass they did not earn.
+`QuantumAlgorithmsDemo` runs ten algorithm circuits as selectable demos, and four standalone demos
+cover the newer algorithms: an optimizer-driven QAOA, a complete arithmetic library, a
+multiple-solution amplitude amplification, and a variational classifier on real Iris data. Every
+demo checks a quantitative property and prints `SUCCESS` or `FAILED` where a pass criterion exists.
+A `FAILED` line is a real result, not a broken installer: the demos keep honest negative checks
+rather than reporting a pass they did not earn.
 
 ```mermaid
 flowchart LR
@@ -21,8 +24,16 @@ flowchart LR
 ## Demo commands
 
 ```bash
-java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo ALL
-java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo GROVER
+# Dependency classpath from Maven, needed because the demos use commons-math3
+mvn -B -q dependency:build-classpath -Dmdep.outputFile=target/classpath.txt
+CP="target/classes;$(cat target/classpath.txt)"
+
+java -cp "$CP" example.QuantumAlgorithmsDemo ALL
+java -cp "$CP" example.QuantumAlgorithmsDemo GROVER
+java -cp "$CP" example.algorithms.QaoaMaxCut
+java -cp "$CP" example.algorithms.QuantumArithmeticComplete
+java -cp "$CP" example.algorithms.AmplitudeAmplificationComplete
+java -cp "$CP" example.algorithms.QuantumClassifierDemo
 ```
 
 | Selector | Circuit | Qubits | Backend | Pass criterion |
@@ -38,7 +49,9 @@ java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo GROVER
 | `TROTTER` | Heisenberg `XX + YY + ZZ`, 4 steps, `t = 0.5` | 2 | state vector | Trotter state matches the exact matrix-exponential evolution |
 | `QUANTUM_WALK` | Continuous-time walk on a 3-node line | 3 | state vector | probability above 0.1 on both neighbouring sites |
 
-`ALL` runs them in that order and prints a completion banner at the end.
+`ALL` runs them in that order and prints a completion banner at the end. The four standalone demos
+are documented in their own sections below, because they report measured tables rather than a
+single banner.
 
 ## Grover search
 
@@ -64,6 +77,26 @@ construction around the uniform state.
 oracleCircuit, iterations)`, `createMarkingOracle(...)`, `createSimplifiedDiffusion(...)` and
 `calculateOptimalIterations(searchSpaceSize, numSolutions)`. Its `demoAmplitudeAmplification()`
 method is a standalone demonstration that the `ALL` runner does not call.
+
+## Multiple-solution amplitude amplification
+
+`AmplitudeAmplificationComplete` handles `k` marked items in `N = 2^n`, with the iteration count
+`floor(pi/4 * sqrt(N / k))` and no manual correction. The oracle is a product of per-item marking
+oracles and the diffusion step is `H^n X^n MCZ X^n H^n`. The demo checks the oracle separately
+before any diffusion, so a wrong sign is reported instead of being amplified.
+
+Measured on four qubits, exact state-vector probabilities:
+
+| Marked set | `k` | Iterations `m` | Measured success | `sin^2((2m+1)theta)` | Absolute error |
+| --- | --- | --- | --- | --- | --- |
+| `{5}` | 1 | 3 | 0.961318970 | 0.961318970 | 4.77e-15 |
+| `{3, 12}` | 2 | 2 | 0.945312500 | 0.945312500 | 2.89e-15 |
+| `{1, 7, 14}` | 3 | 1 | 0.949218750 | 0.949218750 | 1.78e-15 |
+
+The oracle sign check reports every marked amplitude negative and every unmarked amplitude
+positive, with a maximum magnitude error of 8.33e-17. The register is fixed at four qubits and the
+multi-controlled `Z` is applied as a dense matrix, so this measures the amplification arithmetic
+rather than a scalable search.
 
 ## Quantum Fourier transform
 
@@ -198,6 +231,25 @@ QuantumEvent[] kernel = QuantumSVM.createQSVMKernelCircuit(
 The comment inside `QuantumNeuralNetwork` says amplitude encoding; the code angle-encodes with
 rotations. Trust the code.
 
+### Variational classifier on Iris
+
+`QuantumClassifierDemo` is the larger learning demo. It uses thirty flowers from Fisher's Iris data
+(fifteen Iris versicolor and fifteen Iris virginica, two features), holds out every third row, and
+trains a two-qubit, three-layer circuit with six angles by Nelder-Mead on the mean squared error.
+The measured result of the current run is:
+
+| Metric | Measured |
+| --- | --- |
+| Training accuracy | 0.8000 (16/20) |
+| Test accuracy | 0.8000 (8/10) |
+| Final training mean squared error | 0.158525 |
+| Test confusion (actual 0) | 5 predicted 0, 0 predicted 1 |
+| Test confusion (actual 1) | 2 predicted 0, 3 predicted 1 |
+
+The demo states plainly that the test split did not reach 100 percent accuracy. That is the
+honest outcome for a six-parameter model on a fixed thirty-flower subset, and it is deliberately
+kept in the output instead of tuning the split until it passes.
+
 ## Error correction
 
 ```java
@@ -217,6 +269,30 @@ cycle. `EventType.ERROR_CORRECTION` and `EventType.RECOVERY` exist as event labe
 `ErrorManager` in `com.mechalikh.qforge.noise` tracks injected errors, but no demo closes the
 correction loop.
 
+## Complete arithmetic
+
+Two arithmetic demos exist. `QuantumArithmetic` offers `createQuantumAdder(a, b, carry)` and
+`createQuantumMultiplier(...)` as early building blocks, and the demo runner does not call it.
+`QuantumArithmeticComplete` is the verified implementation:
+
+| Operation | Construction | Qubits | Verified inputs | Measured result |
+| --- | --- | --- | --- | --- |
+| In-place ripple-carry adder | Toffoli carry network with uncomputation | `3n + 1` | all `2^(2n)` pairs for `n = 2, 3` | 16/16 and 64/64 cases pass, amplitude 1.000000, carry returns to zero |
+| Controlled modular multiplier | `n` dense controlled modular additions | `2n` | all `N^2` pairs, `N = 7` and `N = 15` | 49/49 and 225/225 pairs pass, probability 1.000000 |
+| Modular exponentiation | one dense `2^(2n) x 2^(2n)` permutation | `2n` | all `N^2` pairs, `N = 7` and `N = 15` | 49/49 and 225/225 pairs pass, probability 1.000000 |
+
+The adder maps `|a>|b>|0...0>` to `|a>|(a + b) mod 2^n>|0...0>` and every ancilla returns to zero.
+The multiplier and exponentiation leave values at or above the modulus unchanged so the map stays a
+permutation. The exponentiation is a dense permutation matrix rather than a product of controlled
+additions, so it is exact but does not scale beyond the measured modulus.
+
+```java
+Qubit[] a = { new Qubit(0, "a0"), new Qubit(1, "a1") };
+Qubit[] b = { new Qubit(2, "b0"), new Qubit(3, "b1") };
+Qubit[] carry = { new Qubit(4, "c0"), new Qubit(5, "c1"), new Qubit(6, "c2") };
+QuantumEvent[] adder = QuantumArithmeticComplete.createInPlaceAdder(a, b, carry);
+```
+
 ## Hamiltonian simulation
 
 ```java
@@ -232,9 +308,6 @@ QuantumEvent[] circuit = TrotterSimulation.createTrotterCircuit(
 First-order product formula, `Delta t = time / trotterSteps`, with term types `I`, `X`, `Y`, `Z`,
 `XX`, `YY` and `ZZ`. The demo compares the Trotter-evolved state against the exact evolution computed by
 diagonalizing the Hamiltonian, so the failure mode it reports is Trotter error, not a wrong state.
-`QuantumArithmetic` provides `createQuantumAdder(a, b, carry)` and
-`createQuantumMultiplier(...)` as ripple-carry style building blocks; neither is exercised by the
-demo runner.
 
 ## Quantum walks
 
@@ -253,6 +326,50 @@ The `Graph` helper class, with `createLineGraph`, `createCycleGraph`, `createCom
 are to pass `null` for the line topology, to add your builder inside `example.algorithms`, or to
 promote the class to `public`. The discrete-time walk with a coin qubit is a parameter of the same
 method rather than a separate builder, and the demo leaves the coin unset.
+
+## QAOA for Max-Cut with an optimizer
+
+The `QAOA` selector in `QuantumAlgorithmsDemo` uses fixed angles and a three-node triangle. The
+standalone `QaoaMaxCut` demo is the real optimization loop: a five-node weighted graph, exact cut
+expectation as the objective, and a Nelder-Mead simplex over the angles.
+
+```mermaid
+flowchart LR
+    A["angle vector<br/>gamma_0, beta_0, ..."] --> B["build QAOA circuit<br/>plus state, exp(-i gamma H_C), RX mixer"]
+    B --> C["state vector probabilities"]
+    C --> D["exact expected cut<br/>sum of edge weights over differing bits"]
+    D --> E["Nelder-Mead simplex<br/>minimizes negative cut"]
+    E --> A
+```
+
+The graph has edges `(0,1)`, `(1,2)`, `(2,3)`, `(3,4)`, `(4,0)` with weight 1 and `(0,2)` with
+weight 0.5. The exact maximum cut is 4.5, reached by four assignments. The measured optimization
+of this run:
+
+| Depth | `gamma` | `beta` | Expected cut | Approximation ratio | Shots reaching 4.5 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 1.828462 | 1.255804 | 3.272756 | 0.727279 | 714/2000 (0.3570) |
+| 2 | 1.903496, -0.790352 | -0.055780, 0.435657 | 3.835804 | 0.852401 | 435/2000 (0.2175) |
+
+Depth two has the higher exact expected cut but the lower sampled optimal fraction, and its most
+frequent outcome has cut 4.0. The demo reports both numbers rather than presenting depth two as a
+strict improvement. The objective uses exact state-vector probabilities, so no sampling noise
+enters the optimizer; the 2000 shots are a separate check of the optimized circuit.
+
+## Cross-backend validation and benchmarks
+
+`src/test/java/com/mechalikh/qforge/CrossBackendValidationTest` runs the same circuits through
+several backends and compares them against analytic results or against each other: random Clifford
+circuits on state vector and stabilizer, non-Clifford circuits on state vector, density matrix and
+tensor network, plus GHZ, W, QFT and Grover fixtures. These are tests, not demos, so they run in
+`mvn -B verify` and fail the build on a mismatch.
+
+`example.benchmarks.BackendBenchmark` is the measured performance companion. It reports GHZ timings
+for all four backends, density-matrix scaling, state-vector versus tensor-network scaling from 10 to
+20 qubits, stabilizer scaling from 100 to 1000 qubits, and two known limits (the stabilizer backend
+rejects non-Clifford gates, and tensor-network truncation error grows as the bond dimension
+shrinks). Its measured tables and run command are in
+[the benchmarks README](https://github.com/CharafeddineMechalikh/QForge/blob/main/src/example/benchmarks/README.md).
 
 ## Performance notes
 

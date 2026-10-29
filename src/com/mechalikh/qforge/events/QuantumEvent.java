@@ -158,7 +158,9 @@ public class QuantumEvent implements Comparable<QuantumEvent> {
         executionTime = Instant.now();
         try {
             if (operation != null) {
-                // Apply the operation to the current state using the context
+                // The scheduled time is the logical time of the operation; the context uses
+                // it to account for idle relaxation between events.
+                context.advanceTo(scheduledTime);
                 context.applyOperation(operation);
             }
             
@@ -175,7 +177,8 @@ public class QuantumEvent implements Comparable<QuantumEvent> {
                 "Failed to execute event: " + e.getMessage(),
                 e
             );
-            throw new EventExecutionException("Failed to execute event: " + id, e);
+            throw new EventExecutionException("Failed to execute event: " + id
+                + (e.getMessage() != null ? ": " + e.getMessage() : ""), e);
         } finally {
             executed = true;
         }

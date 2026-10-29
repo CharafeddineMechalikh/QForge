@@ -76,6 +76,9 @@ limit above `Runtime.availableProcessors()`.
 | `maxCPUs` | integer | no | used only with a positive `maxMemoryBytes` |
 | `maxGPUs` | integer | no | used only with a positive `maxMemoryBytes` |
 | `noiseProfile` | object | no | profile left empty |
+| `deviceNoise` | object | no | device noise stays disabled |
+| `classicalRegisters` | object of name to width | no | no registers are declared |
+| `maxBondDimension` | integer | no | kept at its current value unless positive |
 | `maxSteps` | integer | no | kept at its current value unless positive |
 | `timeoutSeconds` | number | no | kept at its current value unless positive |
 | `classicalControlEnabled` | boolean | no | always assigned, so absent means `false` |
@@ -112,6 +115,16 @@ A complete example:
       "1": { "dephasing": 0.005, "amplitude_damping": 0.002 }
     }
   },
+  "deviceNoise": {
+    "t1_ns": [40000.0, 52000.0],
+    "t2_ns": [30000.0, 41000.0],
+    "readout_p01": [0.02, 0.02],
+    "readout_p10": [0.03, 0.03],
+    "crosstalk_rate": 0.001,
+    "gate_time_ns": 40.0
+  },
+  "classicalRegisters": { "alice": 2 },
+  "maxBondDimension": 64,
   "maxSteps": 100,
   "timeoutSeconds": 30.0,
   "classicalControlEnabled": false,
@@ -120,6 +133,13 @@ A complete example:
   }
 }
 ```
+
+`deviceNoise` reads one array entry per qubit; arrays of different lengths are padded with zeros to
+the longest one. `t1_ns` and `t2_ns` drive thermal relaxation on idle qubits between scheduled
+events, `readout_p01` and `readout_p10` are the readout confusion probabilities,
+`crosstalk_rate` is a per-gate dephasing rate applied to idle neighbours, and `gate_time_ns` is a
+nominal gate duration exposed to scheduling code. A positive `T2` above twice `T1` is rejected. See
+[Measurement and noise](05-measurement-and-noise.md#device-noise).
 
 ## Noise profile formats
 
@@ -177,9 +197,30 @@ qubit ceiling in `SimulationConfig.validate()` is what keeps an allocation from 
 
 ## Classical control
 
-`setClassicalControlEnabled(true)` makes `initialize()` build a `ClassicalController`, wire its
-event scheduler back into `scheduleEvent`, and call `processEvents(context)` after each dispatched
-event.
+Feed-forward is available directly from the configuration: declare a classical register, give a
+measurement a classical target, and guard later gates with `ConditionalOperation`.
+
+```java
+SimulationConfig config = new SimulationConfig();
+config.setNumQubits(3);
+config.setBackend(SimulationBackend.STATE_VECTOR);
+config.addClassicalRegister("alice", 2);
+
+MeasurementOperator measure =
+    MeasurementOperator.computationalBasis(new Qubit[]{q0}, 1).withClassicalTarget("alice", 0);
+QuantumOperation correctX =
+    new ConditionalOperation(SingleQubitGate.createPauliX(q2), "alice", 2L, 2L);
+```
+
+`SimulationContext` evaluates the condition when the event is dispatched, so the outcome of every
+measurement already executed is visible to the guard. A conditional whose condition is false is
+skipped without touching the state. `ShotRunner.run(config, factory, shots)` repeats the circuit in
+a fresh run per shot and returns the final register values, which is how a per-shot protocol such as
+teleportation is executed.
+
+The separate `ClassicalController` used by `setClassicalControlEnabled(true)` is a rule-based
+scheduler, not the feed-forward path above. `initialize()` builds it and wires its event scheduler
+back into `scheduleEvent`, and calls `processEvents(context)` after each dispatched event.
 
 The controller ships three default rules, and they are honest placeholders:
 
@@ -189,8 +230,8 @@ The controller ships three default rules, and they are honest placeholders:
 | `FeedbackMeasurementRule` | observable name contains `Z` | returns `null` |
 | `AdaptiveNoiseRule` | measurement variance above `0.1` | returns `null` |
 
-Useful behavior is available now through the memory and history APIs, and real feed-forward needs a
-custom rule. See [Extending QForge](07-extending.md#classical-feed-forward-control).
+Use the memory and history APIs, or the register and `ConditionalOperation` path above, for real
+feed-forward. See [Extending QForge](07-extending.md#classical-feed-forward-control).
 
 ```java
 ClassicalController controller = simulator.getClassicalController();

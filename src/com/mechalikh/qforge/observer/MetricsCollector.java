@@ -5,6 +5,7 @@ import com.mechalikh.qforge.core.SimulationResult;
 import com.mechalikh.qforge.events.QuantumEvent;
 import com.mechalikh.qforge.operations.QuantumOperation;
 import com.mechalikh.qforge.state.QuantumState;
+import com.mechalikh.qforge.state.AmplitudeAccess;
 import com.mechalikh.qforge.state.StateVector;
 import com.mechalikh.qforge.state.DensityMatrix;
 import com.mechalikh.qforge.math.Complex;
@@ -278,7 +279,8 @@ public class MetricsCollector implements SimulationObserver {
         metrics.put("state_updates", stateUpdates);
         metrics.put("last_state_update", System.currentTimeMillis());
         
-        if (oldState != null && newState != null) {
+        if (oldState != null && newState != null
+            && supportsStateMetrics(oldState) && supportsStateMetrics(newState)) {
             double distance = calculateStateDistance(oldState, newState);
             double fidelity = calculateStateFidelity(oldState, newState);
             metrics.put("last_state_distance", distance);
@@ -514,11 +516,15 @@ public class MetricsCollector implements SimulationObserver {
     /**
      * Computes the fidelity between two states.
      *
+     * <p>Two state vectors use the exact inner product, two density matrices use the
+     * density matrix fidelity, and any other pair that exposes amplitudes uses the
+     * probability based fidelity {@code (sum_i sqrt(p_i q_i))^2}. States without
+     * amplitude access, such as a stabilizer tableau, are not compared; callers check
+     * {@link #supportsStateMetrics(QuantumState)} first.</p>
+     *
      * @param state1 the first state
      * @param state2 the second state
-     * @return {@code 0.0} when the qubit counts differ, the squared inner product
-     *         magnitude for two state vectors (clamped to at most {@code 1.0}), or the
-     *         density matrix fidelity otherwise
+     * @return {@code 0.0} when the qubit counts differ, otherwise the fidelity
      */
     private double calculateStateFidelity(QuantumState state1, QuantumState state2) {
         if (state1.getNumQubits() != state2.getNumQubits()) {
@@ -528,41 +534,56 @@ public class MetricsCollector implements SimulationObserver {
             Complex overlap = ((StateVector) state1).innerProduct((StateVector) state2);
             return Math.min(1.0, overlap.absSquare());
         }
-        return DensityMatrix.fidelity(toDensityMatrix(state1), toDensityMatrix(state2));
+        if (state1 instanceof DensityMatrix && state2 instanceof DensityMatrix) {
+            return DensityMatrix.fidelity((DensityMatrix) state1, (DensityMatrix) state2);
+        }
+        return probabilityFidelity(state1, state2);
+    }
+
+    private static double probabilityFidelity(QuantumState state1, QuantumState state2) {
+        double[] first = ((AmplitudeAccess) state1).getProbabilities();
+        double[] second = ((AmplitudeAccess) state2).getProbabilities();
+        double overlap = 0.0;
+        for (int i = 0; i < first.length && i < second.length; i++) {
+            overlap += Math.sqrt(Math.max(0.0, first[i] * second[i]));
+        }
+        return Math.min(1.0, overlap * overlap);
+    }
+
+    /**
+     * Reports whether the collector can derive distance and fidelity for a state.
+     *
+     * <p>Only states exposing amplitudes or a density matrix can be compared. A
+     * stabilizer tableau stores neither, so transitions involving it update the step
+     * counters without a distance or fidelity sample.</p>
+     *
+     * @param state the state to inspect
+     * @return {@code true} when the state supports the state metrics
+     */
+    private static boolean supportsStateMetrics(QuantumState state) {
+        return state instanceof AmplitudeAccess;
     }
     
     /**
      * Computes a distance between two states.
      *
+     * <p>Two state vectors use {@code sqrt(max(0, 1 - fidelity))}, two density matrices
+     * use the trace distance, and any other comparable pair uses the square root of the
+     * fidelity deficit from {@link #calculateStateFidelity}.</p>
+     *
      * @param state1 the first state
      * @param state2 the second state
-     * @return {@code 1.0} when the qubit counts differ, the square root of
-     *         {@code max(0, 1 - fidelity)} for two state vectors, or the trace
-     *         distance otherwise
+     * @return {@code 1.0} when the qubit counts differ, otherwise the distance
      */
     private double calculateStateDistance(QuantumState state1, QuantumState state2) {
         if (state1.getNumQubits() != state2.getNumQubits()) {
             return 1.0;
         }
-        if (state1 instanceof StateVector && state2 instanceof StateVector) {
-            double fidelity = calculateStateFidelity(state1, state2);
-            return Math.sqrt(Math.max(0.0, 1.0 - fidelity));
+        if (state1 instanceof DensityMatrix && state2 instanceof DensityMatrix) {
+            return DensityMatrix.traceDistance((DensityMatrix) state1, (DensityMatrix) state2);
         }
-        return DensityMatrix.traceDistance(toDensityMatrix(state1), toDensityMatrix(state2));
-    }
-    
-    /**
-     * Returns a state as a density matrix, converting state vectors when needed.
-     *
-     * @param state the state to convert
-     * @return the state itself when it already is a {@link DensityMatrix}, otherwise
-     *         its density matrix form
-     */
-    private static DensityMatrix toDensityMatrix(QuantumState state) {
-        if (state instanceof DensityMatrix) {
-            return (DensityMatrix) state;
-        }
-        return ((StateVector) state).toDensityMatrix();
+        double fidelity = calculateStateFidelity(state1, state2);
+        return Math.sqrt(Math.max(0.0, 1.0 - fidelity));
     }
     
     // Inner classes

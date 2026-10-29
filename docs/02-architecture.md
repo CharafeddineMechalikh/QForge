@@ -221,8 +221,28 @@ classDiagram
         +fidelity(DensityMatrix, DensityMatrix) double$
         +traceDistance(DensityMatrix, DensityMatrix) double$
     }
+    class AmplitudeAccess {
+        <<interface>>
+        +getProbabilities() double[]
+        +getAmplitudes() Complex[]
+    }
+    class MPSState {
+        +getTruncationError() double
+        +getBondDimensions() int[]
+        +getProbabilities() double[]
+    }
+    class StabilizerState {
+        +applyGate(QuantumGate) StabilizerState
+        +outcomeProbabilitiesZ(Qubit[]) double[]
+        +sampleZ(Qubit[], int) int[]
+    }
     QuantumState <|-- StateVector
     QuantumState <|-- DensityMatrix
+    QuantumState <|-- MPSState
+    QuantumState <|-- StabilizerState
+    AmplitudeAccess <|.. StateVector
+    AmplitudeAccess <|.. DensityMatrix
+    AmplitudeAccess <|.. MPSState
 ```
 
 Qubit `0` is the most significant bit of the basis index. With three qubits, index `5` is `|101>`,
@@ -231,19 +251,49 @@ that index, so `getProbabilities()[i]` is the probability of the basis string of
 
 ### Backend comparison
 
-| Property | `STATE_VECTOR` | `DENSITY_MATRIX` |
-| --- | --- | --- |
-| Storage | `2^n` complex amplitudes | `2^n x 2^n` complex elements |
-| Memory estimate in `validate()` | 16 bytes per amplitude plus 1 KiB | 16 bytes per element plus 2 KiB |
-| Recommended qubit ceiling | 30 (about 16 GiB) | 12 (about 256 MiB) |
-| Pure states | Yes | Yes |
-| Mixed states | No | Yes |
-| Noise semantics | One Kraus operator sampled per application, then renormalized, so one stochastic trajectory | Full `sum K rho K dagger`, deterministic |
-| Purity and entropy | Trivial purity of 1, von Neumann entropy of a pure state | Real values, used by metrics and plots |
-| Backed by | `StateVectorStrategy` | `DensityMatrixStrategy` |
+| Property | `STATE_VECTOR` | `DENSITY_MATRIX` | `STABILIZER` | `TENSOR_NETWORK` |
+| --- | --- | --- | --- | --- |
+| Storage | `2^n` complex amplitudes | `2^n x 2^n` complex elements | `2n` rows of `2n` bits (Aaronson-Gottesman tableau) | `n` tensors plus `n + 1` bond vectors |
+| Recommended ceiling | 30 (about 16 GiB) | 12 (about 256 MiB) | 2000 | 100 at a modest bond dimension |
+| Pure states | Yes | Yes | Yes, Clifford states only | Yes, up to truncation |
+| Mixed states | No | Yes | No | No |
+| Exact | Yes | Yes | Yes, for the Clifford group | Only when no Schmidt weight is discarded |
+| Noise | Kraus channels, one trajectory per run | Full `sum K rho K dagger` | Rejected | Rejected |
+| Gate set | Any supported gate | Any supported gate | `X`, `Y`, `Z`, `H`, `S`, `Sdg`, `CNOT`/`CX`, `CZ`, `SWAP`, `I` | One- and two-qubit gates |
+| Measurement | Any observable | Any observable | Pauli `Z`, exact probabilities for at most 16 qubits | Pauli `Z` with dense probabilities for at most 24 qubits |
+| Truncation diagnostics | Not applicable | Not applicable | Not applicable | `MPSState.getTruncationError()` and `getBondDimensions()` |
+| Backed by | `StateVectorStrategy` | `DensityMatrixStrategy` | `StabilizerStrategy` | `TensorNetworkStrategy` |
 
 `SimulationConfig.validate()` rejects any configuration whose qubit count exceeds the backend
 recommendation, so the ceilings are enforced at initialization rather than at allocation time.
+
+Probability and fidelity metrics require dense access to the state. `StateVector`,
+`DensityMatrix` and `MPSState` implement `AmplitudeAccess`, so the metrics collector reports
+fidelity for them; a `StabilizerState` has no dense form and is skipped by the fidelity and
+distance metrics instead of failing the run.
+
+## Classical control and feed-forward
+
+A measurement can write its outcome into a named `ClassicalRegister` declared on the configuration.
+The packing is most significant bit first: measuring several qubits with
+`withClassicalTarget("c", offset)` writes the first target at `offset`. Reading a register returns a
+packed `long` whose bit `i` is register bit `i`.
+
+```mermaid
+flowchart LR
+    M["MeasurementOperator<br/>withClassicalTarget"] --> W["register.write(offset, outcome, width)"]
+    W --> R["ClassicalRegister"]
+    C["ConditionalOperation<br/>register, expected, mask"] --> T{"(value & mask) == (expected & mask)"}
+    R --> T
+    T -- true --> G["guarded gate applied"]
+    T -- false --> S["event skipped"]
+```
+
+`SimulationContext` resolves the condition when the event is dispatched, so a conditional event sees
+every measurement that has already executed in that run. `ShotRunner` repeats the whole circuit in a
+fresh simulator for each shot and aggregates the final register values, which is the execution model
+needed for teleportation, repeat-until-success, and other protocols whose gates depend on their own
+measurement outcomes.
 
 ## Threading and error model
 

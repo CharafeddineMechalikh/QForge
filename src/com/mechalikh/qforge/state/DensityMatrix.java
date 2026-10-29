@@ -22,7 +22,7 @@ import com.mechalikh.qforge.math.MatrixOperations;
  * {@link #getMatrix()} returns a copy of it. Purity and entropy are computed lazily and
  * cached in mutable fields.</p>
  */
-public class DensityMatrix extends QuantumState {
+public class DensityMatrix extends QuantumState implements AmplitudeAccess {
     private final ComplexMatrix matrix;
     private final int dimension;
     private Double purity = null;

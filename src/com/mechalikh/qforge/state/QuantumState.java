@@ -12,8 +12,9 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Abstract base class for a quantum state of a fixed number of qubits.
  *
- * <p>Two concrete backends exist: {@link StateVector} stores pure states and
- * {@link DensityMatrix} stores mixed states. Both use the same basis-state indexing: a
+ * <p>Concrete backends include {@link StateVector} and {@link DensityMatrix}, which implement
+ * {@link AmplitudeAccess}, and the tableau based stabilizer state, which does not. All use the
+ * same basis-state indexing: a
  * basis state is an integer in {@code [0, 2^numQubits)}, and the bit of qubit {@code q}
  * is bit {@code numQubits - 1 - q} of that integer. Qubit {@code 0} is therefore the most
  * significant bit and the last qubit is the least significant bit.</p>
@@ -61,27 +62,53 @@ public abstract class QuantumState {
      * Returns the backend representation of one computational basis state.
      *
      * <p>A {@link StateVector} returns the complex coefficient. A {@link DensityMatrix}
-     * returns the square root of the corresponding diagonal entry.</p>
+     * returns the square root of the corresponding diagonal entry. A stabilizer state has no
+     * amplitude array and rejects this call.</p>
      *
      * @param basisState basis-state index in {@code [0, 2^numQubits)}
      * @return the amplitude, or the density-matrix analogue of it
+     * @throws UnsupportedOperationException if this state does not implement
+     *         {@link AmplitudeAccess}
      */
-    public abstract Complex getAmplitude(int basisState);
+    public Complex getAmplitude(int basisState) {
+        throw unsupported("amplitudes");
+    }
     
     /**
      * Returns the population of one computational basis state.
      *
      * @param basisState basis-state index in {@code [0, 2^numQubits)}
      * @return the probability of measuring this basis state
+     * @throws UnsupportedOperationException if this state does not implement
+     *         {@link AmplitudeAccess}
      */
-    public abstract double getProbability(int basisState);
+    public double getProbability(int basisState) {
+        throw unsupported("basis-state probabilities");
+    }
     
     /**
      * Returns the populations of all computational basis states.
      *
      * @return an array of length {@code 2^numQubits}, indexed by basis-state index
+     * @throws UnsupportedOperationException if this state does not implement
+     *         {@link AmplitudeAccess}
      */
-    public abstract double[] getProbabilities();
+    public double[] getProbabilities() {
+        throw unsupported("basis-state probabilities");
+    }
+    
+    /**
+     * Builds the exception used when a state cannot expose per-basis-state data.
+     *
+     * @param feature the requested feature
+     * @return an exception naming this state class and disclosing that a tableau backend is
+     *         limited to sampling and Pauli expectations
+     */
+    protected UnsupportedOperationException unsupported(String feature) {
+        return new UnsupportedOperationException(
+            feature + " are not available for " + getClass().getSimpleName()
+                + "; sample it or use a Pauli expectation instead");
+    }
     
     /**
      * Returns the tensor product of this state and another state of the same backend.

@@ -20,7 +20,7 @@ import java.util.Arrays;
  * trajectory, see
  * {@link QuantumState#applyKrausOperators(ComplexMatrix[], int[], java.util.Random)}.</p>
  */
-public class StateVector extends QuantumState {
+public class StateVector extends QuantumState implements AmplitudeAccess {
     private final Complex[] amplitudes;
     private final int dimension;
     

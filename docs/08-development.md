@@ -19,10 +19,11 @@ flowchart TD
     R --> L["lib/ (runtime jars committed for the CLI demos)"]
     R --> D["docs/ (these guides)"]
     R --> C["CHANGELOG.md, README.md"]
-    S --> S1["com/mechalikh/qforge/ (13 packages)"]
-    S --> S2["example/ (demos, algorithm builders, JSON resources)"]
+    S --> S1["com/mechalikh/qforge/ (14 packages, including qasm)"]
+    S --> S2["example/ (demos, algorithm builders, benchmarks, JSON resources)"]
     S2 --> S3["example/config/*.json"]
     S2 --> S4["example/circuits/*.json"]
+    S2 --> S5["example/benchmarks/BackendBenchmark.java"]
 ```
 
 Maven maps `src` to the main source root and `src/test/java` to the test root, which is unusual:
@@ -32,8 +33,8 @@ copies every `**/*.json` and `**/*.properties` under `src` into `target/classes`
 
 | Path | Contents |
 | --- | --- |
-| `src/com/mechalikh/qforge/` | the library: `core`, `config`, `events`, `operations`, `state`, `strategy`, `measurement`, `noise`, `observer`, `plugin`, `classical`, `resources`, `math` |
-| `src/example/` | runners, `algorithms`, `plugins`, `visualization`, JSON resources |
+| `src/com/mechalikh/qforge/` | the library: `core`, `config`, `events`, `operations`, `state`, `strategy`, `measurement`, `noise`, `observer`, `plugin`, `classical`, `qasm`, `resources`, `math` |
+| `src/example/` | runners, `algorithms`, `benchmarks`, `plugins`, `visualization`, JSON resources |
 | `src/test/java/com/mechalikh/qforge/` | JUnit 5 tests and `TestSupport` |
 | `lib/` | `jackson-annotations`, `jackson-core`, `jackson-databind` |
 | `target/`, `bin/`, `output/` | build and demo artifacts, git-ignored |
@@ -52,6 +53,8 @@ picked up twice, and the Javadoc plugin applies the same exclusion through
 | API documentation | `mvn javadoc:javadoc` (online for the first run) |
 | All demos | `java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo ALL` |
 | One demo | `java -cp "target/classes;lib/*" example.QuantumAlgorithmsDemo VQE` |
+| Standalone algorithm demos | build the Maven classpath once, then run `QaoaMaxCut`, `QuantumArithmeticComplete`, `AmplitudeAmplificationComplete` or `QuantumClassifierDemo`; see [Algorithms](06-algorithms.md#demo-commands) |
+| Backend benchmark | `java -cp "target/classes;$(cat target/classpath.txt)" example.benchmarks.BackendBenchmark` |
 | JSON circuit | `java -cp "target/classes;lib/*" example.CircuitRunner bell` |
 | Headless visuals | `java -cp "target/classes;lib/*" example.visualization.RunVisualizations` |
 
@@ -65,13 +68,13 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 | `com.fasterxml.jackson.core:jackson-databind` | 2.13.3 | compile | JSON config, circuit and result serialization |
 | `com.fasterxml.jackson.core:jackson-core` | 2.13.3 | compile | parser features, including comment tolerance |
 | `org.slf4j:slf4j-api` and `slf4j-simple` | 1.7.36 | compile and runtime | declared, no source imports it |
-| `org.apache.commons:commons-math3` | 3.6.1 | compile | declared, no source imports it |
+| `org.apache.commons:commons-math3` | 3.6.1 | compile | `ComplexSvd` singular value decomposition, plus the Nelder-Mead optimizers in the QAOA and Iris classifier demos |
 | `org.jetbrains:annotations` | 23.0.0 | compile | declared, no source imports it |
 | `org.junit.jupiter:junit-jupiter-api` and `junit-jupiter-engine` | 5.8.2 | test | the test suite |
 
 ## Test suite
 
-338 tests, all passing on the current tree.
+510 tests, all passing on the current tree.
 
 | Class | Tests | Covers |
 | --- | --- | --- |
@@ -99,6 +102,16 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 | `CoreCoverageTest` | 9 | configuration, time resolutions, context, simulator lifecycle |
 | `ResourcesCoverageTest` | 8 | constraint validation, allocation and release accounting |
 | `OperationsCoverageTest` | 7 | gate construction, matrix copies, gate library |
+| `V2CoreTest` | 11 | classical registers, conditionals, device noise, QASM round trip, stabilizer and tensor-network basics |
+| `V2CoreCoverageTest` | 18 | validation edges of registers, device noise, QASM parser and backends |
+| `QasmTest` | 15 | QASM 2.0 and 3.0 parsing, custom gates, conditions, emitter options |
+| `QasmBranchCoverageTest` | 30 | parser rejection paths and emitter branches |
+| `StabilizerTest` | 10 | Clifford gates, GHZ and entanglement, sampling, rejection of T |
+| `StabilizerBranchCoverageTest` | 13 | tableau edge cases, measurement and unsupported operations |
+| `MPSStateTest` | 15 | tensor construction, canonicalization, truncation accounting, probabilities |
+| `MPSBranchCoverageTest` | 50 | bond dimensions, gate application paths, truncation and state accessors |
+| `CrossBackendValidationTest` | 6 | the same circuits on state vector, density matrix, stabilizer and tensor network |
+| `example.AlgorithmValidationTest` | 4 | QAOA optimizer, arithmetic, amplitude amplification and classifier results |
 
 `TestSupport` holds shared helpers such as `event(id, operation, qubits...)`. Tests are plain JUnit
 5 with no mocks: they drive the real dispatch path, because a stubbed simulator would not detect a
@@ -115,9 +128,9 @@ branch coverage drops below 90 percent. Print the totals from the CSV:
 awk -F, 'NR>1 {im+=$4; ic+=$5; bm+=$6; bc+=$7} END {printf "instruction %.1f%%, branch %.1f%%\n", 100*ic/(ic+im), 100*bc/(bc+bm)}' target/site/jacoco/jacoco.csv
 ```
 
-On the current tree that command reports 97.7 percent instruction coverage and 91.8 percent branch
-coverage over 97 classes. No coverage service is connected, so the README badges carry that
-measurement as static Shields images dated 2026-10-25; update both badges when the number moves.
+On the current tree that command reports 98.0 percent instruction coverage and 92.9 percent branch
+coverage over 129 classes. No coverage service is connected, so the README badges carry that
+measurement as static Shields images dated 2026-10-29; update both badges when the number moves.
 
 ### Adding a test
 
@@ -129,7 +142,7 @@ measurement as static Shields images dated 2026-10-25; update both badges when t
 
 ## Javadoc
 
-`mvn javadoc:javadoc` writes `target/site/apidocs/index.html`, currently 319 HTML pages. The plugin
+`mvn javadoc:javadoc` writes `target/site/apidocs/index.html`. The plugin
 runs with `doclint=all,-missing`, so bad `{@link}` targets, broken tags and malformed HTML fail the
 build while absent comments do not.
 
@@ -216,10 +229,22 @@ Honest list, in the order people usually hit it:
 
 - `timeoutSeconds` is stored, validated and serialized but never enforced.
 - The three default `ControlRule` implementations in `ClassicalController` are placeholders, and
-  `updateEventQueue` and `executeConditional` have no engine caller.
+  `updateEventQueue` and `executeConditional` have no engine caller. Circuit-level feed-forward does
+  work through `ClassicalRegister` and `ConditionalOperation`.
+- The stabilizer backend accepts Clifford gates only, rejects every Kraus channel, caps a
+  `MeasurementResult` at 16 measured targets, and does not implement fidelity or entropy.
+- The tensor-network backend applies at most two qubits per gate, rejects noise channels, and
+  builds dense probabilities, fidelity and entropy only for at most 24 qubits, so it is not a
+  replacement for the state vector at small widths. Truncation reports a relative discarded weight
+  but no rigorous error bound.
+- QASM import covers the documented subset. `reset`, `opaque`, loops, nested conditions and
+  vendor-specific gates are rejected rather than approximated.
+- The exchange format is OpenQASM text. There is no Python Qiskit bridge, so a Qiskit circuit must
+  be exported to QASM before it reaches QForge.
+- `gate_time_ns` in `DeviceNoiseModel` is stored and exposed but does not advance event times;
+  relaxation uses the timestamps that the caller puts on events.
 - The `Graph` class in `src/example/algorithms/QuantumWalk.java` is package-private, so external
   code cannot build a custom graph.
-- No OpenQASM or Qiskit import or export.
 - Codacy is not connected, so there is no hosted code-quality grade or Codacy badge yet.
 - The `grover`, `qft` and `teleport` names in `CircuitRunner` have no bundled circuit JSON.
 - Eigenvalue routines are dense and unoptimized, which caps fidelity and entropy computations at
