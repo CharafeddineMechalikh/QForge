@@ -435,7 +435,7 @@ If QForge helps your work, cite the repository:
   title   = {QForge: An Event-Driven Quantum Circuit Simulator in Java},
   author  = {Mechalikh, Charafeddine},
   year    = {2026},
-  version = {1.0.0},
+  version = {1.1.0},
   url     = {https://github.com/CharafeddineMechalikh/QForge}
 }
 ```

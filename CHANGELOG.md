@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-29
+
 ### Added
 
 - Five runnable examples under `src/example/algorithms/`, each with a README covering its intent,
   measured output, and diagrams: Deutsch-Jozsa and Bernstein-Vazirani oracles, quantum
   teleportation branch analysis, a BB84 key distribution with an eavesdropper, a depolarizing noise
-  fidelity sweep, and Shor order finding that factors 15.
+  fidelity sweep, and Shor order finding that factors 15. The remaining example directories, and
+  every runnable entry point, are documented in the same style.
 
 - A GitHub Actions workflow (`.github/workflows/ci.yml`) that builds on JDK 17 and runs the tests
   plus the JaCoCo gates on every push and pull request to `main`, replacing the never-activated
