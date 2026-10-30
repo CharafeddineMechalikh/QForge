@@ -12,36 +12,36 @@ QForge is an event-driven quantum computing library that simulates circuits in p
 guides explain how to build circuits, pick a backend, add noise, measure qubits, run quantum
 algorithms, and extend the simulator with plugins.
 
-The file names carry a numeric prefix. Guides 1 to 8 follow the software from install to
-development. Guides 9 to 12 are an illustrated background series that explains the physics those
-guides assume, from photons and polarization to measurement and error correction. Read the
-background series first if quantum computing is new to you, or dip into a single page when a term
-needs unpacking.
+The file names carry a numeric prefix. The eight software guides follow the code from install to
+development. The five background guides explain the physics those guides assume, starting with the
+arithmetic of amplitudes and ending with error correction. Read the background series first if
+quantum computing is new to you, or dip into a single page when a term needs unpacking.
 
 If you want a two-minute introduction, start with [Getting started](01-getting-started.md). If you
 want to know how the engine works internally, start with [Architecture](02-architecture.md).
 
 ## Background: the physics, illustrated
 
-| # | Guide | What it covers | Read time |
-| --- | --- | --- | --- |
-| 9 | [Qubits, photons and polarization](09-qubits-and-photons.md) | Bits versus qubits, photon polarization, BB84, how real hardware makes a qubit, how QForge stores the state | 12 min |
-| 10 | [Superposition, gates and circuits](10-superposition-gates-and-circuits.md) | Amplitudes, phase and interference, the Bloch sphere, the gate set, circuit diagrams, the Bell pair | 12 min |
-| 11 | [Entanglement, measurement and teleportation](11-entanglement-and-measurement.md) | Bell correlations and Bell tests, the Born rule and collapse, observables and shot noise, teleportation | 14 min |
-| 12 | [Noise and error correction](12-noise-and-error-correction.md) | T1 and T2, Kraus channels, density matrices versus trajectories, repetition and Shor codes, thresholds | 14 min |
+| Guide | What it covers | Read time |
+| --- | --- | --- |
+| [The math a beginner needs](09-math-primer.md) | Complex amplitudes, modulus squared, phase and interference, gates as matrices | 8 min |
+| [Qubits, photons and polarization](09-qubits-and-photons.md) | Bits versus qubits, photon polarization, BB84, how real hardware makes a qubit, how QForge stores the state | 12 min |
+| [Superposition, gates and circuits](10-superposition-gates-and-circuits.md) | Amplitudes, phase and interference, the Bloch sphere, the gate set, circuit diagrams, the Bell pair | 12 min |
+| [Entanglement, measurement and teleportation](11-entanglement-and-measurement.md) | Bell correlations and Bell tests, the Born rule and collapse, observables and shot noise, teleportation | 14 min |
+| [Noise and error correction](12-noise-and-error-correction.md) | T1 and T2, Kraus channels, density matrices versus trajectories, repetition and Shor codes, thresholds | 14 min |
 
 ## Guides
 
-| # | Guide | What it covers | Read time |
-| --- | --- | --- | --- |
-| 1 | [Getting started](01-getting-started.md) | Tutorial: install, build, run the demos, write your first circuit, load a JSON circuit | 10 min |
-| 2 | [Architecture](02-architecture.md) | Simulator lifecycle, event queue ordering, execution pipeline, state representations, backend choice | 15 min |
-| 3 | [Configuration](03-configuration.md) | `SimulationConfig` fields and defaults, JSON schema, validation rules, resource limits, noise profiles | 10 min |
-| 4 | [Gates and circuits](04-gates-and-circuits.md) | Gate catalog, qubit ordering convention, controlled gates, rotations, custom gates, circuit JSON | 12 min |
-| 5 | [Measurement and noise](05-measurement-and-noise.md) | Projective measurement, state collapse, observables, Kraus channels, quantum trajectories, fidelity | 12 min |
-| 6 | [Algorithms](06-algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, quantum walks, with demo commands and pass criteria | 15 min |
-| 7 | [Extending QForge](07-extending.md) | Plugins, observers, custom gates, custom noise, classical feed-forward control | 12 min |
-| 8 | [Development](08-development.md) | Repository layout, tests, Javadoc, coding conventions, release process | 8 min |
+| Guide | What it covers | Read time |
+| --- | --- | --- |
+| [Getting started](01-getting-started.md) | Tutorial: install, build, run the demos, write your first circuit, load a JSON circuit | 10 min |
+| [Architecture](02-architecture.md) | Simulator lifecycle, event queue ordering, execution pipeline, state representations, backend choice | 15 min |
+| [Configuration](03-configuration.md) | `SimulationConfig` fields and defaults, JSON schema, validation rules, resource limits, noise profiles | 10 min |
+| [Gates and circuits](04-gates-and-circuits.md) | Gate catalog, qubit ordering convention, controlled gates, rotations, custom gates, circuit JSON | 12 min |
+| [Measurement and noise](05-measurement-and-noise.md) | Projective measurement, state collapse, observables, Kraus channels, quantum trajectories, fidelity | 12 min |
+| [Algorithms](06-algorithms.md) | Grover, QFT, QPE, VQE, QNN, QSVM, Shor code, QAOA, Trotter, quantum walks, with demo commands and pass criteria | 15 min |
+| [Extending QForge](07-extending.md) | Plugins, observers, custom gates, custom noise, classical feed-forward control | 12 min |
+| [Development](08-development.md) | Repository layout, tests, Javadoc, coding conventions, release process | 8 min |
 
 ## Which guide do I need?
 
@@ -62,8 +62,8 @@ flowchart TD
     C1 --> C2["Then 04-gates-and-circuits.md for the gate set"]
     D --> D1["07-extending.md"]
     D1 --> D2["Then 08-development.md to build and test"]
-    E --> E1["09-qubits-and-photons.md"]
-    E1 --> E2["Then 10, 11 and 12 for gates, entanglement and error correction"]
+    E --> E1["09-math-primer.md"]
+    E1 --> E2["Then the four pages after it, up to error correction"]
 ```
 
 ## Conventions used in these guides
@@ -82,7 +82,7 @@ flowchart TD
 ## Other documentation sources
 
 - This guide set is published as a website at
-  [https://charafeddinemechalikh.github.io/QForge/](https://charafeddinemechalikh.github.io/QForge/).
+  [charafeddinemechalikh.github.io/QForge](https://charafeddinemechalikh.github.io/QForge/).
   It is built from the `docs` folder on every push to `main`, so the site and these files stay in
   sync.
 - [Project README](https://github.com/CharafeddineMechalikh/QForge#readme) for the feature overview

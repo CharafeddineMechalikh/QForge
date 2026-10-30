@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430" role="img" aria-labelledby="ap-title ap-desc">
+  <title id="ap-title">An amplitude as an arrow in the complex plane</title>
+  <desc id="ap-desc">The complex plane with a unit circle. An arrow from the origin points at 45 degrees, with dashes to the real and imaginary axes labelled a and b. The angle from the real axis is phi.</desc>
+  <defs>
+    <marker id="ap-arrow-indigo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-indigo" d="M0 0L10 5L0 10z"/>
+    </marker>
+    <marker id="ap-arrow-orange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-orange" d="M0 0L10 5L0 10z"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .tick { font-size: 14px; fill: #5a6478; }
+    .label { font-size: 15px; font-weight: 600; fill: #151a2b; }
+    .axis-name { font-size: 15px; font-weight: 600; fill: #4f46e5; }
+    .phi-label { font-size: 15px; font-weight: 600; fill: #ea580c; }
+    .formula { font-size: 15px; text-anchor: middle; fill: #5a6478; }
+    .axis { stroke: #cbd3e4; stroke-width: 1.4; fill: none; }
+    .grid { stroke: #dbe2ef; stroke-width: 1.3; fill: none; stroke-dasharray: 5 6; }
+    .guide { stroke: #cbd3e4; stroke-width: 1.4; fill: none; stroke-dasharray: 4 5; }
+    .vector { stroke: #4f46e5; stroke-width: 3; fill: none; }
+    .angle { stroke: #ea580c; stroke-width: 2; fill: none; }
+    .fill-indigo { fill: #4f46e5; }
+    .fill-orange { fill: #ea580c; }
+    @media (prefers-color-scheme: dark) {
+      .tick, .formula { fill: #9aa6bd; }
+      .label { fill: #e6eaf4; }
+      .axis-name, .phi-label { fill: #a5b4fc; }
+      .axis, .guide { stroke: #303c56; }
+      .grid { stroke: #232c42; }
+      .vector { stroke: #a5b4fc; }
+      .angle { stroke: #fb923c; }
+      .phi-label { fill: #fb923c; }
+      .fill-indigo { fill: #a5b4fc; }
+      .fill-orange { fill: #fb923c; }
+    }
+  </style>
+
+  <line class="axis" x1="90" y1="250" x2="632" y2="250"/>
+  <line class="axis" x1="360" y1="62" x2="360" y2="404"/>
+  <text class="axis-name" x="640" y="256">Re</text>
+  <text class="axis-name" x="360" y="52" text-anchor="middle">Im</text>
+
+  <circle class="grid" cx="360" cy="250" r="150"/>
+
+  <text class="tick" x="510" y="274" text-anchor="middle">1</text>
+  <text class="tick" x="210" y="274" text-anchor="middle">&#8722;1</text>
+  <text class="tick" x="378" y="106">i</text>
+  <text class="tick" x="378" y="404">&#8722;i</text>
+
+  <line class="guide" x1="466" y1="144" x2="466" y2="250"/>
+  <line class="guide" x1="360" y1="144" x2="466" y2="144"/>
+  <text class="tick" x="466" y="274" text-anchor="middle">a</text>
+  <text class="tick" x="452" y="192" text-anchor="end">b</text>
+
+  <line class="vector" x1="360" y1="250" x2="462" y2="148" marker-end="url(#ap-arrow-indigo)"/>
+  <text class="label" x="480" y="138">&#945;</text>
+
+  <path class="angle" d="M410 250 A50 50 0 0 0 395 215" marker-end="url(#ap-arrow-orange)"/>
+  <text class="phi-label" x="422" y="232">&#966;</text>
+
+  <text class="formula" x="360" y="422">|&#945;|&#178; = a&#178; + b&#178;   and   &#945; = a + b i</text>
+</svg>

@@ -1,7 +1,7 @@
 ---
 title: "Noise and error correction"
 nav: "Noise and error correction"
-order: 12
+order: 13
 group: background
 description: "Decoherence times T1 and T2, Kraus channels, density matrices versus trajectories, the three-qubit repetition code, the Shor code and the threshold idea."
 ---

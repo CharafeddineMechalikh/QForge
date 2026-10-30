@@ -1,7 +1,7 @@
 ---
 title: "Entanglement, measurement and teleportation"
 nav: "Entanglement and measurement"
-order: 11
+order: 12
 group: background
 description: "Bell pairs, nonlocal correlations, the Born rule and collapse, observables and shot noise, and how teleportation moves a state with two classical bits."
 ---
@@ -9,8 +9,8 @@ description: "Bell pairs, nonlocal correlations, the Born rule and collapse, obs
 # Entanglement, measurement and teleportation
 
 Two qubits can hold a joint state that neither qubit holds alone. That is entanglement. It is also
-the point where measurement stops looking like reading a meter. This page covers both, then uses
-them to explain teleportation.
+the point where measurement stops looking like reading a meter. This page covers both, explains what
+a simulated result is allowed to claim, then uses the two ideas to describe teleportation.
 
 ## Two qubits can share one state
 
@@ -120,6 +120,50 @@ Measurement is not a conscious observer effect, and it is not reading a value th
 there. It is a physical interaction that selects one outcome from the amplitudes and leaves the
 system in that outcome.
 </blockquote>
+
+## Reading a simulation result
+
+A simulation can answer in two registers, and mixing them up is the most common beginner error.
+
+The first register is exact. The state vector holds amplitudes, so the probabilities come out of
+`|alpha|^2` with no randomness at all. A qubit prepared with H returns 0.5000 and 0.5000 every time
+you ask.
+
+The second register is sampled. A shot means preparing the state and measuring it once, which
+returns one bit string. Run 100 shots and you get counts, and counts wobble.
+
+<figure>
+  <img src="{{ '/assets/img/shot-noise.svg' | relative_url }}" alt="Two bar charts. The left one shows the exact state with both outcomes at 0.500. The right one shows 100 shots with seed 6, where outcome zero appeared 46 times and outcome one 54 times, against a dashed line at the exact value of 0.50." loading="lazy">
+  <figcaption>The exact state and one sampled run of the same experiment. The wobble is shot noise,
+  not a bug and not physics.</figcaption>
+</figure>
+
+The wobble has a size. For a 50/50 outcome the standard error of the observed frequency is
+`0.5 / sqrt(shots)`, so the spread is about 0.05 at 100 shots, 0.016 at 1000 and 0.005 at 10,000.
+Three runs of the H circuit, each with the seed fixed before sampling, give the numbers a reader can
+check:
+
+| Shots | Seed | Zeros | Ones | Frequency of 0 |
+| --- | --- | --- | --- | --- |
+| 100 | 6 | 46 | 54 | 0.46 |
+| 1000 | 2026 | 499 | 501 | 0.499 |
+| 10000 | 2026 | 4944 | 5056 | 0.494 |
+
+All three agree with the exact 0.500 once the sampling error is taken into account. A difference
+between two runs that is smaller than roughly two standard errors is not evidence of anything, and
+the honest response is to raise the shot count rather than to interpret the noise.
+
+Seeding is what makes a demo reproducible. QForge draws its randomness from one shared generator, so
+the examples call `RandomGenerator.setRandom(new Random(SEED))` before the measured phase and
+`RandomGenerator.resetToDefault()` afterwards. The same seed replays the same sequence, and a new
+seed shows how wide the spread really is.
+
+Two more readings are worth knowing. A noisy run moves the histogram by more than shot noise allows,
+and that shift is the device error rather than sampling, which is the subject of
+[Noise and error correction](12-noise-and-error-correction.md). To compare two states directly,
+instead of comparing their histograms, use fidelity, which returns 1 for identical states.
+[Measurement and noise](05-measurement-and-noise.md#comparing-states) lists the metrics and their
+formulas in this codebase.
 
 ## Teleportation: move a state with two bits
 

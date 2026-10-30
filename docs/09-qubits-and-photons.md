@@ -1,7 +1,7 @@
 ---
 title: "Qubits, photons and polarization"
 nav: "Qubits and photons"
-order: 9
+order: 10
 group: background
 description: "What a qubit is, how a photon encodes one with polarization, how real hardware traps and controls two-level systems, and how QForge stores the state."
 ---
@@ -11,7 +11,8 @@ description: "What a qubit is, how a photon encodes one with polarization, how r
 Every circuit in QForge runs on the same object: a qubit. Before the gates and the algorithms, it
 helps to know what that object is physically, why light is one of the cleanest ways to carry it,
 and how laboratories actually build one. None of this is required to run the simulator, but it
-makes the numbers on screen easier to interpret.
+makes the numbers on screen easier to interpret. If the word amplitude in the first section is
+already unfamiliar, read [The math a beginner needs](09-math-primer.md) first.
 
 ## A bit holds one answer, a qubit holds a direction
 
@@ -131,10 +132,44 @@ noise: relaxation times, gate durations, readout confusion, and crosstalk all co
 platform. [Noise and error correction](12-noise-and-error-correction.md) maps those numbers onto
 the channels the simulator applies.
 
+## Two qubits multiply
+
+One qubit carries two amplitudes. Two qubits carry four, and the reason is a product rather than a
+sum. Put two single-qubit states side by side and every amplitude of the first multiplies every
+amplitude of the second, while the labels concatenate:
+
+```text
+(alpha0 |0> + beta0 |1>)  x  (alpha1 |0> + beta1 |1>)
+
+  = alpha0 alpha1 |00>  +  alpha0 beta1 |01>
+  + beta0  alpha1 |10>  +  beta0  beta1 |11>
+```
+
+The operation is the tensor product, written `x` above and `⊗` in most textbooks. It is the only
+place these guides grow the state, and it is exponential: each qubit doubles the number of
+amplitudes.
+
+Take a circuit that applies H to qubit 0 and leaves qubit 1 alone. The first qubit has
+`alpha0 = beta0 = 0.7071` and the second has `alpha1 = 1`, `beta1 = 0`, so four products follow:
+
+| Ket | Amplitude | Probability |
+| --- | --- | --- |
+| `00` | 0.7071 | 0.50 |
+| `01` | 0 | 0.00 |
+| `10` | 0.7071 | 0.50 |
+| `11` | 0 | 0.00 |
+
+That state is still two independent qubits, because each entry factors back into a number from the
+first qubit times a number from the second. Add a CNOT and the state becomes
+`(0.7071, 0, 0, 0.7071)`, which does not factor at all. That failure to factor is entanglement, and
+[Entanglement, measurement and teleportation](11-entanglement-and-measurement.md#two-qubits-can-share-one-state)
+works through it.
+
 ## What the simulator stores
 
-A `Qubit` is a name and an index. The interesting object is the state. For `n` qubits the
-`STATE_VECTOR` backend stores `2^n` complex amplitudes, one for every computational basis state.
+A `Qubit` is a name and an index. The interesting object is the state, and for `n` qubits the
+`STATE_VECTOR` backend stores the `2^n` complex amplitudes that the product above produces, one for
+every computational basis state.
 
 Qubit index `0` is the most significant bit of the basis-state index. With two qubits the four
 amplitudes line up like this:
