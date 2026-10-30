@@ -164,19 +164,24 @@ The `docs/` folder is also a GitHub Pages site, published from the `main` branch
 Pages runs Jekyll over `docs/` on every push, so there is no build step and no local dependency to
 install: committing a guide is enough to publish it.
 
-Two files support the site:
+Four files support the site:
 
 - `docs/_config.yml` sets the site title, description and base path, and selects kramdown with GFM,
   Rouge highlighting and the `jekyll-relative-links` plugin.
-- `docs/_layouts/default.html` renders the header, the guide navigation, per-page titles and meta
-  descriptions, canonical links, light and dark styles, and the Mermaid renderer that turns the
-  `mermaid` code fences into diagrams in the browser.
+- `docs/_layouts/default.html` renders the gradient header, the three-column shell, per-page titles
+  and meta descriptions, canonical links, the page contents rail and the Mermaid renderer that turns
+  the `mermaid` code fences into diagrams in the browser.
+- `docs/_includes/docs-sidebar.html` builds the sidebar from every page that carries an `order`, so a
+  new guide needs no edit there to appear in the manual.
+- `docs/assets/css/style.css` holds the light and dark themes, the sidebar and contents layout, and
+  the mobile drawer.
 
 Every guide carries front matter with `title`, `nav`, `order` and `description`. The navigation is
 sorted by `order`, so a new guide needs a number between its neighbours; `docs/README.md` uses
 `order: 0` and `permalink: "/"` to serve as the site home page. Relative links between guides are
 written as plain `.md` paths, which GitHub renders in the repository and Jekyll rewrites to the
-pretty site URLs, so the same text works in both places.
+pretty site URLs, so the same text works in both places. The `On this page` rail is generated in the
+browser from the `h2` and `h3` headings of the current guide, so it needs no front matter.
 
 ## Coding conventions
 

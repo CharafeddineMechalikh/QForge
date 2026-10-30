@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ page.lang | default: 'en' }}">
+<html lang="{{ site.lang | default: 'en' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,7 +19,7 @@
   <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
   <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.url }}">
   <meta name="twitter:card" content="summary">
-  <meta name="theme-color" content="#0b1f3a">
+  <meta name="theme-color" content="#071a38">
   <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.url | replace: 'index.html', '' }}">
   <link rel="alternate" type="text/markdown" href="https://github.com/CharafeddineMechalikh/QForge/raw/main/docs/{{ page.path }}">
   {% if page.url == '/' %}
@@ -38,125 +38,77 @@
   }
   </script>
   {% endif %}
-  <style>
-    :root {
-      --fg: #1b1f24; --muted: #57606a; --bg: #ffffff; --panel: #f6f8fa;
-      --line: #d0d7de; --accent: #0b5fff; --code: #24292f;
-      --tok-comment: #5b6572; --tok-keyword: #cf222e; --tok-type: #8250df; --tok-string: #0a3069;
-      --tok-number: #0550ae; --tok-attr: #953800; --tok-tag: #116329; --tok-op: #6e7781;
-      --tok-add: #116329; --tok-del: #cf222e;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --fg: #e6edf3; --muted: #9198a1; --bg: #0d1117; --panel: #161b22;
-        --line: #30363d; --accent: #6cb6ff; --code: #e6edf3;
-        --tok-comment: #8b949e; --tok-keyword: #ff7b72; --tok-type: #d2a8ff; --tok-string: #a5d6ff;
-        --tok-number: #79c0ff; --tok-attr: #ffa657; --tok-tag: #7ee787; --tok-op: #9aa4b0;
-        --tok-add: #7ee787; --tok-del: #ff7b72;
-      }
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; color: var(--fg); background: var(--bg); line-height: 1.6;
-      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    }
-    header {
-      border-bottom: 1px solid var(--line); background: var(--panel);
-      padding: 14px 20px; display: flex; flex-wrap: wrap; gap: 10px;
-      align-items: baseline; justify-content: space-between;
-    }
-    header a.brand { font-weight: 700; color: var(--fg); text-decoration: none; font-size: 17px; }
-    header .links a { color: var(--accent); text-decoration: none; margin-left: 14px; font-size: 14px; }
-    header .links a:hover { text-decoration: underline; }
-    main { max-width: 52rem; margin: 0 auto; padding: 26px 20px 60px; }
-    nav.guides {
-      max-width: 52rem; margin: 0 auto; padding: 0 20px;
-      display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px;
-    }
-    nav.guides a { color: var(--muted); text-decoration: none; }
-    nav.guides a[aria-current="page"] { color: var(--fg); font-weight: 700; }
-    nav.guides a:hover { color: var(--accent); }
-    h1 { font-size: 30px; margin: 26px 0 10px; line-height: 1.25; }
-    h2 { font-size: 22px; margin: 34px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
-    h3 { font-size: 18px; margin: 26px 0 6px; }
-    h4 { font-size: 16px; margin: 20px 0 4px; }
-    p, li, td, th { overflow-wrap: break-word; }
-    a { color: var(--accent); }
-    code, pre { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
-    code { background: var(--panel); color: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 92%; }
-    pre { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; overflow: auto; }
-    pre code { background: none; padding: 0; font-size: 13.5px; }
-    table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 14.5px; display: block; overflow-x: auto; }
-    th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
-    th { background: var(--panel); }
-    blockquote { margin: 16px 0; padding: 2px 14px; border-left: 4px solid var(--line); color: var(--muted); }
-    hr { border: none; border-top: 1px solid var(--line); margin: 30px 0; }
-    pre.mermaid { background: var(--bg); border: none; text-align: center; display: block; }
-    .diagram-source {
-      border: 1px solid var(--line); border-left: 4px solid var(--accent);
-      border-radius: 6px; padding: 10px 12px; background: var(--panel);
-    }
-    .diagram-source p { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
-    .diagram-source pre { margin: 0; background: var(--bg); }
-    .noscript-note {
-      border: 1px solid var(--line); border-radius: 6px; background: var(--panel);
-      color: var(--muted); font-size: 14px; padding: 8px 12px; margin: 0 auto;
-      max-width: 52rem;
-    }
-    footer {
-      border-top: 1px solid var(--line); color: var(--muted); font-size: 14px;
-      max-width: 52rem; margin: 0 auto; padding: 18px 20px 40px;
-    }
-    footer a { color: var(--accent); }
-    .highlight pre, pre.highlight { margin: 0; }
-    .highlight table pre { margin: 0; }
-    /* Rouge token classes for the fenced java, bash, json, xml and properties blocks. */
-    .highlight .c, .highlight .cm, .highlight .c1, .highlight .cs, .highlight .cp { color: var(--tok-comment); font-style: italic; }
-    .highlight .k, .highlight .kd, .highlight .kn, .highlight .kc, .highlight .kp, .highlight .kr { color: var(--tok-keyword); }
-    .highlight .kt, .highlight .nc, .highlight .nn, .highlight .nl { color: var(--tok-type); }
-    .highlight .nf, .highlight .fm { color: var(--tok-type); }
-    .highlight .nd { color: var(--tok-attr); }
-    .highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .ss, .highlight .sx, .highlight .dl { color: var(--tok-string); }
-    .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo, .highlight .il { color: var(--tok-number); }
-    .highlight .na, .highlight .nb, .highlight .bp, .highlight .no, .highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi, .highlight .py { color: var(--tok-attr); }
-    .highlight .nt { color: var(--tok-tag); }
-    /* Rouge puts Java delimiters (. ; ()) in the operator class, so operators stay quiet. */
-    .highlight .o, .highlight .ow { color: var(--tok-op); }
-    .highlight .gi { color: var(--tok-add); }
-    .highlight .gd { color: var(--tok-del); }
-    .highlight .err { color: var(--tok-del); }
-  </style>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231e40af'/%3E%3Cellipse cx='12' cy='12' rx='8.5' ry='3.4' transform='rotate(45 12 12)' fill='none' stroke='%23fff' stroke-width='1.4'/%3E%3Cellipse cx='12' cy='12' rx='8.5' ry='3.4' transform='rotate(-45 12 12)' fill='none' stroke='%23fff' stroke-width='1.4'/%3E%3Ccircle cx='12' cy='12' r='1.8' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 </head>
 <body>
-<header>
-  <a class="brand" href="{{ site.baseurl }}/">QForge documentation</a>
-  <span class="links">
-    <a href="https://github.com/CharafeddineMechalikh/QForge">Repository</a>
-    <a href="https://github.com/CharafeddineMechalikh/QForge#readme">README</a>
-    <a href="https://github.com/CharafeddineMechalikh/QForge/blob/main/CHANGELOG.md">Changelog</a>
-    <a href="https://github.com/CharafeddineMechalikh/QForge/blob/main/LICENSE">MIT license</a>
-  </span>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="{{ '/' | relative_url }}">
+      <span class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(45 12 12)"/>
+          <ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(-45 12 12)"/>
+          <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">QFORGE</span>
+        <span class="brand-tagline">Quantum circuit simulator in Java</span>
+      </span>
+    </a>
+    <nav class="top-nav" aria-label="Project links">
+      <a class="nav-link" href="{{ '/01-getting-started/' | relative_url }}">Getting started</a>
+      <a class="nav-link nav-github" href="https://github.com/CharafeddineMechalikh/QForge">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span>GitHub</span>
+      </a>
+    </nav>
+  </div>
 </header>
-{% assign ordered = site.pages | sort: "order" %}
-{% if ordered.size > 1 %}
-<nav class="guides" aria-label="Documentation guides">
-  {% for p in ordered %}
-  {% if p.order %}<a href="{{ site.baseurl }}{{ p.url | remove: 'index.html' }}"{% if p.url == page.url %} aria-current="page"{% endif %}>{{ p.nav | default: p.title }}</a>{% endif %}
-  {% endfor %}
-</nav>
-{% endif %}
-<main>
-<noscript><div class="noscript-note">Diagrams are drawn in the browser. With JavaScript disabled, the
-Mermaid blocks on this page appear as source text.</div></noscript>
-{{ content }}
-</main>
-<footer>
-  QForge is an open source quantum computing library written in pure Java 17, published under the
-  <a href="https://github.com/CharafeddineMechalikh/QForge/blob/main/LICENSE">MIT license</a>.
-  These guides are generated from the
-  <a href="https://github.com/CharafeddineMechalikh/QForge/tree/main/docs">docs folder</a> of the
-  repository.
+
+<div class="page-shell">
+  {% include docs-sidebar.html %}
+  <div class="sidebar-scrim" hidden></div>
+
+  <main id="content" class="site-content">
+    <noscript><div class="noscript-note">Diagrams are drawn in the browser. With JavaScript disabled, the
+    Mermaid blocks on this page appear as source text.</div></noscript>
+    {{ content }}
+    <div class="page-meta">
+      {%- if page.path %}
+      <a href="https://github.com/CharafeddineMechalikh/QForge/edit/main/docs/{{ page.path }}">Edit this page</a>
+      <span aria-hidden="true">·</span>
+      {%- endif %}
+      <a href="https://github.com/CharafeddineMechalikh/QForge/issues">Report an issue</a>
+    </div>
+  </main>
+
+  <aside class="toc-rail" aria-label="On this page">
+    <div class="toc-sticky" id="toc-slot-rail"></div>
+  </aside>
+</div>
+
+<button type="button" class="sidebar-toggle" aria-controls="docs-sidebar" aria-expanded="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+  <span>Contents</span>
+</button>
+
+<footer class="site-footer">
+  <p>
+    QForge is an open source quantum computing library written in pure Java 17, published under the
+    <a href="https://github.com/CharafeddineMechalikh/QForge/blob/main/LICENSE">MIT license</a>.
+    These guides are generated from the
+    <a href="https://github.com/CharafeddineMechalikh/QForge/tree/main/docs">docs folder</a> of the
+    repository.
+  </p>
 </footer>
+
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
 (function () {
@@ -207,6 +159,194 @@ Mermaid blocks on this page appear as source text.</div></noscript>
       });
     }
   });
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+
+  var sidebar = document.getElementById("docs-sidebar");
+  var main = document.getElementById("content");
+  var toggle = document.querySelector(".sidebar-toggle");
+  if (!sidebar || !main) {
+    return;
+  }
+
+  var toc = document.createElement("nav");
+  toc.className = "page-toc";
+  toc.setAttribute("aria-label", "On this page");
+  var tocHeading = document.createElement("p");
+  tocHeading.className = "sidebar-heading";
+  tocHeading.textContent = "On this page";
+  var tocList = document.createElement("ul");
+  tocList.id = "page-toc-list";
+  toc.appendChild(tocHeading);
+  toc.appendChild(tocList);
+
+  // The rail is used when there is room for it, otherwise the TOC lives
+  // at the top of the manual sidebar (and inside the mobile drawer).
+  var tocSlots = {
+    rail: document.getElementById("toc-slot-rail"),
+    sidebar: document.getElementById("toc-slot-sidebar")
+  };
+  var wide = window.matchMedia("(min-width: 1200px)");
+
+  function placeToc() {
+    var slot = wide.matches ? tocSlots.rail : tocSlots.sidebar;
+    if (slot && toc.parentNode !== slot) {
+      slot.appendChild(toc);
+    }
+  }
+
+  placeToc();
+  if (wide.addEventListener) {
+    wide.addEventListener("change", placeToc);
+  }
+
+  var headings = Array.prototype.slice.call(main.querySelectorAll("h2, h3"));
+  var entries = [];
+
+  headings.forEach(function (heading) {
+    var text = (heading.textContent || "").trim();
+    if (!text) {
+      return;
+    }
+    if (!heading.id) {
+      var slug = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "section";
+      var unique = slug;
+      var suffix = 1;
+      while (document.getElementById(unique)) {
+        unique = slug + "-" + suffix;
+        suffix += 1;
+      }
+      heading.id = unique;
+    }
+
+    var item = document.createElement("li");
+    var link = document.createElement("a");
+    link.href = "#" + heading.id;
+    link.textContent = text;
+    link.className = heading.tagName === "H3" ? "toc-depth-3" : "toc-depth-2";
+    item.appendChild(link);
+    tocList.appendChild(item);
+    entries.push({ link: link, heading: heading });
+  });
+
+  toc.hidden = entries.length === 0;
+
+  headings.forEach(function (heading) {
+    var anchor = document.createElement("a");
+    anchor.className = "heading-anchor";
+    anchor.href = "#" + heading.id;
+    anchor.setAttribute("aria-label", "Link to this section");
+    anchor.textContent = "#";
+    heading.appendChild(anchor);
+  });
+
+  var headerOffset = 96;
+  var activeLink = null;
+
+  function updateActiveSection() {
+    var current = null;
+    for (var index = 0; index < entries.length; index += 1) {
+      if (entries[index].heading.getBoundingClientRect().top <= headerOffset) {
+        current = entries[index].link;
+      } else {
+        break;
+      }
+    }
+    if (!current && entries.length > 0) {
+      current = entries[0].link;
+    }
+    if (current === activeLink) {
+      return;
+    }
+    if (activeLink) {
+      activeLink.classList.remove("is-active");
+      activeLink.removeAttribute("aria-current");
+    }
+    activeLink = current;
+    if (activeLink) {
+      activeLink.classList.add("is-active");
+      activeLink.setAttribute("aria-current", "location");
+    }
+  }
+
+  var scheduled = false;
+  function onScroll() {
+    if (scheduled) {
+      return;
+    }
+    scheduled = true;
+    window.requestAnimationFrame(function () {
+      scheduled = false;
+      updateActiveSection();
+    });
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  updateActiveSection();
+
+  var scrim = document.querySelector(".sidebar-scrim");
+  var closeButton = sidebar.querySelector(".sidebar-close");
+  var narrow = window.matchMedia("(max-width: 1023px)");
+
+  function setSidebar(open) {
+    sidebar.classList.toggle("is-open", open);
+    document.body.classList.toggle("sidebar-open", open);
+    if (scrim) {
+      scrim.hidden = !open;
+    }
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", String(open));
+    }
+    if (open && closeButton) {
+      closeButton.focus();
+    }
+  }
+
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      setSidebar(!sidebar.classList.contains("is-open"));
+    });
+  }
+  if (closeButton) {
+    closeButton.addEventListener("click", function () {
+      setSidebar(false);
+      if (toggle) {
+        toggle.focus();
+      }
+    });
+  }
+  if (scrim) {
+    scrim.addEventListener("click", function () {
+      setSidebar(false);
+      if (toggle) {
+        toggle.focus();
+      }
+    });
+  }
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && sidebar.classList.contains("is-open")) {
+      setSidebar(false);
+      if (toggle) {
+        toggle.focus();
+      }
+    }
+  });
+  tocList.addEventListener("click", function (event) {
+    if (event.target.tagName === "A" && narrow.matches) {
+      setSidebar(false);
+    }
+  });
+  if (narrow.addEventListener) {
+    narrow.addEventListener("change", function (event) {
+      if (!event.matches) {
+        setSidebar(false);
+      }
+    });
+  }
 })();
 </script>
 </body>
