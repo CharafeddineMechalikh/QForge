@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-nav: "02 Architecture"
+nav: "Architecture"
 order: 2
 description: "How the engine works: simulator lifecycle, event queue ordering, the dispatch pipeline, state representations and backend choice."
 ---

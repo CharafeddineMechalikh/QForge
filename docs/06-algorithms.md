@@ -1,6 +1,6 @@
 ---
 title: "Algorithms"
-nav: "06 Algorithms"
+nav: "Algorithms"
 order: 6
 description: "Grover, amplitude amplification, QFT, phase estimation, VQE, QNN, QSVM, the Shor code, optimizer QAOA, complete arithmetic, Trotterization and quantum walks, with measured demo output."
 ---

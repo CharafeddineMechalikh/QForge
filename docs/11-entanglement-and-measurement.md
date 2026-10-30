@@ -1,6 +1,6 @@
 ---
 title: "Entanglement, measurement and teleportation"
-nav: "11 Entanglement and measurement"
+nav: "Entanglement and measurement"
 order: 11
 group: background
 description: "Bell pairs, nonlocal correlations, the Born rule and collapse, observables and shot noise, and how teleportation moves a state with two classical bits."

@@ -1,6 +1,6 @@
 ---
 title: "Qubits, photons and polarization"
-nav: "09 Qubits and photons"
+nav: "Qubits and photons"
 order: 9
 group: background
 description: "What a qubit is, how a photon encodes one with polarization, how real hardware traps and controls two-level systems, and how QForge stores the state."

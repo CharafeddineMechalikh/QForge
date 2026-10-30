@@ -1,6 +1,6 @@
 ---
 title: "Measurement and noise"
-nav: "05 Measurement"
+nav: "Measurement"
 order: 5
 description: "Projective measurement, state collapse, Hermitian observables, Kraus channels, quantum trajectories and fidelity."
 ---

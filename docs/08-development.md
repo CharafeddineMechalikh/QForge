@@ -1,6 +1,6 @@
 ---
 title: "Development"
-nav: "08 Development"
+nav: "Development"
 order: 8
 description: "Repository layout, the test suite, coverage gates, Javadoc, the GitHub Pages documentation site, coding conventions and the release process."
 ---

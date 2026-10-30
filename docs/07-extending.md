@@ -1,6 +1,6 @@
 ---
 title: "Extending QForge"
-nav: "07 Extending"
+nav: "Extending"
 order: 7
 description: "Plugins, observer callbacks, custom gates, custom noise channels and classical feed-forward control."
 ---

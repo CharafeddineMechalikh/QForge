@@ -1,6 +1,6 @@
 ---
 title: "Superposition, gates and circuits"
-nav: "10 Gates and circuits"
+nav: "Gates and circuits"
 order: 10
 group: background
 description: "Amplitudes, phase and interference, the Bloch sphere, the gate set, how to read a circuit diagram, and how a Hadamard and a CNOT build a Bell pair in QForge."

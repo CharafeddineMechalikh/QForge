@@ -1,6 +1,6 @@
 ---
 title: "Getting started"
-nav: "01 Getting started"
+nav: "Getting started"
 order: 1
 description: "Install, build and run QForge: Maven commands, the first Bell circuit, the algorithm demos and JSON circuit loading."
 ---

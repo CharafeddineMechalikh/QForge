@@ -1,6 +1,6 @@
 ---
 title: "Configuration"
-nav: "03 Configuration"
+nav: "Configuration"
 order: 3
 description: "SimulationConfig fields and defaults, the JSON schema, validation rules, resource limits and noise profiles."
 ---

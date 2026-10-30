@@ -1,6 +1,6 @@
 ---
 title: "Gates and circuits"
-nav: "04 Gates"
+nav: "Gates"
 order: 4
 description: "The gate catalog, the qubit ordering convention, controlled gates, rotations, custom gates and the circuit JSON format."
 ---
