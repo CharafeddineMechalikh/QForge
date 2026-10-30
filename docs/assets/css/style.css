@@ -592,6 +592,44 @@ img {
   border-radius: 8px;
 }
 
+/* Figures ----------------------------------------------------------------- */
+
+figure {
+  margin: 1.9rem 0 2.1rem;
+}
+
+figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+figure figcaption {
+  margin-top: 0.75rem;
+  padding: 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+figure.figure-narrow img {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+figure.figure-wide {
+  margin-left: calc(var(--content-max) * -0.04);
+  margin-right: calc(var(--content-max) * -0.04);
+}
+
+@media (max-width: 1023px) {
+  figure.figure-wide {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 /* Code -------------------------------------------------------------------- */
 
 code {

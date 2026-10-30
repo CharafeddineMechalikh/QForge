@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 340" role="img" aria-labelledby="mc-title mc-desc">
+  <title id="mc-title">Measurement collapses a superposition</title>
+  <desc id="mc-desc">Left: an equal superposition has probability one half for outcomes zero and one. Right: after one measurement the state is the observed outcome with probability one.</desc>
+  <defs>
+    <marker id="mc-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-orange" d="M0 0L10 5L0 10z"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .title { font-size: 14px; font-weight: 600; text-anchor: middle; fill: #151a2b; }
+    .tick { font-size: 12px; text-anchor: end; fill: #5a6478; }
+    .bar-label { font-size: 14px; font-weight: 600; text-anchor: middle; fill: #151a2b; }
+    .value { font-size: 12px; text-anchor: middle; fill: #5a6478; }
+    .panel { fill: #f5f7fd; stroke: #e1e6f0; stroke-width: 1.5; }
+    .axis { stroke: #cbd3e4; stroke-width: 1.4; fill: none; }
+    .bar { fill: #eef2ff; stroke: #4f46e5; stroke-width: 2; }
+    .bar-empty { fill: none; stroke: #cbd3e4; stroke-width: 2; stroke-dasharray: 4 4; }
+    .arrow { stroke: #ea580c; stroke-width: 2.4; fill: none; }
+    .fill-orange { fill: #ea580c; }
+    .small { font-size: 11px; text-anchor: middle; fill: #5a6478; }
+    @media (prefers-color-scheme: dark) {
+      .title, .bar-label { fill: #e6eaf4; }
+      .tick, .value, .small { fill: #9aa6bd; }
+      .panel { fill: #111728; stroke: #212a3f; }
+      .axis { stroke: #303c56; }
+      .bar { fill: #1b1c3f; stroke: #a5b4fc; }
+      .bar-empty { stroke: #303c56; }
+      .arrow { stroke: #fb923c; }
+      .fill-orange { fill: #fb923c; }
+    }
+  </style>
+
+  <rect class="panel" x="30" y="25" width="330" height="275" rx="14"/>
+  <rect class="panel" x="480" y="25" width="330" height="275" rx="14"/>
+
+  <text class="title" x="195" y="58">Before: |+&#10217;</text>
+  <text class="title" x="645" y="58">After: outcome 0</text>
+
+  <line class="axis" x1="75" y1="85" x2="75" y2="250"/>
+  <line class="axis" x1="70" y1="90" x2="80" y2="90"/>
+  <line class="axis" x1="70" y1="170" x2="80" y2="170"/>
+  <line class="axis" x1="70" y1="250" x2="80" y2="250"/>
+  <text class="tick" x="66" y="94">1</text>
+  <text class="tick" x="66" y="174">&#189;</text>
+  <text class="tick" x="66" y="254">0</text>
+  <text class="tick" x="48" y="168" transform="rotate(-90 48 168)" text-anchor="middle">probability</text>
+
+  <rect class="bar" x="110" y="170" width="70" height="80" rx="4"/>
+  <rect class="bar" x="225" y="170" width="70" height="80" rx="4"/>
+  <text class="value" x="145" y="160">0.50</text>
+  <text class="value" x="260" y="160">0.50</text>
+  <text class="bar-label" x="145" y="278">|0&#10217;</text>
+  <text class="bar-label" x="260" y="278">|1&#10217;</text>
+
+  <line class="arrow" x1="368" y1="168" x2="458" y2="168" marker-end="url(#mc-arrow)"/>
+  <text class="small" x="413" y="146">measure Z</text>
+  <text class="small" x="413" y="196">one shot</text>
+
+  <text class="value" x="596" y="80">1.00</text>
+  <text class="value" x="711" y="240">0.00</text>
+  <rect class="bar" x="560" y="90" width="70" height="160" rx="4"/>
+  <rect class="bar-empty" x="675" y="90" width="70" height="160" rx="4"/>
+  <text class="bar-label" x="596" y="278">|0&#10217;</text>
+  <text class="bar-label" x="711" y="278">|1&#10217;</text>
+</svg>

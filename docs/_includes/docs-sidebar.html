@@ -20,10 +20,19 @@
         {%- endfor %}
       </ul>
 
+      <p class="sidebar-heading">Background</p>
+      <ul class="sidebar-pages">
+        {%- for p in ordered %}
+        {%- if p.group == "background" %}
+        <li><a href="{{ p.url | relative_url }}"{% if p.url == current_url %} aria-current="page"{% endif %}>{{ p.nav | default: p.title }}</a></li>
+        {%- endif %}
+        {%- endfor %}
+      </ul>
+
       <p class="sidebar-heading">Guides</p>
       <ul class="sidebar-pages">
         {%- for p in ordered %}
-        {%- if p.order and p.order != 0 %}
+        {%- if p.order and p.order != 0 and p.group != "background" %}
         <li><a href="{{ p.url | relative_url }}"{% if p.url == current_url %} aria-current="page"{% endif %}>{{ p.nav | default: p.title }}</a></li>
         {%- endif %}
         {%- endfor %}

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 380" role="img" aria-labelledby="rc-title rc-desc">
+  <title id="rc-title">Three-qubit bit-flip code</title>
+  <desc id="rc-desc">Left: two controlled NOT gates copy the logical state onto two ancilla qubits. Right: a table maps each single bit-flip error to a pair of syndrome signs and the matching correction.</desc>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .wire-label { font-size: 15px; font-weight: 600; fill: #151a2b; }
+    .state-label { font-size: 15px; font-weight: 600; text-anchor: middle; fill: #3730a3; }
+    .head { font-size: 12px; font-weight: 600; text-anchor: middle; fill: #5a6478; }
+    .cell { font-size: 13px; text-anchor: middle; fill: #151a2b; }
+    .neg { fill: #ea580c; }
+    .note { font-size: 11px; text-anchor: middle; fill: #5a6478; }
+    .title { font-size: 14px; font-weight: 600; text-anchor: middle; fill: #151a2b; }
+    .wire { stroke: #5a6478; stroke-width: 1.8; fill: none; }
+    .ctl { fill: #4f46e5; }
+    .target { fill: #ffffff; stroke: #4f46e5; stroke-width: 2; }
+    .indigo { stroke: #4f46e5; stroke-width: 2; fill: none; }
+    .panel { fill: #f5f7fd; stroke: #e1e6f0; stroke-width: 1.5; }
+    .row-line { stroke: #e1e6f0; stroke-width: 1.2; }
+    .divider { stroke: #e1e6f0; stroke-width: 1.4; }
+    @media (prefers-color-scheme: dark) {
+      .wire-label, .cell, .title { fill: #e6eaf4; }
+      .state-label { fill: #c7d2fe; }
+      .head, .note { fill: #9aa6bd; }
+      .neg { fill: #fb923c; }
+      .wire { stroke: #9aa6bd; }
+      .ctl { fill: #a5b4fc; }
+      .target { fill: #0e1421; stroke: #a5b4fc; }
+      .indigo { stroke: #a5b4fc; }
+      .panel { fill: #111728; stroke: #212a3f; }
+      .row-line, .divider { stroke: #212a3f; }
+    }
+  </style>
+
+  <line class="wire" x1="80" y1="90" x2="470" y2="90"/>
+  <line class="wire" x1="80" y1="170" x2="470" y2="170"/>
+  <line class="wire" x1="80" y1="250" x2="470" y2="250"/>
+  <text class="wire-label" x="40" y="95">|&#968;&#10217;</text>
+  <text class="wire-label" x="40" y="175">|0&#10217;</text>
+  <text class="wire-label" x="40" y="255">|0&#10217;</text>
+
+  <line class="indigo" x1="230" y1="90" x2="230" y2="170"/>
+  <circle class="ctl" cx="230" cy="90" r="5.5"/>
+  <circle class="target" cx="230" cy="170" r="15"/>
+  <line class="indigo" x1="230" y1="157" x2="230" y2="183"/>
+  <line class="indigo" x1="217" y1="170" x2="243" y2="170"/>
+
+  <line class="indigo" x1="330" y1="90" x2="330" y2="250"/>
+  <circle class="ctl" cx="330" cy="90" r="5.5"/>
+  <circle class="target" cx="330" cy="250" r="15"/>
+  <line class="indigo" x1="330" y1="237" x2="330" y2="263"/>
+  <line class="indigo" x1="317" y1="250" x2="343" y2="250"/>
+
+  <text class="state-label" x="400" y="320">&#945;|000&#10217; + &#946;|111&#10217;</text>
+
+  <line class="divider" x1="500" y1="30" x2="500" y2="350"/>
+
+  <rect class="panel" x="520" y="30" width="400" height="320" rx="14"/>
+  <text class="title" x="720" y="64">syndrome and fix</text>
+  <text class="head" x="590" y="102">error</text>
+  <text class="head" x="700" y="102">Z&#8320;Z&#8321;</text>
+  <text class="head" x="785" y="102">Z&#8321;Z&#8322;</text>
+  <text class="head" x="875" y="102">fix</text>
+  <line class="row-line" x1="535" y1="118" x2="905" y2="118"/>
+  <line class="row-line" x1="535" y1="158" x2="905" y2="158"/>
+  <line class="row-line" x1="535" y1="198" x2="905" y2="198"/>
+  <line class="row-line" x1="535" y1="238" x2="905" y2="238"/>
+  <line class="row-line" x1="535" y1="278" x2="905" y2="278"/>
+
+  <text class="cell" x="590" y="142">none</text>
+  <text class="cell" x="700" y="142">+</text>
+  <text class="cell" x="785" y="142">+</text>
+  <text class="cell" x="875" y="142">no fix</text>
+
+  <text class="cell" x="590" y="182">X on q&#8320;</text>
+  <text class="cell neg" x="700" y="182">&#8722;</text>
+  <text class="cell" x="785" y="182">+</text>
+  <text class="cell" x="875" y="182">X&#8320;</text>
+
+  <text class="cell" x="590" y="222">X on q&#8321;</text>
+  <text class="cell neg" x="700" y="222">&#8722;</text>
+  <text class="cell neg" x="785" y="222">&#8722;</text>
+  <text class="cell" x="875" y="222">X&#8321;</text>
+
+  <text class="cell" x="590" y="262">X on q&#8322;</text>
+  <text class="cell" x="700" y="262">+</text>
+  <text class="cell neg" x="785" y="262">&#8722;</text>
+  <text class="cell" x="875" y="262">X&#8322;</text>
+
+  <text class="note" x="720" y="308">same outcome = +, flipped = &#8722;</text>
+</svg>

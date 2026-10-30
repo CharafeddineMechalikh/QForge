@@ -12,10 +12,23 @@ QForge is an event-driven quantum computing library that simulates circuits in p
 guides explain how to build circuits, pick a backend, add noise, measure qubits, run quantum
 algorithms, and extend the simulator with plugins.
 
-The file names carry a numeric prefix, and that number is the suggested reading order: install and
-run first, then the engine internals, then the details of each subsystem. If you want a two-minute
-introduction, start with [Getting started](01-getting-started.md). If you want to know how the
-engine works internally, start with [Architecture](02-architecture.md).
+The file names carry a numeric prefix. Guides 1 to 8 follow the software from install to
+development. Guides 9 to 12 are an illustrated background series that explains the physics those
+guides assume, from photons and polarization to measurement and error correction. Read the
+background series first if quantum computing is new to you, or dip into a single page when a term
+needs unpacking.
+
+If you want a two-minute introduction, start with [Getting started](01-getting-started.md). If you
+want to know how the engine works internally, start with [Architecture](02-architecture.md).
+
+## Background: the physics, illustrated
+
+| # | Guide | What it covers | Read time |
+| --- | --- | --- | --- |
+| 9 | [Qubits, photons and polarization](09-qubits-and-photons.md) | Bits versus qubits, photon polarization, BB84, how real hardware makes a qubit, how QForge stores the state | 12 min |
+| 10 | [Superposition, gates and circuits](10-superposition-gates-and-circuits.md) | Amplitudes, phase and interference, the Bloch sphere, the gate set, circuit diagrams, the Bell pair | 12 min |
+| 11 | [Entanglement, measurement and teleportation](11-entanglement-and-measurement.md) | Bell correlations and Bell tests, the Born rule and collapse, observables and shot noise, teleportation | 14 min |
+| 12 | [Noise and error correction](12-noise-and-error-correction.md) | T1 and T2, Kraus channels, density matrices versus trajectories, repetition and Shor codes, thresholds | 14 min |
 
 ## Guides
 
@@ -39,6 +52,7 @@ flowchart TD
     Q --> B["Understand the engine"]
     Q --> C["Add noise or measure"]
     Q --> D["Add my own gate or plugin"]
+    Q --> E["Learn the quantum concepts"]
 
     A --> A1["01-getting-started.md"]
     A1 --> A2["Then 03-configuration.md for JSON options"]
@@ -48,6 +62,8 @@ flowchart TD
     C1 --> C2["Then 04-gates-and-circuits.md for the gate set"]
     D --> D1["07-extending.md"]
     D1 --> D2["Then 08-development.md to build and test"]
+    E --> E1["09-qubits-and-photons.md"]
+    E1 --> E2["Then 10, 11 and 12 for gates, entanglement and error correction"]
 ```
 
 ## Conventions used in these guides

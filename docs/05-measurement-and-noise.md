@@ -415,3 +415,7 @@ gap is deterministic instead of sampled because the backend is a density matrix.
 - [Architecture](02-architecture.md#one-dispatch-end-to-end) for where the pipeline applies noise.
 - [Configuration](03-configuration.md#noise-profile-formats) for JSON noise definitions.
 - [Algorithms](06-algorithms.md) for circuits that report fidelity against an ideal state.
+- [Entanglement, measurement and teleportation](11-entanglement-and-measurement.md) for the physics
+  behind collapse, observables and shot noise.
+- [Noise and error correction](12-noise-and-error-correction.md) for T1, T2 and why error
+  correction needs entanglement.

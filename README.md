@@ -63,7 +63,7 @@ No GPU, no C++ toolchain, no Python environment. One JDK and Maven are enough.
 | JSON first | Circuits and noisy configurations are plain JSON files that may contain comments |
 | Extensible | Plugin API, observer callbacks, custom gates, custom noise channels |
 | Visualized | Java2D state renderings, density matrices, circuit diagrams, timelines, animated GIFs |
-| Documented | Nine guides plus full Javadoc on every public type in the simulator and the examples |
+| Documented | Twelve guides, including four illustrated physics primers, plus full Javadoc on every public type in the simulator and the examples |
 | Self-contained math | Complex arithmetic, tensor products, SVD, and eigen routines live in-repo, with no numerical library dependency |
 
 ## Quick start
@@ -132,8 +132,9 @@ Full details, including the lifecycle state machine and the event ordering rules
 
 ## Documentation
 
-The guides are numbered in reading order. [docs/README.md](docs/README.md) has the full map, and the
-same guides are published as a website at
+Guides 1 to 8 follow the code from install to development. Background guides 9 to 12 explain the
+physics with diagrams, so you can start there if photons, measurement or error correction are new.
+[docs/README.md](docs/README.md) has the full map, and the same guides are published as a website at
 [https://charafeddinemechalikh.github.io/QForge/](https://charafeddinemechalikh.github.io/QForge/).
 
 | # | Guide | Covers | Read time |
@@ -146,6 +147,19 @@ same guides are published as a website at
 | 6 | [Algorithms](docs/06-algorithms.md) | Grover, amplitude amplification, QFT, QPE, VQE, QNN, QSVM, Shor code, optimizer QAOA, arithmetic, Trotter, walks | 15 min |
 | 7 | [Extending QForge](docs/07-extending.md) | Plugins, observers, custom gates and noise, feed-forward control | 12 min |
 | 8 | [Development](docs/08-development.md) | Repo layout, tests, Javadoc, conventions, releases | 8 min |
+
+New to the physics? The illustrated background series starts here:
+
+| # | Guide | Covers | Read time |
+| --- | --- | --- | --- |
+| 9 | [Qubits, photons and polarization](docs/09-qubits-and-photons.md) | Bits versus qubits, photon polarization, BB84, how real hardware makes a qubit | 12 min |
+| 10 | [Superposition, gates and circuits](docs/10-superposition-gates-and-circuits.md) | Amplitudes, interference, the Bloch sphere, gates, circuit diagrams, Bell pairs | 12 min |
+| 11 | [Entanglement, measurement and teleportation](docs/11-entanglement-and-measurement.md) | Bell tests, collapse, observables, shot noise, teleportation | 14 min |
+| 12 | [Noise and error correction](docs/12-noise-and-error-correction.md) | T1 and T2, Kraus channels, repetition and Shor codes, thresholds | 14 min |
+
+<p align="center">
+  <img src="docs/assets/img/bell-circuit.svg" alt="A Hadamard and a CNOT build a Bell pair, and the outcomes are 00 or 11 with equal probability." width="640">
+</p>
 
 API reference: run `mvn javadoc:javadoc`, then open `target/site/apidocs/index.html`.
 

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 390" role="img" aria-labelledby="dc-title dc-desc">
+  <title id="dc-title">Energy relaxation and phase damping on the Bloch sphere</title>
+  <desc id="dc-desc">Left: the state vector shrinks toward the north pole as energy relaxes, the T1 process. Right: the vector shrinks toward the centre as phase coherence is lost, the T2 process.</desc>
+  <defs>
+    <marker id="dc-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-orange" d="M0 0L10 5L0 10z"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .state { font-size: 15px; font-weight: 600; text-anchor: middle; fill: #151a2b; }
+    .title { font-size: 14px; font-weight: 600; text-anchor: middle; fill: #151a2b; }
+    .cap { font-size: 11.5px; text-anchor: middle; fill: #5a6478; }
+    .sphere { fill: #f5f7fd; stroke: #cbd3e4; stroke-width: 1.5; }
+    .axis { stroke: #cbd3e4; stroke-width: 1.2; fill: none; }
+    .equator { stroke: #cbd3e4; stroke-width: 1.2; fill: none; stroke-dasharray: 4 5; }
+    .vector { stroke: #ea580c; stroke-width: 2.6; fill: none; }
+    .decay { stroke: #ea580c; stroke-width: 2; fill: none; stroke-dasharray: 5 5; }
+    .center-dot { fill: #5a6478; }
+    .fill-orange { fill: #ea580c; }
+    @media (prefers-color-scheme: dark) {
+      .state, .title { fill: #e6eaf4; }
+      .cap { fill: #9aa6bd; }
+      .sphere { fill: #111728; stroke: #303c56; }
+      .axis, .equator { stroke: #303c56; }
+      .vector, .decay { stroke: #fb923c; }
+      .center-dot { fill: #9aa6bd; }
+      .fill-orange { fill: #fb923c; }
+    }
+  </style>
+
+  <circle class="sphere" cx="240" cy="180" r="115"/>
+  <line class="axis" x1="240" y1="62" x2="240" y2="298"/>
+  <ellipse class="equator" cx="240" cy="180" rx="115" ry="38"/>
+  <text class="state" x="240" y="50">|0&#10217;</text>
+  <text class="state" x="240" y="316">|1&#10217;</text>
+  <line class="vector" x1="240" y1="180" x2="298" y2="224"/>
+  <path class="decay" d="M298 224 Q302 140 240 76" marker-end="url(#dc-arrow)"/>
+  <text class="title" x="240" y="352">T1: energy relaxation</text>
+  <text class="cap" x="240" y="372">population returns to |0&#10217;</text>
+
+  <circle class="sphere" cx="620" cy="180" r="115"/>
+  <line class="axis" x1="620" y1="62" x2="620" y2="298"/>
+  <ellipse class="equator" cx="620" cy="180" rx="115" ry="38"/>
+  <text class="state" x="620" y="50">|0&#10217;</text>
+  <text class="state" x="620" y="316">|1&#10217;</text>
+  <line class="vector" x1="620" y1="180" x2="678" y2="224"/>
+  <path class="decay" d="M678 224 Q700 198 650 192 Q614 188 622 180" marker-end="url(#dc-arrow)"/>
+  <circle class="center-dot" cx="620" cy="180" r="4"/>
+  <text class="title" x="620" y="352">T2: phase damping</text>
+  <text class="cap" x="620" y="372">coherence shrinks to the centre</text>
+</svg>

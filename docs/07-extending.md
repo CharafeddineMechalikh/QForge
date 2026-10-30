@@ -269,6 +269,8 @@ packing are described in
 [Architecture](02-architecture.md#classical-control-and-feed-forward), and a complete measured
 protocol is in
 [the teleportation README](https://github.com/CharafeddineMechalikh/QForge/blob/main/src/example/algorithms/teleportation/README.md).
+The protocol itself is explained in
+[Entanglement, measurement and teleportation](11-entanglement-and-measurement.md#teleportation-move-a-state-with-two-bits).
 
 ## Rule-based controller
 

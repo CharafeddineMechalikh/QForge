@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 540" role="img" aria-labelledby="bs-title bs-desc">
+  <title id="bs-title">The Bloch sphere</title>
+  <desc id="bs-desc">A sphere whose north pole is state zero, south pole is state one, and equator holds the equal superpositions. A state vector points to a pure state, with angle theta from the north pole.</desc>
+  <defs>
+    <marker id="bs-arrow-indigo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-indigo" d="M0 0L10 5L0 10z"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .state { font-size: 17px; font-weight: 600; fill: #151a2b; }
+    .axis-label { font-size: 15px; font-weight: 600; fill: #4f46e5; }
+    .sub { font-size: 13px; fill: #5a6478; }
+    .formula { font-size: 15px; text-anchor: middle; fill: #5a6478; }
+    .sphere { fill: #f5f7fd; stroke: #cbd3e4; stroke-width: 1.6; }
+    .axis { stroke: #cbd3e4; stroke-width: 1.4; fill: none; }
+    .equator { stroke: #cbd3e4; stroke-width: 1.4; fill: none; stroke-dasharray: 4 5; }
+    .vector { stroke: #4f46e5; stroke-width: 3; fill: none; }
+    .fill-indigo { fill: #4f46e5; }
+    @media (prefers-color-scheme: dark) {
+      .state { fill: #e6eaf4; }
+      .axis-label { fill: #a5b4fc; }
+      .sub, .formula { fill: #9aa6bd; }
+      .sphere { fill: #111728; stroke: #303c56; }
+      .axis, .equator { stroke: #303c56; }
+      .vector { stroke: #a5b4fc; }
+      .fill-indigo { fill: #a5b4fc; }
+    }
+  </style>
+
+  <circle class="sphere" cx="380" cy="265" r="185"/>
+  <line class="axis" x1="380" y1="78" x2="380" y2="452"/>
+  <line class="axis" x1="195" y1="265" x2="565" y2="265"/>
+  <ellipse class="equator" cx="380" cy="265" rx="185" ry="62"/>
+
+  <text class="state" x="380" y="58" text-anchor="middle">|0&#10217;</text>
+  <text class="state" x="380" y="492" text-anchor="middle">|1&#10217;</text>
+  <text class="axis-label" x="580" y="270">|+&#10217;</text>
+  <text class="axis-label" x="180" y="270" text-anchor="end">|&#8722;&#10217;</text>
+  <text class="axis-label" x="368" y="208" text-anchor="end">|+i&#10217;</text>
+  <text class="axis-label" x="392" y="340">|&#8722;i&#10217;</text>
+
+  <line class="vector" x1="380" y1="265" x2="464" y2="166" marker-end="url(#bs-arrow-indigo)"/>
+  <text class="state" x="476" y="156">|&#968;&#10217;</text>
+
+  <path class="axis" d="M380 170 A 95 95 0 0 1 441.6 192.6"/>
+  <text class="sub" x="416" y="180">&#952;</text>
+
+  <text class="formula" x="380" y="527">|&#968;&#10217; = cos(&#952;/2)|0&#10217; + e^(i&#966;) sin(&#952;/2)|1&#10217;</text>
+</svg>

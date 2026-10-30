@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 350" role="img" aria-labelledby="tp-title tp-desc">
+  <title id="tp-title">Quantum teleportation circuit</title>
+  <desc id="tp-desc">An unknown state on qubit zero is measured together with one half of a Bell pair. The two measurement outcomes select an X and a Z correction on the other half, which then holds the original state.</desc>
+  <defs>
+    <marker id="tp-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-indigo" d="M0 0L10 5L0 10z"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .wire-label { font-size: 15px; font-weight: 600; fill: #151a2b; }
+    .gate-text { font-size: 18px; font-weight: 700; text-anchor: middle; fill: #3730a3; }
+    .bit { font-size: 12px; font-weight: 600; fill: #5a6478; }
+    .sup { font-size: 11px; font-weight: 600; text-anchor: end; fill: #5a6478; }
+    .wire { stroke: #5a6478; stroke-width: 1.8; fill: none; }
+    .gate { fill: #eef2ff; stroke: #4f46e5; stroke-width: 2; }
+    .ctl { fill: #4f46e5; }
+    .target { fill: #ffffff; stroke: #4f46e5; stroke-width: 2; }
+    .indigo { stroke: #4f46e5; stroke-width: 2; fill: none; }
+    .outline { fill: #ffffff; stroke: #4f46e5; stroke-width: 2; }
+    .meter { stroke: #4f46e5; stroke-width: 2; fill: none; }
+    .classical { stroke: #5a6478; stroke-width: 1.4; fill: none; }
+    .fill-indigo { fill: #4f46e5; }
+    @media (prefers-color-scheme: dark) {
+      .wire-label { fill: #e6eaf4; }
+      .gate-text { fill: #c7d2fe; }
+      .bit, .sup { fill: #9aa6bd; }
+      .wire, .classical { stroke: #9aa6bd; }
+      .gate { fill: #1b1c3f; stroke: #a5b4fc; }
+      .ctl { fill: #a5b4fc; }
+      .target { fill: #0e1421; stroke: #a5b4fc; }
+      .indigo { stroke: #a5b4fc; }
+      .outline { fill: #0e1421; stroke: #a5b4fc; }
+      .meter { stroke: #a5b4fc; }
+      .fill-indigo { fill: #a5b4fc; }
+    }
+  </style>
+
+  <line class="wire" x1="80" y1="85" x2="915" y2="85"/>
+  <line class="wire" x1="80" y1="165" x2="915" y2="165"/>
+  <line class="wire" x1="80" y1="245" x2="915" y2="245"/>
+  <text class="wire-label" x="42" y="90">|&#968;&#10217;</text>
+  <text class="wire-label" x="42" y="170">|0&#10217;</text>
+  <text class="wire-label" x="42" y="250">|0&#10217;</text>
+
+  <rect class="gate" x="225" y="143" width="50" height="44" rx="8"/>
+  <text class="gate-text" x="250" y="171">H</text>
+
+  <line class="indigo" x1="325" y1="165" x2="325" y2="245"/>
+  <circle class="ctl" cx="325" cy="165" r="5.5"/>
+  <circle class="target" cx="325" cy="245" r="15"/>
+  <line class="indigo" x1="325" y1="232" x2="325" y2="258"/>
+  <line class="indigo" x1="312" y1="245" x2="338" y2="245"/>
+
+  <line class="indigo" x1="415" y1="85" x2="415" y2="165"/>
+  <circle class="ctl" cx="415" cy="85" r="5.5"/>
+  <circle class="target" cx="415" cy="165" r="15"/>
+  <line class="indigo" x1="415" y1="152" x2="415" y2="178"/>
+  <line class="indigo" x1="402" y1="165" x2="428" y2="165"/>
+
+  <rect class="gate" x="470" y="63" width="50" height="44" rx="8"/>
+  <text class="gate-text" x="495" y="91">H</text>
+
+  <g>
+    <rect class="outline" x="565" y="63" width="44" height="44" rx="8"/>
+    <path class="meter" d="M576 96 A11 11 0 0 1 598 96"/>
+    <line class="meter" x1="587" y1="96" x2="594" y2="84"/>
+    <line class="meter" x1="574" y1="100" x2="600" y2="100"/>
+  </g>
+  <g>
+    <rect class="outline" x="565" y="143" width="44" height="44" rx="8"/>
+    <path class="meter" d="M576 176 A11 11 0 0 1 598 176"/>
+    <line class="meter" x1="587" y1="176" x2="594" y2="164"/>
+    <line class="meter" x1="574" y1="180" x2="600" y2="180"/>
+  </g>
+
+  <path class="classical" d="M609 83 H694 V243 H720"/>
+  <path class="classical" d="M609 87 H690 V247 H720"/>
+  <path class="classical" d="M609 163 H831 V223"/>
+  <path class="classical" d="M609 167 H827 V227"/>
+  <text class="bit" x="644" y="77">m&#8320;</text>
+  <text class="bit" x="644" y="157">m&#8321;</text>
+
+  <rect class="gate" x="720" y="223" width="54" height="44" rx="8"/>
+  <text class="gate-text" x="747" y="251">Z</text>
+  <text class="sup" x="740" y="214" text-anchor="end">if m&#8320;</text>
+
+  <rect class="gate" x="800" y="223" width="54" height="44" rx="8"/>
+  <text class="gate-text" x="827" y="251">X</text>
+  <text class="sup" x="820" y="214" text-anchor="end">if m&#8321;</text>
+
+  <line class="indigo" x1="862" y1="245" x2="902" y2="245" marker-end="url(#tp-arrow)"/>
+  <text class="wire-label" x="866" y="232">|&#968;&#10217;</text>
+</svg>

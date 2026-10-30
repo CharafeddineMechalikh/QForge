@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 300" role="img" aria-labelledby="bc-title bc-desc">
+  <title id="bc-title">Bell pair circuit and its measurement outcomes</title>
+  <desc id="bc-desc">A Hadamard gate on qubit zero followed by a controlled NOT from qubit zero to qubit one, then measurement. The outcome bars show only 00 and 11, each with probability one half.</desc>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .wire-label { font-size: 15px; font-weight: 600; fill: #151a2b; }
+    .gate-text { font-size: 19px; font-weight: 700; text-anchor: middle; fill: #3730a3; }
+    .panel-title { font-size: 13px; font-weight: 600; text-anchor: middle; fill: #5a6478; }
+    .out-label { font-size: 14px; font-weight: 600; fill: #151a2b; }
+    .out-pct { font-size: 13px; fill: #5a6478; }
+    .wire { stroke: #5a6478; stroke-width: 1.8; fill: none; }
+    .gate { fill: #eef2ff; stroke: #4f46e5; stroke-width: 2; }
+    .ctl { fill: #4f46e5; }
+    .target { fill: #ffffff; stroke: #4f46e5; stroke-width: 2; }
+    .target-line { stroke: #4f46e5; stroke-width: 2; }
+    .outline { fill: #ffffff; stroke: #4f46e5; stroke-width: 2; }
+    .meter { stroke: #4f46e5; stroke-width: 2; fill: none; }
+    .panel { fill: #f5f7fd; stroke: #e1e6f0; stroke-width: 1.5; }
+    .track { fill: #e1e6f0; }
+    .bar { fill: #ea580c; }
+    @media (prefers-color-scheme: dark) {
+      .wire-label, .out-label { fill: #e6eaf4; }
+      .gate-text { fill: #c7d2fe; }
+      .panel-title, .out-pct { fill: #9aa6bd; }
+      .wire { stroke: #9aa6bd; }
+      .gate { fill: #1b1c3f; stroke: #a5b4fc; }
+      .ctl { fill: #a5b4fc; }
+      .target { fill: #0e1421; stroke: #a5b4fc; }
+      .target-line, .meter { stroke: #a5b4fc; }
+      .outline { fill: #0e1421; stroke: #a5b4fc; }
+      .panel { fill: #111728; stroke: #212a3f; }
+      .track { fill: #212a3f; }
+      .bar { fill: #fb923c; }
+    }
+  </style>
+
+  <line class="wire" x1="70" y1="100" x2="520" y2="100"/>
+  <line class="wire" x1="70" y1="190" x2="520" y2="190"/>
+  <text class="wire-label" x="34" y="105">q0</text>
+  <text class="wire-label" x="34" y="195">q1</text>
+
+  <rect class="gate" x="165" y="78" width="54" height="44" rx="8"/>
+  <text class="gate-text" x="192" y="107">H</text>
+
+  <line class="target-line" x1="290" y1="100" x2="290" y2="190"/>
+  <circle class="ctl" cx="290" cy="100" r="5.5"/>
+  <circle class="target" cx="290" cy="190" r="16"/>
+  <line class="target-line" x1="290" y1="176" x2="290" y2="204"/>
+  <line class="target-line" x1="276" y1="190" x2="304" y2="190"/>
+
+  <g>
+    <rect class="outline" x="410" y="72" width="44" height="56" rx="8"/>
+    <path class="meter" d="M418 116 A14 14 0 0 1 446 116"/>
+    <line class="meter" x1="432" y1="116" x2="439" y2="102"/>
+    <line class="meter" x1="416" y1="120" x2="448" y2="120"/>
+  </g>
+  <g>
+    <rect class="outline" x="410" y="162" width="44" height="56" rx="8"/>
+    <path class="meter" d="M418 206 A14 14 0 0 1 446 206"/>
+    <line class="meter" x1="432" y1="206" x2="439" y2="192"/>
+    <line class="meter" x1="416" y1="210" x2="448" y2="210"/>
+  </g>
+
+  <rect class="panel" x="555" y="45" width="275" height="210" rx="14"/>
+  <text class="panel-title" x="692" y="72">measurement outcomes</text>
+
+  <text class="out-label" x="575" y="117">|00&#10217;</text>
+  <rect class="track" x="625" y="103" width="150" height="14" rx="7"/>
+  <rect class="bar" x="625" y="103" width="75" height="14" rx="7"/>
+  <text class="out-pct" x="790" y="115">50%</text>
+
+  <text class="out-label" x="575" y="177">|11&#10217;</text>
+  <rect class="track" x="625" y="163" width="150" height="14" rx="7"/>
+  <rect class="bar" x="625" y="163" width="75" height="14" rx="7"/>
+  <text class="out-pct" x="790" y="175">50%</text>
+
+  <text class="panel-title" x="692" y="235">1000 shots</text>
+</svg>

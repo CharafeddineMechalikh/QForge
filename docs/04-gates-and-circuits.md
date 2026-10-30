@@ -385,3 +385,5 @@ header, the fractional digits of printed angles, and the trailing newline.
 - [Architecture](02-architecture.md#event-ordering) for dispatch order.
 - [Measurement and noise](05-measurement-and-noise.md) for what happens after the gates.
 - [Algorithms](06-algorithms.md) for circuits assembled from these gates.
+- New to the physics? [Superposition, gates and circuits](10-superposition-gates-and-circuits.md)
+  explains why these gates rotate the state the way they do.

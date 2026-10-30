@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 390" role="img" aria-labelledby="pb-title pb-desc">
+  <title id="pb-title">Photon polarization in two measurement bases</title>
+  <desc id="pb-desc">Left: horizontal and vertical polarization arrows on a circle, labeled H and V. Right: two diagonal arrows at plus and minus 45 degrees, labeled D and A.</desc>
+  <defs>
+    <marker id="pb-arrow-orange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="fill-orange" d="M0 0L10 5L0 10z"/>
+    </marker>
+    <marker id="pb-arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="fill-blue" d="M0 0L10 5L0 10z"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .title { font-size: 15px; font-weight: 600; text-anchor: middle; fill: #151a2b; }
+    .label { font-size: 16px; font-weight: 600; fill: #151a2b; }
+    .label-blue { font-size: 16px; font-weight: 600; fill: #1e40af; }
+    .label-orange { font-size: 16px; font-weight: 600; fill: #ea580c; }
+    .legend { font-size: 13px; text-anchor: middle; fill: #5a6478; }
+    .panel { fill: #f5f7fd; stroke: #e1e6f0; stroke-width: 1.5; }
+    .circle { fill: #ffffff; stroke: #cbd3e4; stroke-width: 1.5; }
+    .stroke-blue { stroke: #1e40af; stroke-width: 3; fill: none; }
+    .stroke-orange { stroke: #ea580c; stroke-width: 3; fill: none; }
+    .fill-blue { fill: #1e40af; }
+    .fill-orange { fill: #ea580c; }
+    @media (prefers-color-scheme: dark) {
+      .title, .label { fill: #e6eaf4; }
+      .label-blue { fill: #93b4ff; }
+      .label-orange { fill: #fb923c; }
+      .legend { fill: #9aa6bd; }
+      .panel { fill: #111728; stroke: #212a3f; }
+      .circle { fill: #0e1421; stroke: #303c56; }
+      .stroke-blue, .stroke-orange { stroke-width: 3; }
+      .stroke-blue { stroke: #93b4ff; }
+      .stroke-orange { stroke: #fb923c; }
+      .fill-blue { fill: #93b4ff; }
+      .fill-orange { fill: #fb923c; }
+    }
+  </style>
+
+  <rect class="panel" x="30" y="30" width="360" height="320" rx="16"/>
+  <rect class="panel" x="450" y="30" width="360" height="320" rx="16"/>
+
+  <text class="title" x="210" y="66">Rectilinear basis (Z)</text>
+  <circle class="circle" cx="210" cy="185" r="88"/>
+  <line class="stroke-orange" x1="122" y1="185" x2="298" y2="185" marker-start="url(#pb-arrow-orange)" marker-end="url(#pb-arrow-orange)"/>
+  <line class="stroke-blue" x1="210" y1="97" x2="210" y2="273" marker-start="url(#pb-arrow-blue)" marker-end="url(#pb-arrow-blue)"/>
+  <text class="label-orange" x="303" y="180">H</text>
+  <text class="label-blue" x="222" y="104">V</text>
+  <text class="legend" x="210" y="303">H = |0&#10217;    V = |1&#10217;</text>
+  <text class="legend" x="210" y="327">one arrow per bit value</text>
+
+  <text class="title" x="630" y="66">Diagonal basis (X)</text>
+  <circle class="circle" cx="630" cy="185" r="88"/>
+  <line class="stroke-orange" x1="568" y1="247" x2="692" y2="123" marker-start="url(#pb-arrow-orange)" marker-end="url(#pb-arrow-orange)"/>
+  <line class="stroke-blue" x1="568" y1="123" x2="692" y2="247" marker-start="url(#pb-arrow-blue)" marker-end="url(#pb-arrow-blue)"/>
+  <text class="label-orange" x="699" y="120">D</text>
+  <text class="label-blue" x="699" y="252">A</text>
+  <text class="legend" x="630" y="303">D = |+&#10217;    A = |&#8722;&#10217;</text>
+  <text class="legend" x="630" y="327">equal parts H and V</text>
+</svg>

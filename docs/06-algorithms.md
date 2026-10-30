@@ -267,7 +267,8 @@ The demo encodes logical `|0>` and checks that the probability lands on the eigh
 extraction or recovery step, so `SHOR_CODE` verifies the codeword structure rather than a correction
 cycle. `EventType.ERROR_CORRECTION` and `EventType.RECOVERY` exist as event labels, and the
 `ErrorManager` in `com.mechalikh.qforge.noise` tracks injected errors, but no demo closes the
-correction loop.
+correction loop. The physics behind these circuits, including syndromes and the threshold idea, is
+in [Noise and error correction](12-noise-and-error-correction.md).
 
 ## Complete arithmetic
 

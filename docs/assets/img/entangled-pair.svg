@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" role="img" aria-labelledby="ep-title ep-desc">
+  <title id="ep-title">Correlations from an entangled pair</title>
+  <desc id="ep-desc">A source sends one photon to each detector. When both analyzers use the same angle the two outcomes always match. When one analyzer is rotated 45 degrees the outcomes are no longer correlated.</desc>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .row-label { font-size: 14px; font-weight: 600; fill: #151a2b; }
+    .source-label { font-size: 12px; font-weight: 600; text-anchor: middle; fill: #3730a3; }
+    .basis { font-size: 12px; font-weight: 600; text-anchor: middle; fill: #5a6478; }
+    .outcome { font-size: 22px; font-weight: 700; text-anchor: middle; fill: #4f46e5; }
+    .source { fill: #eef2ff; stroke: #4f46e5; stroke-width: 2; }
+    .detector { fill: #ffffff; stroke: #1e40af; stroke-width: 2; }
+    .photon { stroke: #ea580c; stroke-width: 2.4; fill: none; }
+    .divider { stroke: #e1e6f0; stroke-width: 1.4; }
+    .note { font-size: 11px; text-anchor: middle; fill: #5a6478; }
+    @media (prefers-color-scheme: dark) {
+      .row-label { fill: #e6eaf4; }
+      .source-label { fill: #c7d2fe; }
+      .basis, .note { fill: #9aa6bd; }
+      .outcome { fill: #a5b4fc; }
+      .source { fill: #1b1c3f; stroke: #a5b4fc; }
+      .detector { fill: #0e1421; stroke: #93b4ff; }
+      .photon { stroke: #fb923c; }
+      .divider { stroke: #212a3f; }
+    }
+  </style>
+
+  <text class="row-label" x="30" y="130">same basis</text>
+  <line class="divider" x1="30" y1="220" x2="870" y2="220"/>
+  <text class="row-label" x="30" y="320">rotated basis</text>
+
+  <!-- row 1 -->
+  <path class="photon" d="M410 125 q -27 -18 -55 0 t -55 0"/>
+  <path class="photon" d="M490 125 q 27 -18 55 0 t 55 0"/>
+  <rect class="source" x="410" y="95" width="80" height="60" rx="12"/>
+  <text class="source-label" x="450" y="120">pair</text>
+  <text class="source-label" x="450" y="138">source</text>
+  <circle class="detector" cx="270" cy="125" r="30"/>
+  <circle class="detector" cx="630" cy="125" r="30"/>
+  <text class="basis" x="270" y="80">0&#176;</text>
+  <text class="basis" x="630" y="80">0&#176;</text>
+  <text class="outcome" x="270" y="133">+</text>
+  <text class="outcome" x="630" y="133">+</text>
+  <text class="note" x="270" y="178">detector A</text>
+  <text class="note" x="630" y="178">detector B</text>
+
+  <!-- row 2 -->
+  <path class="photon" d="M410 315 q -27 -18 -55 0 t -55 0"/>
+  <path class="photon" d="M490 315 q 27 -18 55 0 t 55 0"/>
+  <rect class="source" x="410" y="285" width="80" height="60" rx="12"/>
+  <text class="source-label" x="450" y="310">pair</text>
+  <text class="source-label" x="450" y="328">source</text>
+  <circle class="detector" cx="270" cy="315" r="30"/>
+  <circle class="detector" cx="630" cy="315" r="30"/>
+  <text class="basis" x="270" y="270">0&#176;</text>
+  <text class="basis" x="630" y="270">45&#176;</text>
+  <text class="outcome" x="270" y="323">+</text>
+  <text class="outcome" x="630" y="326">?</text>
+  <text class="note" x="270" y="368">detector A</text>
+  <text class="note" x="630" y="368">detector B</text>
+</svg>

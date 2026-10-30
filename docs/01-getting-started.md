@@ -8,7 +8,9 @@ description: "Install, build and run QForge: Maven commands, the first Bell circ
 # Getting started
 
 This guide takes you from an empty folder to a running quantum circuit simulation, first through
-the command line and then through the Java API.
+the command line and then through the Java API. If the physics is new, the illustrated
+[Qubits, photons and polarization](09-qubits-and-photons.md) guide covers the ideas the tutorials
+assume.
 
 ## Prerequisites
 
