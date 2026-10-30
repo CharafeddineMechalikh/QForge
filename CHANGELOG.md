@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `QuantumSimulator.pause()`, `resume()` and `isPaused()`: a paused run stops after the current
+  event, keeps the remaining events queued, and a later `run()` continues the circuit.
+- Observer notifications that now have an engine source: `onProgress` once per dispatched event
+  with the fraction of known events dispatched, `onError` before an initialization, step or run
+  failure is thrown, `onSimulationPaused` and `onSimulationResumed` from the new pause controls,
+  and `onSimulationStopped` from `stop()` while a run is active.
+- Tensor-network readout above 24 qubits: `MPSState.sampleComputationalBasis` samples the
+  computational basis by conditional tensor contraction, `collapseToBasisState` projects the target
+  tensors directly, and `MPSState.overlap` contracts two tensor chains. `MeasurementOperator`,
+  `TensorNetworkStrategy.measure` and `TensorNetworkStrategy.calculateFidelity` route through these
+  paths instead of failing at the dense limit, and the collapsed state is still the true outcome
+  while readout confusion applies only to the reported bits.
+
+### Changed
+
+- The test suite grew to 525 tests, with JaCoCo coverage at 98.1 percent instruction, 92.9 percent
+  branch and 98.1 percent line over 130 classes.
+
+### Removed
+
+- Five `SimulationObserver` callbacks with no engine support: `onConfigurationChanged`,
+  `onResourceAllocated`, `onResourceReleased`, `onCheckpointCreated` and `onCheckpointRestored`. The
+  interface now declares only notifications the simulator can raise.
+
+### Fixed
+
+- `timeoutSeconds` is now enforced: the run loop checks the wall clock limit together with the step
+  limit and the stop request before dispatching an event, so an over-time run returns a partial
+  result instead of ignoring the field.
+- The stabilizer memory estimate now counts the packed tableau instead of a quadratic bound, so a
+  2000-qubit register passes the default memory guard without `maxMemoryBytes` or overcommit.
+- A run started after `maxSteps` was already reached no longer executes one extra event.
+
 ## [2.0.0] - 2026-10-29
 
 ### Added

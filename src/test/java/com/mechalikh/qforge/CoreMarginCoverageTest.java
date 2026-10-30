@@ -101,12 +101,21 @@ class CoreMarginCoverageTest {
     @Test
     void runReportsSimulationErrorWhenAnEventFails() throws Exception {
         QuantumSimulator simulator = new QuantumSimulator();
+        List<String> reported = new java.util.ArrayList<>();
+        simulator.addObserver(new com.mechalikh.qforge.observer.SimulationObserver() {
+            @Override
+            public void onError(String errorMessage, Throwable error) {
+                reported.add(errorMessage + "|" + (error != null));
+            }
+        });
         simulator.initialize(singleQubitConfig(true));
         simulator.scheduleEvent(eventAtPast("bad", foreignOperation()));
 
         SimulationError failure = assertThrows(SimulationError.class, simulator::run);
         assertTrue(failure.getMessage().contains("Simulation failed"));
         assertNotNull(failure.getCause());
+        assertEquals(1, reported.size());
+        assertTrue(reported.get(0).endsWith("|true"));
     }
 
     @Test

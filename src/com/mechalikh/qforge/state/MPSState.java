@@ -7,6 +7,7 @@ import com.mechalikh.qforge.operations.QuantumGate;
 import com.mechalikh.qforge.operations.QuantumOperation;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Pure quantum state stored as a matrix product state in canonical form.
@@ -29,10 +30,12 @@ import java.util.Locale;
  *
  * <p>Two-qubit gates on non-adjacent qubits are implemented with explicit SWAP gates that
  * move one qubit next to the other. The swaps are undone after the gate, so the logical
- * qubit order is unchanged and no dense vector is formed. Dense accessors, measurement and
- * the fidelity metrics need an amplitude array and therefore work up to twenty four qubits;
- * above that limit a state can be evolved but not measured or read out by basis-state
- * probability.</p>
+ * qubit order is unchanged and no dense vector is formed. Computational basis sampling,
+ * collapse onto a basis outcome, and the overlap between two states are computed by tensor
+ * contraction and work at any size. The accessors that need the whole amplitude vector
+ * (single amplitudes, all basis probabilities, the reduced density matrix and matrix
+ * expectation values) allocate {@code 2^numQubits} entries and are limited to twenty four
+ * qubits.</p>
  */
 public class MPSState extends QuantumState implements AmplitudeAccess {
     private static final int MAX_DENSE_QUBITS = 24;
@@ -560,6 +563,224 @@ public class MPSState extends QuantumState implements AmplitudeAccess {
     }
 
     /**
+     * Samples computational basis outcomes of the target qubits without forming the dense
+     * amplitude vector.
+     *
+     * <p>The state is first brought into right canonical form, where the tensor chain from
+     * any bond to the right boundary is an isometry. Each shot then walks the chain from the
+     * left: the already sampled prefix is carried in a vector over the left bond, the two
+     * physical branches are contracted with it, and one branch is chosen with probability
+     * proportional to its squared norm. The chosen branch is renormalized and becomes the
+     * prefix for the next site, so a draw is a single sequential pass and no object of size
+     * {@code 2^numQubits} is allocated. The walk stops after the rightmost target.</p>
+     *
+     * <p>This operation works at any size. Targets may be listed in any order; the first
+     * target becomes the most significant bit of each outcome.</p>
+     *
+     * @param targetQubits qubit indices to sample, in significance order
+     * @param shots number of independent samples, at least zero
+     * @return an array of {@code shots} packed outcomes, where bit {@code j} of an outcome,
+     *         counted from the most significant bit, is the sampled value of
+     *         {@code targetQubits[j]}
+     * @throws IllegalArgumentException if the target array is null or empty, contains an
+     *         out-of-range or duplicate index, or if {@code shots} is negative
+     * @throws IllegalStateException if the state has zero norm
+     */
+    public int[] sampleComputationalBasis(int[] targetQubits, int shots) {
+        int[] targets = validateTargetQubits(targetQubits);
+        if (shots < 0) {
+            throw new IllegalArgumentException("Shot count must not be negative");
+        }
+        int[] outcomes = new int[shots];
+        if (shots == 0) {
+            return outcomes;
+        }
+        Complex[][][][] canonical = rightCanonicalTensors();
+        int[] bitPositions = outcomeBitPositions(targets);
+        int maxTarget = targets[0];
+        for (int target : targets) {
+            maxTarget = Math.max(maxTarget, target);
+        }
+        for (int shot = 0; shot < shots; shot++) {
+            outcomes[shot] = sampleOnce(canonical, bitPositions, maxTarget);
+        }
+        return outcomes;
+    }
+
+    /**
+     * Draws one computational basis outcome of the target qubits.
+     *
+     * <p>Equivalent to a single draw from
+     * {@link #sampleComputationalBasis(int[], int)}, so every call rebuilds the right
+     * canonical form. Use the multi shot overload when more than one outcome is needed.</p>
+     *
+     * @param targetQubits qubit indices to sample, in significance order
+     * @return one packed outcome, where bit {@code j}, counted from the most significant
+     *         bit, is the sampled value of {@code targetQubits[j]}
+     * @throws IllegalArgumentException if the target array is null or empty, or contains an
+     *         out-of-range or duplicate index
+     * @throws IllegalStateException if the state has zero norm
+     */
+    public int sampleComputationalBasis(int[] targetQubits) {
+        int[] targets = validateTargetQubits(targetQubits);
+        int[] bitPositions = outcomeBitPositions(targets);
+        int maxTarget = targets[0];
+        for (int target : targets) {
+            maxTarget = Math.max(maxTarget, target);
+        }
+        return sampleOnce(rightCanonicalTensors(), bitPositions, maxTarget);
+    }
+
+    private int[] outcomeBitPositions(int[] targets) {
+        int[] positions = new int[numQubits];
+        Arrays.fill(positions, -1);
+        for (int j = 0; j < targets.length; j++) {
+            positions[targets[j]] = targets.length - 1 - j;
+        }
+        return positions;
+    }
+
+    /**
+     * Absorbs the bond vectors into the tensors and sweeps from the right so that every
+     * tensor after the first is right-isometric, which makes the right environment of the
+     * chain the identity.
+     */
+    private Complex[][][][] rightCanonicalTensors() {
+        int n = numQubits;
+        Complex[][][][] canonical = new Complex[n][][][];
+        for (int site = 0; site < n; site++) {
+            int leftDim = tensors[site].length;
+            int rightDim = tensors[site][0][0].length;
+            canonical[site] = new Complex[leftDim][2][rightDim];
+            Complex boundary = site == 0 ? lambdas[0][0] : Complex.ONE;
+            for (int left = 0; left < leftDim; left++) {
+                for (int physical = 0; physical < 2; physical++) {
+                    for (int right = 0; right < rightDim; right++) {
+                        canonical[site][left][physical][right] =
+                            tensors[site][left][physical][right]
+                                .multiply(lambdas[site + 1][right])
+                                .multiply(boundary);
+                    }
+                }
+            }
+        }
+
+        for (int site = n - 1; site >= 1; site--) {
+            int leftDim = canonical[site].length;
+            int rightDim = canonical[site][0][0].length;
+            ComplexMatrix matrix = new ComplexMatrix(leftDim, 2 * rightDim);
+            for (int left = 0; left < leftDim; left++) {
+                for (int physical = 0; physical < 2; physical++) {
+                    for (int right = 0; right < rightDim; right++) {
+                        matrix.set(left, physical * rightDim + right,
+                            canonical[site][left][physical][right]);
+                    }
+                }
+            }
+
+            ComplexSvd.Result decomposition = ComplexSvd.decompose(matrix);
+            double[] singularValues = decomposition.getSingularValues();
+            ComplexMatrix leftVectors = decomposition.getU();
+            ComplexMatrix rightAdjoint = decomposition.getVAdjoint();
+            int rank = singularValues.length;
+
+            Complex[][][] isometric = new Complex[rank][2][rightDim];
+            for (int bond = 0; bond < rank; bond++) {
+                for (int physical = 0; physical < 2; physical++) {
+                    for (int right = 0; right < rightDim; right++) {
+                        isometric[bond][physical][right] =
+                            rightAdjoint.get(bond, physical * rightDim + right);
+                    }
+                }
+            }
+
+            Complex[][][] neighbor = canonical[site - 1];
+            int neighborLeft = neighbor.length;
+            int neighborRight = neighbor[0][0].length;
+            Complex[][][] updatedNeighbor = new Complex[neighborLeft][2][rank];
+            for (int left = 0; left < neighborLeft; left++) {
+                for (int physical = 0; physical < 2; physical++) {
+                    for (int bond = 0; bond < rank; bond++) {
+                        Complex sum = Complex.ZERO;
+                        for (int old = 0; old < neighborRight; old++) {
+                            sum = sum.add(neighbor[left][physical][old].multiply(
+                                leftVectors.get(old, bond)
+                                    .multiply(new Complex(singularValues[bond], 0.0))));
+                        }
+                        updatedNeighbor[left][physical][bond] = sum;
+                    }
+                }
+            }
+
+            canonical[site] = isometric;
+            canonical[site - 1] = updatedNeighbor;
+        }
+        return canonical;
+    }
+
+    private static int sampleOnce(Complex[][][][] canonical, int[] bitPositions,
+            int maxTarget) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        Complex[] prefix = new Complex[]{Complex.ONE};
+        int outcome = 0;
+        for (int site = 0; site <= maxTarget; site++) {
+            int rightDim = canonical[site][0][0].length;
+            Complex[] zero = new Complex[rightDim];
+            Complex[] one = new Complex[rightDim];
+            Arrays.fill(zero, Complex.ZERO);
+            Arrays.fill(one, Complex.ZERO);
+            for (int left = 0; left < prefix.length; left++) {
+                Complex amplitude = prefix[left];
+                if (amplitude.absSquare() == 0.0) {
+                    continue;
+                }
+                for (int right = 0; right < rightDim; right++) {
+                    zero[right] = zero[right].add(
+                        amplitude.multiply(canonical[site][left][0][right]));
+                    one[right] = one[right].add(
+                        amplitude.multiply(canonical[site][left][1][right]));
+                }
+            }
+
+            double zeroWeight = squaredNorm(zero);
+            double oneWeight = squaredNorm(one);
+            double total = zeroWeight + oneWeight;
+            if (total <= 0.0) {
+                throw new IllegalStateException(
+                    "Cannot sample a zero-norm matrix product state");
+            }
+            int bit;
+            if (zeroWeight == 0.0) {
+                bit = 1;
+            } else if (oneWeight == 0.0) {
+                bit = 0;
+            } else {
+                bit = random.nextDouble() * total < zeroWeight ? 0 : 1;
+            }
+            if (bitPositions[site] >= 0) {
+                outcome |= bit << bitPositions[site];
+            }
+
+            Complex[] chosen = bit == 0 ? zero : one;
+            double weight = bit == 0 ? zeroWeight : oneWeight;
+            double scale = 1.0 / Math.sqrt(weight);
+            for (int right = 0; right < rightDim; right++) {
+                chosen[right] = chosen[right].scale(scale);
+            }
+            prefix = chosen;
+        }
+        return outcome;
+    }
+
+    private static double squaredNorm(Complex[] vector) {
+        double total = 0.0;
+        for (Complex entry : vector) {
+            total += entry.absSquare();
+        }
+        return total;
+    }
+
+    /**
      * Returns the amplitude of one computational basis state.
      *
      * <p>The whole matrix product state is contracted. This operation is supported up to
@@ -751,10 +972,13 @@ public class MPSState extends QuantumState implements AmplitudeAccess {
     /**
      * Projects the target qubits onto one computational basis outcome and renormalizes.
      *
-     * <p>The dense amplitude vector is formed, entries whose target bits differ from
-     * {@code outcome} are set to zero, and the result is rebuilt as a matrix product state
-     * with the configured bond dimension limit. This operation is supported up to twenty
-     * four qubits.</p>
+     * <p>Up to twenty four qubits the dense amplitude vector is formed, entries whose target
+     * bits differ from {@code outcome} are set to zero, and the result is rebuilt as a
+     * matrix product state with the configured bond dimension limit. Above that limit the
+     * target tensors are projected directly: for every target qubit the physical entry that
+     * does not match the outcome bit is zeroed, the resulting state is normalized with a
+     * tensor contraction, and canonical form is restored. No dense vector is formed on that
+     * path.</p>
      *
      * @param targetQubits qubit indices to measure, in the order used to interpret
      *        {@code outcome}
@@ -762,7 +986,6 @@ public class MPSState extends QuantumState implements AmplitudeAccess {
      * @return the collapsed state
      * @throws IllegalArgumentException if the target array or the outcome is invalid
      * @throws IllegalStateException if the outcome has probability below {@code 1e-15}
-     * @throws UnsupportedOperationException if the state has more than twenty four qubits
      */
     @Override
     public QuantumState collapseToBasisState(int[] targetQubits, int outcome) {
@@ -771,6 +994,13 @@ public class MPSState extends QuantumState implements AmplitudeAccess {
         if (outcome < 0 || outcome >= numOutcomes) {
             throw new IllegalArgumentException("Measurement outcome out of range: " + outcome);
         }
+        if (numQubits <= MAX_DENSE_QUBITS) {
+            return collapseDense(targets, outcome);
+        }
+        return collapseByProjection(targets, outcome);
+    }
+
+    private MPSState collapseDense(int[] targets, int outcome) {
         Complex[] amplitudes = denseAmplitudes();
         Complex[] collapsed = new Complex[amplitudes.length];
         Arrays.fill(collapsed, Complex.ZERO);
@@ -792,6 +1022,34 @@ public class MPSState extends QuantumState implements AmplitudeAccess {
             }
         }
         return buildFromDense(collapsed);
+    }
+
+    private MPSState collapseByProjection(int[] targets, int outcome) {
+        Complex[][][][] projected = deepCopy(tensors);
+        for (int j = 0; j < targets.length; j++) {
+            int bit = (outcome >> (targets.length - 1 - j)) & 1;
+            Complex[][][] tensor = projected[targets[j]];
+            for (int left = 0; left < tensor.length; left++) {
+                Arrays.fill(tensor[left][1 - bit], Complex.ZERO);
+            }
+        }
+
+        MPSState result = new MPSState(projected, deepCopy(lambdas), numQubits,
+            maxBondDimension, false);
+        double norm = result.stateNorm();
+        if (norm * norm < NORM_TOLERANCE) {
+            throw new IllegalStateException(
+                "Cannot collapse onto a measurement outcome with zero probability");
+        }
+        double scale = 1.0 / norm;
+        Complex[][][] last = result.tensors[numQubits - 1];
+        for (int left = 0; left < last.length; left++) {
+            for (int physical = 0; physical < 2; physical++) {
+                last[left][physical][0] = last[left][physical][0].scale(scale);
+            }
+        }
+        result.canonicalize(false);
+        return result;
     }
 
     /**
@@ -954,6 +1212,68 @@ public class MPSState extends QuantumState implements AmplitudeAccess {
             expectation = expectation.add(amplitudes[row].conjugate().multiply(rowSum));
         }
         return expectation.real();
+    }
+
+    /**
+     * Returns the inner product {@code <this|other>} by contracting both tensor chains.
+     *
+     * <p>The contraction walks both states from left to right, carrying an environment matrix
+     * over the two current bonds, so its cost is cubic in the bond dimension per site and no
+     * dense vector is formed. This operation works at any size. Neither state is modified.</p>
+     *
+     * @param other the right hand state of the inner product
+     * @return the complex inner product {@code <this|other>}
+     * @throws IllegalArgumentException if {@code other} is null or has a different number of
+     *         qubits
+     */
+    public Complex overlap(MPSState other) {
+        if (other == null) {
+            throw new IllegalArgumentException("Other state must not be null");
+        }
+        if (other.numQubits != numQubits) {
+            throw new IllegalArgumentException("States must have the same number of qubits");
+        }
+
+        Complex[][] environment = new Complex[][]{{Complex.ONE}};
+        for (int site = 0; site < numQubits; site++) {
+            Complex[][][] left = tensors[site];
+            Complex[][][] right = other.tensors[site];
+            Complex[] leftLambdas = lambdas[site + 1];
+            Complex[] rightLambdas = other.lambdas[site + 1];
+            int leftDim = environment.length;
+            int rightDim = environment[0].length;
+            int nextLeftDim = leftLambdas.length;
+            int nextRightDim = rightLambdas.length;
+
+            Complex[][] next = new Complex[nextLeftDim][nextRightDim];
+            for (int a = 0; a < nextLeftDim; a++) {
+                Arrays.fill(next[a], Complex.ZERO);
+            }
+            for (int l1 = 0; l1 < leftDim; l1++) {
+                for (int l2 = 0; l2 < rightDim; l2++) {
+                    Complex weight = environment[l1][l2];
+                    if (weight.absSquare() == 0.0) {
+                        continue;
+                    }
+                    for (int physical = 0; physical < 2; physical++) {
+                        for (int r1 = 0; r1 < nextLeftDim; r1++) {
+                            Complex entry = left[l1][physical][r1]
+                                .multiply(leftLambdas[r1]).conjugate().multiply(weight);
+                            if (entry.absSquare() == 0.0) {
+                                continue;
+                            }
+                            for (int r2 = 0; r2 < nextRightDim; r2++) {
+                                next[r1][r2] = next[r1][r2].add(entry.multiply(
+                                    right[l2][physical][r2].multiply(rightLambdas[r2])));
+                            }
+                        }
+                    }
+                }
+            }
+            environment = next;
+        }
+        return environment[0][0].multiply(lambdas[0][0].conjugate())
+            .multiply(other.lambdas[0][0]);
     }
 
     /**

@@ -45,6 +45,15 @@ Two sampling details are worth knowing when results look odd:
 - `MeasurementHelper` samples from one shared unseeded `Random`, so counts are not reproducible
   between runs. Probabilities computed from the state are exact; counts are not.
 
+A matrix product state above 24 qubits cannot expose the full probability vector, so a
+computational basis measurement on it takes a separate path. `MPSState.sampleComputationalBasis`
+brings the chain into right canonical form and draws each qubit conditionally by tensor
+contraction, and a destructive measurement projects the target tensors directly. The test collapse
+still uses the true outcome, and readout confusion still applies to the reported bits. The
+resulting `MeasurementResult` carries no exact probabilities on this path, so they are derived
+from the sampled counts, and a single-qubit measurement with one shot reports probability one.
+Non-diagonal observables need the reduced density matrix and remain limited to 24 qubits.
+
 ## Observables
 
 `Observable` wraps a Hermitian matrix over a list of qubits, with the first qubit as the most
@@ -197,9 +206,9 @@ flowchart TD
 
 The profile runs after every gate, once per model, in the order the profile reports. It does not
 run after a noise event or after a measurement, so manual `NoiseModel` events are additive rather
-than doubled. There is no idle noise keyed to `TimeResolution` or event durations; noise is
-gate-count based, which means a circuit with more gates accumulates more error even if the
-scheduled times are identical.
+than doubled. The profile itself has no idle term: it is gate-count based, which means a circuit
+with more gates accumulates more error even if the scheduled times are identical. Idle relaxation
+by elapsed time comes from the separate `DeviceNoiseModel` described below.
 
 ### Programmatic noise
 
@@ -360,7 +369,7 @@ event-time model and
 | `DensityMatrix.traceDistance(a, b)` | half the sum of the absolute eigenvalues of `a - b` | clamped to `[0, 1]` |
 | `DensityMatrix.getVonNeumannEntropy()` | `-Tr(rho log rho)`, base 2 | in bits |
 | `QuantumState.getPurity()` | `Tr(rho^2)` for a density matrix, `1.0` for a pure vector | detects mixedness |
-| `SimulationStrategy.calculateFidelity(a, b)` | backend-specific, state vector uses the squared overlap | used by the metrics collector |
+| `SimulationStrategy.calculateFidelity(a, b)` | backend-specific, state vector uses the squared overlap, tensor network contracts the two MPS chains above 24 qubits | used by the metrics collector |
 
 Eigenvalue-based metrics on larger registers are the slowest path in the simulator, since
 `ComplexMatrix.eigenvalues()` runs an unoptimized decomposition on a `2^n x 2^n` matrix.

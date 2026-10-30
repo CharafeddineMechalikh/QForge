@@ -14,7 +14,7 @@ neural network, and a quantum kernel classifier.
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Maven](https://img.shields.io/badge/Maven-3.8%2B-red)](https://maven.apache.org/)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-511%20passing-brightgreen)](docs/08-development.md)
+[![Tests](https://img.shields.io/badge/tests-525%20passing-brightgreen)](docs/08-development.md)
 [![CI](https://github.com/CharafeddineMechalikh/QForge/actions/workflows/ci.yml/badge.svg)](https://github.com/CharafeddineMechalikh/QForge/actions/workflows/ci.yml)
 [![JaCoCo instruction coverage](https://img.shields.io/badge/JaCoCo%20instruction-98.0%25-brightgreen)](docs/08-development.md#coverage)
 [![JaCoCo branch coverage](https://img.shields.io/badge/JaCoCo%20branch-92.9%25-green)](docs/08-development.md#coverage)
@@ -157,15 +157,16 @@ API reference: run `mvn javadoc:javadoc`, then open `target/site/apidocs/index.h
 | --- | --- | --- | --- |
 | `STATE_VECTOR` | `2^n` complex amplitudes | 30, limited by heap | Pure states, algorithms, noise trajectories |
 | `DENSITY_MATRIX` | `2^n x 2^n` complex matrix | 12 | Noise, mixed states, decoherence studies |
-| `STABILIZER` | `2n` tableau rows of `2n + 2` bits | 2000 | Clifford circuits; exact outcome probabilities for up to 16 measured targets |
-| `TENSOR_NETWORK` | matrix product state, bond dimension capped by `maxBondDimension` | 100 for gate evolution at a modest bond dimension; dense probabilities and measurement capped at 24 | Low-entanglement circuits with many qubits |
+| `STABILIZER` | `2n` tableau rows of `2n + 2` bits | 2000 | Clifford circuits; exact outcome probabilities for up to 16 measured targets and `Z` sampling for up to 32 |
+| `TENSOR_NETWORK` | matrix product state, bond dimension capped by `maxBondDimension` | 100 for gate evolution at a modest bond dimension; dense probability arrays capped at 24 | Low-entanglement circuits with many qubits |
 
 The stabilizer backend rejects non-Clifford gates and Kraus channels. The tensor-network backend
 applies at most two-qubit gates, rejects noise, and truncates the bond dimension with a reported
-relative discarded weight. Above 24 qubits it can still evolve a state, but basis-state
-probabilities, measurement, fidelity and entropy are unavailable; the final state exposes only
-bond dimensions, purity and discarded weight. The state vector and density matrix backends are the
-ones to use with a device noise model.
+relative discarded weight. Above 24 qubits it can still evolve a state and read it out in the
+computational basis: sampling, collapse and the overlap of two states are computed by tensor
+contraction. Dense basis-state probabilities, partial traces, matrix expectation values, entropy,
+the fidelity metrics and non-diagonal observables still need the 24-qubit dense form. The state
+vector and density matrix backends are the ones to use with a device noise model.
 
 A 12-qubit density matrix alone is about 256 MiB. `SimulationConfig.validate()` estimates the
 memory requirement before the simulation starts, so an impossible configuration fails early instead
@@ -205,8 +206,10 @@ ordering.
 ### Other APIs
 
 - JSON configuration and circuit loading, with unknown fields ignored and comments accepted.
-- `SimulationObserver` callbacks and a populated `MetricsCollector` (state updates, operations,
-  fidelity, distance, measurements, throughput).
+- `SimulationObserver` callbacks for every lifecycle event the engine raises, including progress,
+  error, pause, resume and stop, plus a populated `MetricsCollector` (state updates, operations,
+  fidelity, distance, measurements, throughput). `pause()` keeps the remaining events queued so a
+  later `run()` continues the circuit.
 - Plugin API exposed through `QuantumSimulator.getPluginManager()`, with lifecycle and hook
   dispatch.
 - Java2D visualization: Bloch-style state rendering, density matrices, circuit diagrams, event
@@ -352,7 +355,7 @@ mvn -o test
 ```
 
 The `-o` flag uses the local Maven cache; remove it if dependencies need to be downloaded. The
-suite runs 511 tests across gates, measurement, noise, backends, OpenQASM, classical control,
+suite runs 525 tests across gates, measurement, noise, backends, OpenQASM, classical control,
 algorithms, JSON loading, metrics, plugins, and VQE convergence.
 
 Generate the API documentation:
@@ -418,7 +421,7 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 - [x] A measured backend benchmark covering runtime, correctness, Clifford limits, and MPS
   truncation
 - [x] Javadoc for every public type and numbered guides `01` to `08`
-- [x] 511-test JUnit 5 suite with 98.0 percent instruction and 92.9 percent branch coverage
+- [x] 525-test JUnit 5 suite with 98.1 percent instruction and 92.9 percent branch coverage
 - [x] JaCoCo coverage check that fails `mvn verify` below 90 percent instruction and branch coverage
 - [x] GitHub Actions CI running tests and coverage gates on every push and pull request
 - [x] MIT license, declared in `pom.xml` and `CITATION.cff`
@@ -435,8 +438,7 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 - [ ] Add notebook integration and a step-through execution mode
 - [ ] Add an interactive visualization UI
 - [ ] Add BB84 and E91 protocol demos with eavesdropper models
-- [ ] Enforce `timeoutSeconds`, wire the default control rules into the engine, and dispatch the
-  declared observer callbacks
+- [ ] Wire the default control rules into the engine
 - [ ] Expose the quantum-walk `Graph` API and bundle JSON circuits for the `grover`, `qft`, and
   `teleport` names
 
@@ -451,13 +453,17 @@ Checked items are implemented. Unchecked items are open, and the full list with 
 - The stabilizer backend accepts Clifford gates only and computes exact outcome probabilities for at
   most 16 measured qubits.
 - The tensor network backend truncates at the configured bond dimension, rejects Kraus noise, and
-  reports its accumulated relative discarded weight.
+  reports its accumulated relative discarded weight. Its computational-basis readout above 24
+  qubits is sampled by tensor contraction, so those results carry counts derived probabilities
+  rather than the exact distribution.
 - Multi-qubit depolarizing is limited to 4 target qubits because the channel requires `4^n - 1`
   Kraus operators; independent multi-qubit dephasing and damping are limited to 8 targets.
 - Density-matrix simulation is exact but expensive, and the eigen routines are dense.
 - Visualization uses Java2D and local PNG and GIF files; there is no interactive UI.
-- The configured `timeoutSeconds` value and the three default control rules are recorded but not
-  enforced by the engine; see [docs/03-configuration.md](docs/03-configuration.md).
+- The configured `timeoutSeconds` is checked between events, so a single long gate cannot be
+  interrupted; an expired run returns the events executed so far and sets
+  `SimulationContext.shouldStop()`. The three default control rules are recorded but not enforced by
+  the engine; see [docs/03-configuration.md](docs/03-configuration.md).
 
 ## Citation
 

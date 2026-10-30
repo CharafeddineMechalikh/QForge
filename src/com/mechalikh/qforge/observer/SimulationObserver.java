@@ -11,8 +11,12 @@ import com.mechalikh.qforge.measurement.MeasurementResult;
  *
  * <p>Every callback has an empty default implementation, so an implementation can
  * override only the callbacks it needs. The simulator invokes the callbacks
- * directly from the code that initializes, steps, resets, and completes a
+ * directly from the code that initializes, steps, resets, completes or fails a
  * simulation; no separate notification thread is created.</p>
+ *
+ * <p>Only events that the engine can raise are declared here. Configuration
+ * changes, resource accounting and checkpoints have no engine support, so they are
+ * not part of this interface.</p>
  *
  * <p>Observers receive the live objects held by the simulation context, such as
  * the current {@link QuantumState}. A callback that needs to keep data beyond the
@@ -67,51 +71,13 @@ public interface SimulationObserver {
      */
     default void onReset() {}
     /**
-     * Called to report progress.
+     * Called after each event of a run, before the next event is dispatched.
      *
-     * @param progress a progress value chosen by the caller; this interface does not
-     *                 define its range or units
+     * @param progress the fraction of the events known at that moment that have been
+     *                 dispatched, in the range {@code [0, 1]}
      * @param message a description of the current activity
      */
     default void onProgress(double progress, String message) {}
-    /**
-     * Called when a configuration parameter changes.
-     *
-     * @param parameter the name of the parameter
-     * @param oldValue the previous value
-     * @param newValue the new value
-     */
-    default void onConfigurationChanged(String parameter, Object oldValue, Object newValue) {}
-    /**
-     * Called when resources are allocated.
-     *
-     * @param resourceType the resource kind, for example a CPU, GPU, or memory label
-     * @param amount the allocated amount, in units defined by the caller
-     */
-    default void onResourceAllocated(String resourceType, int amount) {}
-    /**
-     * Called when resources are released.
-     *
-     * @param resourceType the resource kind, for example a CPU, GPU, or memory label
-     * @param amount the released amount, in units defined by the caller
-     */
-    default void onResourceReleased(String resourceType, int amount) {}
-    /**
-     * Called after a checkpoint has been created.
-     *
-     * @param checkpointId the checkpoint identifier
-     * @param timestamp the checkpoint time supplied by the caller; this interface
-     *                  does not define its units
-     */
-    default void onCheckpointCreated(String checkpointId, long timestamp) {}
-    /**
-     * Called after a checkpoint has been restored.
-     *
-     * @param checkpointId the checkpoint identifier
-     * @param timestamp the restore time supplied by the caller; this interface does
-     *                  not define its units
-     */
-    default void onCheckpointRestored(String checkpointId, long timestamp) {}
     /**
      * Called when the simulation is paused.
      */

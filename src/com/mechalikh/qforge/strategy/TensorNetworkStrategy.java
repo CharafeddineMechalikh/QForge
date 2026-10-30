@@ -1,6 +1,7 @@
 package com.mechalikh.qforge.strategy;
 
 import com.mechalikh.qforge.math.Complex;
+import com.mechalikh.qforge.measurement.MeasurementOperator;
 import com.mechalikh.qforge.measurement.MeasurementResult;
 import com.mechalikh.qforge.measurement.Observable;
 import com.mechalikh.qforge.noise.NoiseModel;
@@ -14,9 +15,9 @@ import com.mechalikh.qforge.state.QuantumState;
  *
  * <p>Gate application is delegated to the matrix product state, which contracts the gate
  * into the affected tensors, truncates the bond dimensions to the configured limit, and
- * restores canonical form. Measurement uses the Pauli Z observable, which reads the
- * computational basis probabilities of small states. Noise is not implemented for this
- * backend.</p>
+ * restores canonical form. Measurement uses the Pauli Z observable and works at any size:
+ * small states read the exact basis probabilities, larger states sample by tensor
+ * contraction. Noise is not implemented for this backend.</p>
  */
 public class TensorNetworkStrategy implements SimulationStrategy {
     private static final double EPSILON = 1e-12;
@@ -91,9 +92,10 @@ public class TensorNetworkStrategy implements SimulationStrategy {
     /**
      * Measures the Pauli Z observable on the target qubits.
      *
-     * <p>The observable reads the computational basis probabilities of the state through
-     * {@link MPSState#getProbabilities()}, so the state must not exceed twenty four
-     * qubits. The state is not collapsed.</p>
+     * <p>Up to twenty four qubits the observable reads the exact computational basis
+     * probabilities of the state. Above that limit the outcomes are sampled by tensor
+     * contraction and the result carries probabilities derived from the sampled counts. The
+     * state is not collapsed.</p>
      *
      * @param state state to measure
      * @param targetQubits qubits to measure
@@ -107,7 +109,7 @@ public class TensorNetworkStrategy implements SimulationStrategy {
             throw new IllegalArgumentException(
                 "TensorNetworkStrategy requires an MPSState quantum state");
         }
-        return Observable.pauliZ(targetQubits).measureMultiple(state, shots);
+        return new MeasurementOperator(Observable.pauliZ(targetQubits), shots).measure(state);
     }
 
     /**
@@ -129,16 +131,17 @@ public class TensorNetworkStrategy implements SimulationStrategy {
     /**
      * Computes the squared overlap between two matrix product states.
      *
-     * <p>The dense amplitudes are formed for both states, the inner product
-     * {@code sum(conj(a[i]) * b[i])} is evaluated, and its squared magnitude is clamped to
-     * the range {@code [0, 1]}.</p>
+     * <p>Up to twenty four qubits the dense amplitudes are formed for both states, the inner
+     * product {@code sum(conj(a[i]) * b[i])} is evaluated, and its squared magnitude is
+     * clamped to the range {@code [0, 1]}. Above that limit the inner product is obtained by
+     * contracting the two tensor chains through {@link MPSState#overlap(MPSState)}, so no
+     * dense vector is formed.</p>
      *
      * @param state1 first state
      * @param state2 second state
      * @return the fidelity
      * @throws IllegalArgumentException if either state is not an {@link MPSState} or the
      *         two states have different qubit counts
-     * @throws UnsupportedOperationException if a state has more than twenty four qubits
      */
     @Override
     public double calculateFidelity(QuantumState state1, QuantumState state2) {
@@ -151,14 +154,19 @@ public class TensorNetworkStrategy implements SimulationStrategy {
             throw new IllegalArgumentException("States must have same number of qubits");
         }
 
-        Complex[] amplitudes1 = first.getAmplitudes();
-        Complex[] amplitudes2 = second.getAmplitudes();
-        Complex innerProduct = Complex.ZERO;
-        for (int index = 0; index < amplitudes1.length; index++) {
-            innerProduct = innerProduct.add(
-                amplitudes1[index].conjugate().multiply(amplitudes2[index]));
+        double fidelity;
+        if (first.hasDenseAccess()) {
+            Complex[] amplitudes1 = first.getAmplitudes();
+            Complex[] amplitudes2 = second.getAmplitudes();
+            Complex innerProduct = Complex.ZERO;
+            for (int index = 0; index < amplitudes1.length; index++) {
+                innerProduct = innerProduct.add(
+                    amplitudes1[index].conjugate().multiply(amplitudes2[index]));
+            }
+            fidelity = innerProduct.absSquare();
+        } else {
+            fidelity = first.overlap(second).absSquare();
         }
-        double fidelity = innerProduct.absSquare();
         return Math.min(1.0, Math.max(0.0, fidelity));
     }
 
@@ -202,8 +210,8 @@ public class TensorNetworkStrategy implements SimulationStrategy {
      * Reports the qubit ceiling advertised by this strategy.
      *
      * <p>The value describes the reach of a bond dimension limited representation and is not
-     * enforced by this class. Dense accessors and measurement remain limited to twenty four
-     * qubits.</p>
+     * enforced by this class. Dense accessors and non diagonal observables remain limited to
+     * twenty four qubits.</p>
      *
      * @return the reported limit, {@code 100}
      */

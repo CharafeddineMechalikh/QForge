@@ -29,7 +29,7 @@ mvn -o test
 ```
 
 The `-o` flag keeps Maven offline and uses the local cache. Drop it when a dependency is missing.
-The current suite contains 511 tests across gates, measurement, noise, algorithms, JSON loading,
+The current suite contains 525 tests across gates, measurement, noise, algorithms, JSON loading,
 backends, OpenQASM, classical control, metrics and plugins, and the Javadoc plugin requires one
 online run before it can work offline.
 

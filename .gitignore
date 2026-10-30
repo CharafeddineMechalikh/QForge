@@ -8,3 +8,6 @@ output/
 *.iml
 *.class
 *.log
+
+# Local manuscript workspace, excluded from the software repository
+paper/

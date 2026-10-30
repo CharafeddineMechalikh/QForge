@@ -85,8 +85,10 @@ public class SimulationConfig {
      * </ul>
      *
      * <p>The memory estimate is 16 bytes per amplitude plus 1024 bytes for
-     * {@link SimulationBackend#STATE_VECTOR}, and 16 bytes per density matrix element plus
-     * 2048 bytes for {@link SimulationBackend#DENSITY_MATRIX}. A null backend is rejected
+     * {@link SimulationBackend#STATE_VECTOR}, 16 bytes per density matrix element plus
+     * 2048 bytes for {@link SimulationBackend#DENSITY_MATRIX}, twice the packed tableau plus
+     * 4096 bytes for {@link SimulationBackend#STABILIZER}, and 16 bytes per bond block plus
+     * 4096 bytes for {@link SimulationBackend#TENSOR_NETWORK}. A null backend is rejected
      * before the estimate is computed.
      *
      * @return true if the configuration can be used for a simulation
@@ -335,9 +337,13 @@ public class SimulationConfig {
                 return matrixSize * matrixSize * 16L + 2048;
                 
             case STABILIZER:
-                // Two rows per qubit, each with 2n + 2 bits stored as longs
-                long stabilizerWords = ((long) numQubits * 4L + 2L) / 64L + 1L;
-                return numQubits * numQubits * stabilizerWords * 8L + 4096L;
+                // Two rows per qubit, each holding an X and a Z block of ceil(n / 64) longs
+                // plus one phase byte. Measurement and collapse work on a copy of the
+                // tableau, so the peak footprint is twice the stored size.
+                long stabilizerWords = (numQubits + 63L) / 64L;
+                long stabilizerRows = 2L * numQubits;
+                long tableauBytes = 2L * stabilizerRows * stabilizerWords * 8L + stabilizerRows;
+                return 2L * tableauBytes + 4096L;
                 
             case TENSOR_NETWORK:
                 // n tensors, each with a bond-dimension squared block per physical index

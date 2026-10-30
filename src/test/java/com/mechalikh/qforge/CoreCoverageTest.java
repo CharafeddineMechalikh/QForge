@@ -502,6 +502,54 @@ class CoreCoverageTest {
     }
 
     @Test
+    void simulatorTimeoutEndsRunBeforeTheNextEvent() throws Exception {
+        SimulationConfig config = new SimulationConfig();
+        config.setNumQubits(2);
+        config.setTimeoutSeconds(0.2);
+        QuantumSimulator simulator = new QuantumSimulator();
+        simulator.initialize(config);
+        SimulationContext context = simulator.getContext();
+
+        simulator.addObserver(new SimulationObserver() {
+            @Override
+            public void onStateUpdate(QuantumState state, QuantumEvent event) {
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
+        simulator.scheduleEvent(event("first", SingleQubitGate.createPauliX(context.getQubit(0))));
+        simulator.scheduleEvent(event("second", SingleQubitGate.createPauliX(context.getQubit(1))));
+        simulator.scheduleEvent(event("third", SingleQubitGate.createPauliX(context.getQubit(0))));
+
+        SimulationResult result = simulator.run();
+        assertEquals(1L, result.getMetric("steps_executed").longValue());
+        assertTrue(context.shouldStop());
+        assertTrue(simulator.run().getMeasurements().isEmpty());
+        assertEquals(1L, context.getStepsExecuted());
+        simulator.shutdown();
+    }
+
+    @Test
+    void expiredTimeoutStopsTheRunBeforeTheFirstEvent() throws Exception {
+        SimulationConfig config = new SimulationConfig();
+        config.setNumQubits(1);
+        config.setTimeoutSeconds(0.01);
+        QuantumSimulator simulator = new QuantumSimulator();
+        simulator.initialize(config);
+        SimulationContext context = simulator.getContext();
+        simulator.scheduleEvent(event("only", SingleQubitGate.createPauliX(context.getQubit(0))));
+
+        Thread.sleep(50);
+        assertTrue(context.shouldStop());
+        assertTrue(simulator.run().getMeasurements().isEmpty());
+        assertEquals(0L, context.getStepsExecuted());
+        simulator.shutdown();
+    }
+
+    @Test
     void densityMatrixBackendAndMeasurementObservers() throws Exception {
         SimulationConfig dense = new SimulationConfig();
         dense.setNumQubits(1);

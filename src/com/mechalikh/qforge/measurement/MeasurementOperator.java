@@ -4,6 +4,7 @@ import java.util.Locale;
 import com.mechalikh.qforge.noise.ReadoutErrorModel;
 import com.mechalikh.qforge.operations.QuantumOperation;
 import com.mechalikh.qforge.state.QuantumState;
+import com.mechalikh.qforge.state.MPSState;
 import com.mechalikh.qforge.state.Qubit;
 import com.mechalikh.qforge.state.StabilizerState;
 
@@ -137,12 +138,21 @@ public class MeasurementOperator implements QuantumOperation {
      * drawn, and the supplied probabilities are stored in the result alongside the sampled
      * counts. No collapse is performed and the state reference is not retained.</p>
      *
+     * <p>A matrix product state with more than twenty four qubits cannot produce the dense
+     * outcome probabilities. For a computational basis observable on such a state the outcomes
+     * are sampled by tensor contraction and the result carries no exact probabilities, so
+     * {@link MeasurementResult} derives them from the sampled counts.</p>
+     *
      * @param state the state to measure, which is left unchanged
      * @return the sampled measurement result
      * @throws IllegalArgumentException if the observable targets qubits outside {@code state}
      * @throws IllegalStateException if the observable yields no measurement probability
      */
     public MeasurementResult measure(QuantumState state) {
+        if (state instanceof MPSState && observable.isComputationalBasis()
+                && !((MPSState) state).hasDenseAccess()) {
+            return sampleMPS((MPSState) state);
+        }
         return observable.measureMultiple(state, shots);
     }
     
@@ -158,6 +168,12 @@ public class MeasurementOperator implements QuantumOperation {
      * <p>When the operator is destructive the collapsed state is a new state produced by
      * {@link Observable#collapse(QuantumState, int)}. Otherwise the collapsed state is the
      * supplied {@code state} instance itself.</p>
+     *
+     * <p>A matrix product state with more than twenty four qubits is read out by tensor
+     * contraction when the observable is diagonal in the computational basis: outcomes are
+     * sampled and the collapse projects the target tensors directly. The result then carries
+     * no exact probabilities and {@link MeasurementResult} derives them from the sampled
+     * counts. Non diagonal observables remain limited to twenty four qubits.</p>
      *
      * @param state the state to measure
      * @return the measurement result, the state after the collapse and the collapsed outcome
@@ -193,6 +209,10 @@ public class MeasurementOperator implements QuantumOperation {
         if (state instanceof StabilizerState && observable.isComputationalBasis()) {
             return measureStabilizer((StabilizerState) state, readout);
         }
+        if (state instanceof MPSState && observable.isComputationalBasis()
+                && !((MPSState) state).hasDenseAccess()) {
+            return measureMPS((MPSState) state, readout);
+        }
         double[] probabilities = observable.getOutcomeProbabilities(state);
         int[] outcomes = observable.sampleOutcomes(probabilities, shots);
         
@@ -225,6 +245,46 @@ public class MeasurementOperator implements QuantumOperation {
         return new MeasurementOutcome(result, collapsedState, sampledOutcome);
     }
     
+    private MeasurementResult sampleMPS(MPSState state) {
+        int[] outcomes = state.sampleComputationalBasis(targetIndices(), shots);
+        return new MeasurementResult(
+            name, observable.getTargetQubits(), outcomes, null,
+            observable.getOutcomeEigenvalues());
+    }
+
+    private MeasurementOutcome measureMPS(MPSState state, ReadoutErrorModel readout) {
+        int[] targets = targetIndices();
+        int[] outcomes = state.sampleComputationalBasis(targets, shots);
+        int sampledOutcome = outcomes.length > 0
+            ? outcomes[0] : state.sampleComputationalBasis(targets);
+
+        boolean appliesReadout = readout != null && !readout.isEmpty();
+        int[] reportedOutcomes = outcomes;
+        if (appliesReadout) {
+            reportedOutcomes = new int[outcomes.length];
+            for (int i = 0; i < outcomes.length; i++) {
+                reportedOutcomes[i] = corrupt(outcomes[i], readout);
+            }
+        }
+
+        MeasurementResult result = new MeasurementResult(
+            name, observable.getTargetQubits(), reportedOutcomes, null,
+            observable.getOutcomeEigenvalues());
+        QuantumState collapsedState = destructive
+            ? state.collapseToBasisState(targets, sampledOutcome)
+            : state;
+        return new MeasurementOutcome(result, collapsedState, sampledOutcome);
+    }
+
+    private int[] targetIndices() {
+        Qubit[] targets = observable.getTargetQubits();
+        int[] indices = new int[targets.length];
+        for (int i = 0; i < targets.length; i++) {
+            indices[i] = targets[i].getIndex();
+        }
+        return indices;
+    }
+
     private int corrupt(int outcome, ReadoutErrorModel readout) {
         Qubit[] targets = observable.getTargetQubits();
         int corrupted = outcome;

@@ -166,7 +166,7 @@ sequenceDiagram
     CTX-->>DIS: done
     DIS->>OBS: onStateUpdate, onMeasurement
     SIM->>SIM: classical controller processes measurements
-    SIM->>SIM: check shouldStop()
+    SIM->>SIM: check shouldStop() before the next dispatch
 ```
 
 Three details of `SimulationContext.applyOperation` matter when you read results:
@@ -184,13 +184,15 @@ Three details of `SimulationContext.applyOperation` matter when you read results
 | Condition | Where it is checked | Effect |
 | --- | --- | --- |
 | Queue empty | `run()` loop guard | Normal completion |
-| `context.requestStop()` | `SimulationContext.shouldStop()` after each event | Loop exits, partial result returned |
+| `context.requestStop()` | `SimulationContext.shouldStop()` before each dispatch | Loop exits, partial result returned |
 | `maxSteps` positive and reached | `SimulationContext.shouldStop()` | Loop exits at the step limit; `0` means unlimited |
 | `stop()` called | `run()` loop guard on the running flag | Loop exits after the current event |
-| `timeoutSeconds` | nowhere | Recorded and serialized, but not enforced |
+| `timeoutSeconds` positive and elapsed | `SimulationContext.shouldStop()` | Loop exits with the events executed so far; `0` means no limit |
 
-The timeout field is validated and written to JSON, and no code path aborts a run on it. Treat it
-as metadata until it is wired up.
+The limits are polled before an event is dispatched, so a run that is started after a limit has
+already been reached returns without executing anything. The timeout measures wall clock time from
+`initializeState()` or the last `reset()`, and it cannot interrupt an event that is already
+running, only the ones still queued.
 
 ## State representations
 
@@ -260,7 +262,7 @@ that index, so `getProbabilities()[i]` is the probability of the basis string of
 | Exact | Yes | Yes | Yes, for the Clifford group | Only when no Schmidt weight is discarded |
 | Noise | Kraus channels, one trajectory per run | Full `sum K rho K dagger` | Rejected | Rejected |
 | Gate set | Any supported gate | Any supported gate | `X`, `Y`, `Z`, `H`, `S`, `Sdg`, `CNOT`/`CX`, `CZ`, `SWAP`, `I` | One- and two-qubit gates |
-| Measurement | Any observable | Any observable | Pauli `Z`, exact probabilities for at most 16 qubits | Pauli `Z` with dense probabilities for at most 24 qubits |
+| Measurement | Any observable | Any observable | Pauli `Z`, exact marginals for at most 16 qubits and sampling for at most 32 | Pauli `Z`; computational-basis sampling and collapse work at any size, exact dense probabilities at most 24 qubits |
 | Truncation diagnostics | Not applicable | Not applicable | Not applicable | `MPSState.getTruncationError()` and `getBondDimensions()` |
 | Backed by | `StateVectorStrategy` | `DensityMatrixStrategy` | `StabilizerStrategy` | `TensorNetworkStrategy` |
 
@@ -270,7 +272,10 @@ recommendation, so the ceilings are enforced at initialization rather than at al
 Probability and fidelity metrics require dense access to the state. `StateVector`,
 `DensityMatrix` and `MPSState` implement `AmplitudeAccess`, so the metrics collector reports
 fidelity for them; a `StabilizerState` has no dense form and is skipped by the fidelity and
-distance metrics instead of failing the run.
+distance metrics instead of failing the run. The collector also skips a matrix product state
+above 24 qubits, where it cannot form the probability vector, although
+`TensorNetworkStrategy.calculateFidelity` and `MPSState.overlap` still contract the two tensor
+chains at any size.
 
 ## Classical control and feed-forward
 

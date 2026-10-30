@@ -38,9 +38,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * {@link MeasurementResult}. Each successful operation increments the step counter.
  *
  * <p>Stop conditions are exposed through {@link #shouldStop()}, which combines an explicit
- * stop request with the configured maximum step count. Observer and plugin notifications
- * are issued by {@link QuantumSimulator}; this class only records and exposes state. The
- * class makes no thread safety guarantees.
+ * stop request with the configured maximum step count and wall clock timeout. Observer and
+ * plugin notifications are issued by {@link QuantumSimulator}; this class only records and
+ * exposes state. The class makes no thread safety guarantees.
  */
 public class SimulationContext {
     private final SimulationConfig config;
@@ -410,15 +410,21 @@ public class SimulationContext {
     /**
      * Reports whether the run loop should stop.
      *
-     * <p>A stop is reported when {@link #requestStop()} has been called or when a positive
-     * maximum step count is configured and the number of executed steps has reached it. A
-     * maximum step count of 0 or less means no step limit.
+     * <p>A stop is reported when {@link #requestStop()} has been called, when a positive
+     * maximum step count is configured and the number of executed steps has reached it, or
+     * when a positive timeout is configured and the wall clock time elapsed since
+     * {@link #initializeState()} has reached it. A maximum step count of 0 or less means no
+     * step limit, and a timeout of 0 or less means no time limit. The timeout is polled
+     * between events, so it bounds the number of further events rather than interrupting one
+     * that is already running.
      *
-     * @return true if a stop was requested or the configured step limit is reached
+     * @return true if a stop was requested or a configured limit has been reached
      */
     public boolean shouldStop() {
         return stopRequested || 
-               (config.getMaxSteps() > 0 && stepsExecuted >= config.getMaxSteps());
+               (config.getMaxSteps() > 0 && stepsExecuted >= config.getMaxSteps()) ||
+               (config.getTimeoutSeconds() > 0 && simulationStartTime != null
+                   && getElapsedTimeMillis() >= config.getTimeoutSeconds() * 1000.0);
     }
     
     /**

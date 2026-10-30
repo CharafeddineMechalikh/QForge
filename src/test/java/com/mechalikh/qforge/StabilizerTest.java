@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.mechalikh.qforge.config.ResourceConstraints;
+import com.mechalikh.qforge.config.SimulationBackend;
+import com.mechalikh.qforge.config.SimulationConfig;
 import com.mechalikh.qforge.math.Complex;
 import com.mechalikh.qforge.math.ComplexMatrix;
 import com.mechalikh.qforge.measurement.MeasurementResult;
@@ -251,6 +254,17 @@ class StabilizerTest {
             () -> strategy.calculateFidelity(state, cloned));
         assertThrows(UnsupportedOperationException.class,
             () -> strategy.applyNoise(state, null, qubits((StabilizerState) state, 1)));
+    }
+
+    @Test
+    void widestRegisterPassesTheDefaultMemoryGuard() {
+        SimulationConfig config = new SimulationConfig();
+        config.setBackend(SimulationBackend.STABILIZER);
+        config.setNumQubits(2000);
+        assertTrue(config.validate());
+
+        config.setResourceConstraints(new ResourceConstraints(1024L * 1024L, 1, 0));
+        assertFalse(config.validate());
     }
 
     private static StabilizerState bellState(long seed) {

@@ -129,6 +129,7 @@ public class QuantumSimulator {
             notifyObserversInitialized();
             
         } catch (Exception e) {
+            notifyObserversError(e.getMessage(), e);
             throw new SimulationError("Failed to initialize simulator: " + e.getMessage(), e);
         }
     }
@@ -138,11 +139,16 @@ public class QuantumSimulator {
      *
      * <p>Requires a successful call to {@link #initialize(SimulationConfig)}. The running
      * flag is set, plugins receive their simulation start callback, and the queue is drained
-     * one event per iteration. After each dispatch the method notifies observers of state
-     * changes and of newly recorded measurements, lets the classical controller process
-     * measurements (which may schedule further events), and checks
-     * {@link SimulationContext#shouldStop()}. The loop also exits when {@link #stop()}
-     * clears the running flag.
+     * one event per iteration. Before each dispatch {@link SimulationContext#shouldStop()} is
+     * checked, so the step limit, the wall clock timeout and {@link #stop()} all end the run
+     * without executing one extra event. After each dispatch the method notifies observers of
+     * state changes, of newly recorded measurements and of progress, and lets the classical
+     * controller process measurements, which may schedule further events.
+     *
+     * <p>{@link #pause()} also ends the run, after the event in flight. The partial result is
+     * returned and observers receive {@link SimulationObserver#onCompleted(SimulationResult)};
+     * the queue keeps the remaining events, so {@link #resume()} followed by another call to
+     * this method continues from the same state.
      *
      * <p>The returned result captures the current state, the measurements, the metrics
      * collector and the elapsed wall clock time in milliseconds. On success or failure the
@@ -166,23 +172,25 @@ public class QuantumSimulator {
         }
         
         try {
-            // Execute events until queue is empty or stop condition is met
-            while (!eventDispatcher.isQueueEmpty() && isRunning.get()) {
+            long dispatched = 0;
+            // Execute events until queue is empty, a limit is reached or the run is stopped
+            while (!eventDispatcher.isQueueEmpty() && isRunning.get()
+                    && !eventDispatcher.isPaused()) {
+                if (context.shouldStop()) {
+                    break;
+                }
                 int measurementCountBefore = context.getMeasurements().size();
                 QuantumEvent event = eventDispatcher.dispatchNextEvent(context);
                 if (event != null) {
                     notifyObserversStepped(event);
                 }
                 notifyObserversMeasurements(measurementCountBefore);
+                dispatched++;
+                notifyObserversProgress(dispatched, eventDispatcher.getQueueSize());
                 
                 // Allow classical controller to intervene
                 if (classicalController != null) {
                     classicalController.processEvents(context);
-                }
-                
-                // Check stop conditions
-                if (context.shouldStop()) {
-                    break;
                 }
             }
             
@@ -203,6 +211,7 @@ public class QuantumSimulator {
             if (pluginManager != null) {
                 pluginManager.notifyError(e.getMessage(), e);
             }
+            notifyObserversError(e.getMessage(), e);
             throw new SimulationError("Simulation failed: " + e.getMessage(), e);
         } finally {
             isRunning.set(false);
@@ -248,6 +257,7 @@ public class QuantumSimulator {
             if (pluginManager != null) {
                 pluginManager.notifyError(e.getMessage(), e);
             }
+            notifyObserversError(e.getMessage(), e);
             throw new SimulationError("Step execution failed: " + e.getMessage(), e);
         }
     }
@@ -285,9 +295,9 @@ public class QuantumSimulator {
      *
      * <p>When a context exists, its quantum state is recreated through the strategy, and its
      * measurements, custom data, step counter, stop flag, start time and metrics are reset.
-     * When a dispatcher exists, its queue is cleared. The running flag is cleared and
-     * observers receive {@link SimulationObserver#onReset()}. Plugins, the classical
-     * controller and the resources held by the resource manager are left untouched.
+     * When a dispatcher exists, its queue is cleared and its paused flag is cleared. The running
+     * flag is cleared and observers receive {@link SimulationObserver#onReset()}. Plugins, the
+     * classical controller and the resources held by the resource manager are left untouched.
      */
     public void reset() {
         if (context != null) {
@@ -295,6 +305,7 @@ public class QuantumSimulator {
         }
         if (eventDispatcher != null) {
             eventDispatcher.clear();
+            eventDispatcher.resume();
         }
         isRunning.set(false);
         notifyObserversReset();
@@ -303,9 +314,59 @@ public class QuantumSimulator {
     /**
      * Clears the running flag so that an active {@link #run()} loop exits after the current
      * event. Has no effect when no run is in progress.
+     *
+     * <p>When a run was in progress, observers receive
+     * {@link SimulationObserver#onSimulationStopped()} after the flag is cleared.</p>
      */
     public void stop() {
-        isRunning.set(false);
+        if (isRunning.getAndSet(false)) {
+            notifyObserversStopped();
+        }
+    }
+    
+    /**
+     * Requests that an active run stop after the event in flight.
+     *
+     * <p>Requires initialization. The paused flag is checked by {@link #run()} between events,
+     * so the call returns a partial result and leaves the remaining events queued. Observers
+     * receive {@link SimulationObserver#onSimulationPaused()}. The method does not block and
+     * does not interrupt an event that is already executing.</p>
+     *
+     * @throws SimulationError if the simulator is not initialized
+     */
+    public void pause() throws SimulationError {
+        if (eventDispatcher == null || context == null) {
+            throw new SimulationError("Simulator not initialized");
+        }
+        eventDispatcher.pause();
+        notifyObserversPaused();
+    }
+    
+    /**
+     * Clears the paused flag so that a later {@link #run()} can dispatch the queued events.
+     *
+     * <p>Requires initialization. Observers receive
+     * {@link SimulationObserver#onSimulationResumed()} even when the simulator was not paused,
+     * because the call always clears the flag.</p>
+     *
+     * @throws SimulationError if the simulator is not initialized
+     */
+    public void resume() throws SimulationError {
+        if (eventDispatcher == null || context == null) {
+            throw new SimulationError("Simulator not initialized");
+        }
+        eventDispatcher.resume();
+        notifyObserversResumed();
+    }
+    
+    /**
+     * Reports whether the simulator is paused.
+     *
+     * @return true when {@link #pause()} was called and {@link #resume()} or {@link #reset()}
+     *         has not cleared the flag
+     */
+    public boolean isPaused() {
+        return eventDispatcher != null && eventDispatcher.isPaused();
     }
     
     /**
@@ -458,6 +519,39 @@ public class QuantumSimulator {
     private void notifyObserversReset() {
         for (SimulationObserver observer : observers) {
             observer.onReset();
+        }
+    }
+    
+    private void notifyObserversProgress(long dispatched, int queued) {
+        long total = dispatched + queued;
+        double progress = total <= 0 ? 1.0 : (double) dispatched / total;
+        String message = "Dispatched " + dispatched + " of " + total + " known events";
+        for (SimulationObserver observer : observers) {
+            observer.onProgress(progress, message);
+        }
+    }
+    
+    private void notifyObserversError(String message, Throwable error) {
+        for (SimulationObserver observer : observers) {
+            observer.onError(message, error);
+        }
+    }
+    
+    private void notifyObserversPaused() {
+        for (SimulationObserver observer : observers) {
+            observer.onSimulationPaused();
+        }
+    }
+    
+    private void notifyObserversResumed() {
+        for (SimulationObserver observer : observers) {
+            observer.onSimulationResumed();
+        }
+    }
+    
+    private void notifyObserversStopped() {
+        for (SimulationObserver observer : observers) {
+            observer.onSimulationStopped();
         }
     }
     

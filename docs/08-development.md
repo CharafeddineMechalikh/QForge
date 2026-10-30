@@ -75,7 +75,7 @@ Use `:` instead of `;` between classpath entries on Linux and macOS. Demo images
 
 ## Test suite
 
-511 tests, all passing on the current tree.
+525 tests, all passing on the current tree.
 
 | Class | Tests | Covers |
 | --- | --- | --- |
@@ -154,8 +154,8 @@ Conventions that keep the build clean:
   `{@link com.mechalikh.qforge.state.StateVector}` from the `measurement` package.
 - `@throws` must name an exception the method actually declares; a hook that swallows exceptions
   does not document `@throws Exception`.
-- Documentation describes what the code does, including the negative cases: unenforced timeouts,
-  placeholder control rules and unexposed types are documented as such rather than glossed over.
+- Documentation describes what the code does, including the negative cases: placeholder control
+  rules and unexposed types are documented as such rather than glossed over.
 
 ## Documentation site
 
@@ -228,18 +228,21 @@ consistent with the code in the same change that alters behavior.
 
 Honest list, in the order people usually hit it:
 
-- `timeoutSeconds` is stored, validated and serialized but never enforced.
 - The three default `ControlRule` implementations in `ClassicalController` are placeholders, and
   `updateEventQueue` and `executeConditional` have no engine caller. Circuit-level feed-forward does
   work through `ClassicalRegister` and `ConditionalOperation`.
-- The stabilizer backend accepts Clifford gates only, rejects every Kraus channel, caps a
-  `MeasurementResult` at 16 measured targets, and does not implement fidelity or entropy.
+- The stabilizer backend accepts Clifford gates only, rejects every Kraus channel, caps an exact
+  `MeasurementResult` at 16 measured targets (sampling accepts up to 32), and does not implement
+  fidelity or entropy.
+- The timeout is polled between events, so a single long gate cannot be interrupted; a run that
+  exceeds it returns the events executed so far and `SimulationContext.shouldStop()` reports
+  `true`.
 - The tensor-network backend applies at most two qubits per gate, rejects noise channels, and
-  performs measurement, fidelity, entropy and dense probability extraction only for at most 24
-  qubits. Above that limit a circuit still runs and the metrics collector keeps its step counters,
-  but the final state exposes only bond dimensions, purity and discarded weight, so gate-only
-  evolution is the only use above 24 qubits. Truncation reports a relative discarded weight but no
-  rigorous error bound.
+  provides entropy and dense probability extraction only for at most 24 qubits. Computational
+  basis sampling, collapse and overlap are computed by tensor contraction and work at any size;
+  non-diagonal observables still need the reduced density matrix and therefore stop at 24
+  qubits. The metrics collector skips fidelity above 24 qubits. Truncation reports a relative
+  discarded weight but no rigorous error bound.
 - QASM import covers the documented subset. `reset`, `opaque`, loops, nested conditions and
   vendor-specific gates are rejected rather than approximated.
 - The exchange format is OpenQASM text. There is no Python Qiskit bridge, so a Qiskit circuit must

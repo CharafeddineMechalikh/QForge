@@ -26,7 +26,7 @@ A fresh `new SimulationConfig()` holds:
 | `noiseProfile` | empty `NoiseProfile` | `setNoiseProfile(NoiseProfile)` |
 | `gateLibrary` | new `GateLibrary` with the standard factories | `setGateLibrary(GateLibrary)` |
 | `maxSteps` | `0`, meaning unlimited | `setMaxSteps(int)` |
-| `timeoutSeconds` | `0`, recorded only | `setTimeoutSeconds(double)` |
+| `timeoutSeconds` | `0`, meaning no time limit | `setTimeoutSeconds(double)` |
 | `classicalControlEnabled` | `false` | `setClassicalControlEnabled(boolean)` |
 | `customParameters` | empty map | `setCustomParameter(String, Object)` |
 
@@ -57,9 +57,17 @@ density matrix. Note that the estimate uses `Runtime.maxMemory()` and the availa
 as ceilings for the constraints themselves, so a `maxMemoryBytes` above the JVM heap maximum is
 rejected unless memory overcommit is allowed.
 
+The other two backends have their own formulas. The tensor network reserves
+`n * maxBondDimension^2 * 2 * 16 + 4096` bytes, so the default bond dimension of 64 imposes little
+before the bond cap becomes the real limit. The stabilizer estimate counts the packed tableau that
+`StabilizerState` actually allocates: two rows per qubit, each holding an `X` and a `Z` block of
+`ceil(n / 64)` longs plus one phase byte, and the total is doubled because measurement and collapse
+work on a copy. A 2000-qubit tableau is 2 MB and the estimate returns 4 MB plus 4096 bytes, so the
+default memory limit admits the widest register without an override.
+
 Because the ceiling check and the memory check both run, an initialization failure usually means
-one of: too many qubits for the backend, a heap that is smaller than the state needs, or a CPU
-limit above `Runtime.availableProcessors()`.
+one of: too many qubits for the backend, a heap that is smaller than the state needs, an estimate
+above `maxMemoryBytes`, or a CPU limit above `Runtime.availableProcessors()`.
 
 ## JSON schema
 

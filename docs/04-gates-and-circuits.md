@@ -374,6 +374,8 @@ header, the fractional digits of printed angles, and the trailing newline.
 | Limit | Where | Reason |
 | --- | --- | --- |
 | 30 qubits state vector, 12 density matrix, 2000 stabilizer, 100 tensor network | `SimulationConfig.validate()` | per-backend memory estimate and recommended ceiling |
+| Stabilizer measurement: exact marginals for 16 targets, sampling for 32 | `StabilizerState` | cost of enumerating outcomes |
+| Tensor-network dense access: 24 qubits | `AmplitudeAccess` capability | a `2^n` probability vector above that width is not materialised |
 | Matrix size must match controls plus targets | `QuantumGate` constructor | expansion into the register |
 | `Toffoli`, `CSWAP`, multi-controlled `Z` grow as `2^n` | factory methods | dense matrices, so keep them small |
 | QASM import accepts a subset | `QasmParser` | unsupported statements are rejected, never ignored |

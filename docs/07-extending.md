@@ -35,6 +35,7 @@ sequenceDiagram
         SIM->>PL: onStateUpdate(state, event)
         SIM->>PL: onOperationApplied(operation)
         SIM->>OBS: onMeasurement(result) for new results
+        SIM->>OBS: onProgress(fraction dispatched)
         SIM->>PL: onError(message, error) on failure
     end
     SIM->>OBS: onCompleted(result)
@@ -70,16 +71,21 @@ Which callbacks actually fire, stated precisely so you do not build on silence:
 | `onEventScheduled` | yes, during `scheduleEvent` |
 | `onStateUpdate` | yes, after each dispatched event in `run()` and `step()` |
 | `onMeasurement` | yes, for results recorded during each event |
+| `onProgress` | yes, once per dispatched event in `run()`; the value is the fraction of known events already dispatched |
 | `onCompleted` | yes, at the end of `run()` |
 | `onReset` | yes, during `reset()` |
-| `onError` | not by the facade; `SimulationError` is thrown to the caller instead |
-| `onProgress`, `onConfigurationChanged` | no caller in the engine |
-| `onResourceAllocated`, `onResourceReleased` | no caller in the engine |
-| `onCheckpointCreated`, `onCheckpointRestored` | no caller in the engine |
-| `onSimulationPaused`, `onSimulationResumed`, `onSimulationStopped` | no caller in the engine |
+| `onError` | yes, when `initialize`, `step` or `run` fails, just before the `SimulationError` is thrown |
+| `onSimulationPaused` | yes, from `pause()` |
+| `onSimulationResumed` | yes, from `resume()` |
+| `onSimulationStopped` | yes, from `stop()` while a run is active |
 
-The interface declares those as default no-op methods, so implementations compile but will not see
-events until the engine calls them.
+The interface holds only callbacks the engine can raise. Configuration changes, resource accounting
+and checkpoints have no engine support and are not part of it.
+
+`pause()` stops `run()` after the current event: the remaining events stay queued, the call returns
+the partial result, and a later `run()` continues from the queue. `reset()` clears the paused flag.
+A run ended by `maxSteps` or `timeoutSeconds` returns the partial result too; inspect
+`simulator.getContext().shouldStop()` to tell that apart from an exhausted queue.
 
 ### Metrics collection
 

@@ -13,6 +13,7 @@ import com.mechalikh.qforge.config.SimulationBackend;
 import com.mechalikh.qforge.config.SimulationConfig;
 import com.mechalikh.qforge.core.QuantumSimulator;
 import com.mechalikh.qforge.core.SimulationContext;
+import com.mechalikh.qforge.core.SimulationError;
 import com.mechalikh.qforge.core.SimulationResult;
 import com.mechalikh.qforge.events.EventType;
 import com.mechalikh.qforge.events.QuantumEvent;
@@ -451,6 +452,100 @@ class ObserverCoverageTest {
         simulator.removeObserver(new RecordingObserver());
         simulator.run();
         assertEquals(2, observer.completed);
+    }
+
+    @Test
+    void pauseResumeAndProgressReachObservers() throws Exception {
+        SimulationConfig config = new SimulationConfig();
+        config.setNumQubits(2);
+        QuantumSimulator simulator = new QuantumSimulator();
+        LifecycleObserver observer = new LifecycleObserver();
+        simulator.addObserver(observer);
+
+        assertThrows(SimulationError.class, simulator::pause);
+        assertThrows(SimulationError.class, simulator::resume);
+
+        simulator.initialize(config);
+        Qubit qubit = simulator.getContext().getQubit(0);
+        simulator.scheduleEvent(TestSupport.event("a", SingleQubitGate.createPauliX(qubit), qubit));
+        simulator.scheduleEvent(TestSupport.event("b", SingleQubitGate.createPauliX(qubit), qubit));
+
+        simulator.pause();
+        assertTrue(simulator.isPaused());
+        assertEquals(1, observer.paused);
+        simulator.run();
+        assertEquals(0L, simulator.getContext().getStepsExecuted());
+        assertEquals(0, observer.progress.size());
+
+        simulator.resume();
+        assertFalse(simulator.isPaused());
+        assertEquals(1, observer.resumed);
+        simulator.run();
+        assertEquals(2L, simulator.getContext().getStepsExecuted());
+        assertEquals(2, observer.progress.size());
+        assertEquals(0.5, observer.progress.get(0), 1e-12);
+        assertEquals(1.0, observer.progress.get(1), 1e-12);
+
+        simulator.pause();
+        simulator.reset();
+        assertFalse(simulator.isPaused());
+        simulator.shutdown();
+    }
+
+    @Test
+    void stopNotifiesObserversOnlyWhileARunIsActive() throws Exception {
+        SimulationConfig config = new SimulationConfig();
+        config.setNumQubits(1);
+        QuantumSimulator simulator = new QuantumSimulator();
+        LifecycleObserver observer = new LifecycleObserver() {
+            @Override
+            public void onStateUpdate(QuantumState state, QuantumEvent event) {
+                simulator.stop();
+            }
+        };
+        simulator.addObserver(observer);
+        simulator.initialize(config);
+        Qubit qubit = simulator.getContext().getQubit(0);
+        simulator.scheduleEvent(TestSupport.event("a", SingleQubitGate.createPauliX(qubit), qubit));
+        simulator.scheduleEvent(TestSupport.event("b", SingleQubitGate.createPauliX(qubit), qubit));
+
+        simulator.stop();
+        assertEquals(0, observer.stopped);
+
+        simulator.run();
+        assertEquals(1L, simulator.getContext().getStepsExecuted());
+        assertEquals(1, observer.stopped);
+
+        simulator.stop();
+        assertEquals(1, observer.stopped);
+        simulator.shutdown();
+    }
+
+    private static class LifecycleObserver implements SimulationObserver {
+        final List<Double> progress = new ArrayList<>();
+        int paused;
+        int resumed;
+        int stopped;
+
+        @Override
+        public void onProgress(double value, String message) {
+            progress.add(value);
+        }
+
+        @Override
+        public void onSimulationPaused() {
+            paused++;
+        }
+
+        @Override
+        public void onSimulationResumed() {
+            resumed++;
+        }
+
+        @Override
+        public void onSimulationStopped() {
+            stopped++;
+        }
     }
 
     private static void assertPng(Path path) throws IOException {

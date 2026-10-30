@@ -33,10 +33,10 @@ public enum SimulationBackend {
     /**
      * Matrix product state backend, described as {@code "Tensor Network Simulation"}. The
      * recommended limit is 100 qubits, which assumes a small bond dimension. Results are
-     * approximate whenever truncation discards Schmidt weight. Dense amplitudes, basis-state
-     * probabilities, measurement and fidelity metrics all require 24 qubits or fewer, so above
-     * that limit the simulation runs but only bond dimensions, purity and discarded weight can
-     * be read from the final state.
+     * approximate whenever truncation discards Schmidt weight. Computational basis sampling
+     * and collapse work at any size, but dense amplitudes, basis-state probabilities, the
+     * reduced density matrix, matrix expectation values and non diagonal observables all
+     * require 24 qubits or fewer.
      */
     TENSOR_NETWORK("Tensor Network Simulation", 100, false, false);
 
